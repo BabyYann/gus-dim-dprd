@@ -43,12 +43,31 @@ if [ -f "$BACKEND_DIR/vendor/composer/platform_check.php" ]; then
     echo "<?php return;" > "$BACKEND_DIR/vendor/composer/platform_check.php"
 fi
 
+# Deteksi binary PHP 8.4
+PHP_BIN="php"
+for candidate in \
+    "/opt/alt/php84/usr/bin/php" \
+    "/opt/cpanel/ea-php84/root/usr/bin/php" \
+    "/usr/local/bin/ea-php84" \
+    "/opt/alt/php83/usr/bin/php" \
+    "/opt/cpanel/ea-php83/root/usr/bin/php" \
+    "$(which php 2>/dev/null)"; do
+    if [ -x "$candidate" ]; then
+        VER=$($candidate -r "echo PHP_VERSION;" 2>/dev/null || true)
+        if [[ "$VER" =~ ^8\.[4] ]]; then
+            PHP_BIN="$candidate"
+            echo "Menggunakan PHP 8.4: $candidate (versi $VER)"
+            break
+        fi
+    fi
+done
+
 # 4. Optimasi Laravel Storage dan Cache
 cd "$BACKEND_DIR"
-php artisan storage:link || true
-php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
+$PHP_BIN artisan storage:link || true
+$PHP_BIN artisan config:cache || true
+$PHP_BIN artisan route:cache || true
+$PHP_BIN artisan view:cache || true
 
 # 5. Bersihkan folder bersarang jika pernah terbentuk sebelumnya
 if [ -d "$PUBLIC_HTML_DIR/public_html" ]; then
