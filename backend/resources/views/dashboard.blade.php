@@ -1442,6 +1442,14 @@
       </div>
       <h3 id="detailNama" style="text-align:center; margin:0 0 2px;">-</h3>
       <p id="detailSub" style="text-align:center; color:#64748b; font-size:12.5px; margin-top:0;">-</p>
+      <div id="detailOperatorBadge" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:8px;padding:8px 12px;margin:10px 0;font-size:12px;text-align:left;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+          <strong style="font-size:11px;text-transform:uppercase;color:#15803d;">Akun Operator Aktif</strong>
+          <span style="background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;">Terdaftar</span>
+        </div>
+        <div style="font-weight:600;" id="detailOpRoleText">Koordinator Desa</div>
+        <div style="color:#475569;margin-top:2px;">Username: <code id="detailOpUserText" style="background:#e2e8f0;padding:1px 5px;border-radius:3px;">-</code></div>
+      </div>
       <div class="detail-rows" id="detailRows"></div>
       <div class="modal-actions" style="margin-top:16px;">
         <button class="btn-toolbar-filter" onclick="closeModal('modalDetailOrang')">Tutup</button>
@@ -1449,6 +1457,12 @@
           <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.92 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.14c-.24.68-1.4 1.32-1.93 1.36-.53.05-1.02.25-3.43-.72-2.9-1.15-4.76-4.08-4.9-4.28-.14-.19-1.17-1.56-1.17-2.98 0-1.42.75-2.11 1.01-2.4.26-.28.58-.35.77-.35.19 0 .39 0 .55.01.18.01.42-.07.65.5.24.58.81 2 .88 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.72-.84.92-1.13.19-.29.38-.24.64-.15.26.1 1.67.79 1.95.93.29.15.48.22.55.34.07.13.07.72-.17 1.4z"/></svg>
           Chat WhatsApp
         </a>
+        <button class="btn-toolbar-filter" id="btnKirimWaAksesOperator" style="display:none;color:#0d9488;border-color:#99f6e4;background:#f0fdfa;" onclick="kirimUlangAksesWaOperator()">
+          Kirim Akses WA
+        </button>
+        <button class="btn-toolbar-filter" id="btnResetPassOperator" style="display:none;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="resetPasswordOperatorDariDetail()">
+          Reset Password
+        </button>
         <button class="btn-primary-nasdem" id="btnJadikanOperatorDariDetail" style="display:none; background:#0d9488; border-color:#0d9488;" onclick="bukaModalJadikanOperator()">Jadikan Operator</button>
         <button class="btn-primary-nasdem" id="btnUbahStatusDariDetail" style="display:none;">Ubah Status</button>
       </div>

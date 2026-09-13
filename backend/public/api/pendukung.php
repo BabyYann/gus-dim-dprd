@@ -236,18 +236,40 @@ switch ($action) {
 
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", $where) : "";
-            $stmt = $pdo->prepare("SELECT id, jalur, nik, nama, hp, umur, jabatan, koordinator, alamat, kecamatan, desa, latitude as lat, longitude as lng, foto_wajah as foto, foto_ktp, status, catatan, input_by_user_name, created_at FROM pendukung {$whereSql} ORDER BY id DESC");
+            $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", array_map(fn($w) => "p." . $w, $where)) : "";
+            $sql = "SELECT p.id, p.jalur, p.nik, p.nama, p.hp, p.umur, p.jabatan, p.koordinator, p.alamat, 
+                           p.kecamatan, p.desa, p.latitude as lat, p.longitude as lng, p.foto_wajah as foto, 
+                           p.foto_ktp, p.status, p.catatan, p.input_by_user_name, p.created_at,
+                           u.id as operator_user_id, u.username as operator_username, u.role as operator_role, u.status as operator_status
+                    FROM pendukung p
+                    LEFT JOIN users u ON (u.pendukung_id = p.id OR (p.hp != '' AND (u.username = p.hp OR u.username = REPLACE(REPLACE(p.hp, '-', ''), ' ', ''))))
+                    {$whereSql} 
+                    ORDER BY p.id DESC";
+            $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll();
         } else {
             $data = Database::getJsonData();
             $rawRows = $data['pendukung'] ?? [];
+            $usersList = $data['users'] ?? [];
             foreach ($rawRows as $r) {
                 if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
                     if (strcasecmp($r['desa'] ?? '', $user['desa']) !== 0) continue;
                 } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
                     if (strcasecmp($r['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
+                }
+                $r['operator_user_id'] = null;
+                $r['operator_username'] = null;
+                $r['operator_role'] = null;
+                $r['operator_status'] = null;
+                foreach ($usersList as $u) {
+                    if (($u['pendukung_id'] ?? 0) === $r['id'] || (!empty($r['hp']) && $u['username'] === $r['hp'])) {
+                        $r['operator_user_id'] = $u['id'];
+                        $r['operator_username'] = $u['username'];
+                        $r['operator_role'] = $u['role'];
+                        $r['operator_status'] = $u['status'] ?? 'Aktif';
+                        break;
+                    }
                 }
                 $rows[] = $r;
             }

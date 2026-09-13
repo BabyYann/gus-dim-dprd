@@ -17,25 +17,41 @@ if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') 
 
 if (Database::isMysql()) {
     $pdo = Database::getPdo();
-    $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", $where) : "";
-    $sql = "SELECT id, jalur, nik, nama, hp, umur, jabatan, koordinator, alamat, 
-                   kecamatan, desa, latitude as lat, longitude as lng, foto_wajah as foto, 
-                   foto_ktp, status, catatan, input_by_user_name as userInput, created_at as tanggalRaw,
-                   DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') as tanggal
-            FROM pendukung 
+    $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", array_map(fn($w) => "p." . $w, $where)) : "";
+    $sql = "SELECT p.id, p.jalur, p.nik, p.nama, p.hp, p.umur, p.jabatan, p.koordinator, p.alamat, 
+                   p.kecamatan, p.desa, p.latitude as lat, p.longitude as lng, p.foto_wajah as foto, 
+                   p.foto_ktp, p.status, p.catatan, p.input_by_user_name as userInput, p.created_at as tanggalRaw,
+                   DATE_FORMAT(p.created_at, '%d/%m/%Y %H:%i') as tanggal,
+                   u.id as operator_user_id, u.username as operator_username, u.role as operator_role, u.status as operator_status
+            FROM pendukung p
+            LEFT JOIN users u ON (u.pendukung_id = p.id OR (p.hp != '' AND (u.username = p.hp OR u.username = REPLACE(REPLACE(p.hp, '-', ''), ' ', ''))))
             {$whereSql}
-            ORDER BY created_at DESC";
+            ORDER BY p.created_at DESC";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $records = $stmt->fetchAll();
 } else {
     $data = Database::getJsonData();
     $all = $data['pendukung'] ?? [];
+    $usersList = $data['users'] ?? [];
     foreach ($all as $item) {
         if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
             if (strcasecmp($item['desa'] ?? '', $user['desa']) !== 0) continue;
         } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
             if (strcasecmp($item['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
+        }
+        $item['operator_user_id'] = null;
+        $item['operator_username'] = null;
+        $item['operator_role'] = null;
+        $item['operator_status'] = null;
+        foreach ($usersList as $u) {
+            if (($u['pendukung_id'] ?? 0) === $item['id'] || (!empty($item['hp']) && $u['username'] === $item['hp'])) {
+                $item['operator_user_id'] = $u['id'];
+                $item['operator_username'] = $u['username'];
+                $item['operator_role'] = $u['role'];
+                $item['operator_status'] = $u['status'] ?? 'Aktif';
+                break;
+            }
         }
         $records[] = $item;
     }

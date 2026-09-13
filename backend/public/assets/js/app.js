@@ -308,12 +308,47 @@ function kirimUcapanWa(hp, nama, jalur) {
     }).join('');
 
     window.currentDetailRecord = r;
+    const isSuperadmin = CURRENT_USER && CURRENT_USER.role === 'Superadmin';
+    const isOperator = !!(r.operator_user_id || r.operator_username);
+
+    const badgeOp = document.getElementById('detailOperatorBadge');
     const btnJadikanOp = document.getElementById('btnJadikanOperatorDariDetail');
+    const btnKirimWaAkses = document.getElementById('btnKirimWaAksesOperator');
+    const btnResetPass = document.getElementById('btnResetPassOperator');
+
+    if (badgeOp) {
+      if (isOperator) {
+        badgeOp.style.display = 'block';
+        const roleEl = document.getElementById('detailOpRoleText');
+        const userEl = document.getElementById('detailOpUserText');
+        if (roleEl) roleEl.textContent = r.operator_role || 'Petugas Operator';
+        if (userEl) userEl.textContent = r.operator_username || '-';
+      } else {
+        badgeOp.style.display = 'none';
+      }
+    }
+
     if (btnJadikanOp) {
-      if (CURRENT_USER && CURRENT_USER.role === 'Superadmin') {
+      if (isSuperadmin && !isOperator) {
         btnJadikanOp.style.display = 'inline-block';
       } else {
         btnJadikanOp.style.display = 'none';
+      }
+    }
+
+    if (btnKirimWaAkses) {
+      if (isSuperadmin && isOperator) {
+        btnKirimWaAkses.style.display = 'inline-block';
+      } else {
+        btnKirimWaAkses.style.display = 'none';
+      }
+    }
+
+    if (btnResetPass) {
+      if (isSuperadmin && isOperator) {
+        btnResetPass.style.display = 'inline-block';
+      } else {
+        btnResetPass.style.display = 'none';
       }
     }
 
@@ -2995,4 +3030,62 @@ function kirimUcapanWa(hp, nama, jalur) {
     } else {
       prompt('Salin kredensial berikut:', text);
     }
+  }
+
+  function kirimUlangAksesWaOperator() {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+    const nomorWa = formatNomorWa(r.hp);
+    if (!nomorWa) {
+      alert('Nomor HP tidak valid.');
+      return;
+    }
+    const teksWa = "Assalamu'alaikum Bpk/Ibu " + r.nama + ",\n\nAkun login Anda sebagai " + (r.operator_role || 'Operator') + " Tim Gus Dim:\n- Username: " + (r.operator_username || r.hp) + "\n- Wilayah: " + (r.kecamatan || '') + " " + (r.desa || '') + "\n\nSilakan akses aplikasi: " + window.location.origin + "\n\nJika lupa kata sandi, silakan hubungi admin untuk reset password.\n\nTerima kasih.";
+    window.open("https://wa.me/" + nomorWa + "?text=" + encodeURIComponent(teksWa), "_blank");
+  }
+
+  function resetPasswordOperatorDariDetail() {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+    if (!confirm("Reset password akun operator untuk " + r.nama + "? Password baru akan dibuat otomatis.")) {
+      return;
+    }
+
+    const payload = {
+      pendukung_id: r.rowNumber || r.id,
+      user_id: r.operator_user_id || 0
+    };
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.success && res.user) {
+          closeModal('modalDetailOrang');
+
+          document.getElementById('kredNama').textContent = res.user.nama;
+          document.getElementById('kredRole').textContent = res.user.role;
+          document.getElementById('kredWilayah').textContent = [res.user.kecamatan, res.user.desa].filter(Boolean).join(' / ') || '-';
+          document.getElementById('kredUsername').textContent = res.user.username;
+          document.getElementById('kredPassword').textContent = res.user.password;
+
+          window.lastCreatedOperator = res.user;
+
+          const nomorWa = formatNomorWa(res.user.hp || r.hp);
+          const btnWa = document.getElementById('btnKirimWaKredensial');
+          const teksWa = "Assalamu'alaikum Bpk/Ibu " + res.user.nama + ",\n\nPassword akun operator Anda (" + res.user.role + ") telah direset:\n- Username: " + res.user.username + "\n- Password Baru: " + res.user.password + "\n\nSilakan masuk melalui aplikasi: " + window.location.origin + "\n\nTerima kasih.";
+          if (nomorWa) {
+            btnWa.href = "https://wa.me/" + nomorWa + "?text=" + encodeURIComponent(teksWa);
+            btnWa.style.display = 'inline-flex';
+          } else {
+            btnWa.style.display = 'none';
+          }
+
+          openModal('modalKredensialOperator');
+        } else {
+          alert(res.message || 'Gagal mereset password.');
+        }
+      })
+      .withFailureHandler(function (err) {
+        alert('Terjadi kesalahan: ' + (err.message || err));
+      })
+      .resetOperatorPassword(SESSION_TOKEN, payload);
   }

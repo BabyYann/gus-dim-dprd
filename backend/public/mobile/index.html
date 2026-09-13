@@ -3652,8 +3652,32 @@ function openSupporterDetail(index) {
     `;
   }
 
+  const isOperator = !!(item.operator_user_id || item.operator_username);
   let jadikanOperatorBtnHtml = '';
-  if (isSuperadmin) {
+  let operatorBadgeHtml = '';
+
+  if (isOperator) {
+    operatorBadgeHtml = `
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:10px 14px;margin-bottom:14px;text-align:left;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+          <span style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;">Akun Operator Aktif</span>
+          <span style="background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;">Terdaftar</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">${escapeHtml(item.operator_role || 'Petugas Operator')}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px;">Username: <code style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-weight:600;">${escapeHtml(item.operator_username || '')}</code></div>
+      </div>
+    `;
+    if (isSuperadmin) {
+      jadikanOperatorBtnHtml = `
+        <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#0d9488;border-color:#99f6e4;background:#f0fdfa;" onclick="openReSendMobileOperatorWa(${index})">
+          ${Icons.whatsapp} Kirim Akses via WA
+        </button>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="openResetMobileOperatorPass(${index})">
+          ${Icons.edit} Reset Password Operator
+        </button>
+      `;
+    }
+  } else if (isSuperadmin) {
     jadikanOperatorBtnHtml = `
       <button type="button" class="btn-primary-touch" style="width:100%;height:44px;background:#0d9488;margin-top:2px;" onclick="openCreateOperatorSheet(${index})">
         ${Icons.users} Jadikan Akun Operator
@@ -3670,6 +3694,7 @@ function openSupporterDetail(index) {
       <p style="font-size:13px;color:#64748b;font-family:monospace;">${maskedNik}</p>
     </div>
 
+    ${operatorBadgeHtml}
     <div style="background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;font-size:13px;">
         <span style="color:#64748b;">Wilayah Dapil</span>
@@ -4472,6 +4497,80 @@ function salinMobileOperatorCreds() {
     navigator.clipboard.writeText(txt).then(() => showToast('Kredensial disalin ke clipboard!', 'success'));
   } else {
     prompt('Salin kredensial berikut:', txt);
+  }
+}
+
+
+function openReSendMobileOperatorWa(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+  const phoneRaw = item.hp || item.no_hp || '';
+  const waPhone = formatWaPhone(phoneRaw);
+  if (!waPhone) {
+    showToast('Nomor WhatsApp tidak valid.', 'warning');
+    return;
+  }
+  const teksWa = encodeURIComponent("Assalamu'alaikum Bpk/Ibu " + item.nama + ",\n\nAkun login Anda sebagai " + (item.operator_role || 'Operator') + " Tim Gus Dim:\n- Username: " + (item.operator_username || item.hp) + "\n- Wilayah: " + (item.kecamatan || '') + " " + (item.desa || '') + "\n\nSilakan akses aplikasi: " + window.location.origin + "\n\nJika lupa kata sandi, silakan hubungi admin untuk reset password.\n\nTerima kasih.");
+  window.open("https://wa.me/" + waPhone + "?text=" + teksWa, "_blank");
+}
+
+async function openResetMobileOperatorPass(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  if (!confirm("Reset password akun operator untuk " + item.nama + "? Password baru akan dibuat otomatis.")) {
+    return;
+  }
+
+  showToast('Mereset password operator...', 'info');
+
+  const res = await mobileApiCall('users.php?action=reset-password-operator', 'POST', {
+    pendukung_id: item.id,
+    user_id: item.operator_user_id || 0
+  });
+
+  if (res.ok && res.data && res.data.success && res.data.user) {
+    const u = res.data.user;
+    window.lastMobileCreatedOp = u;
+
+    const nomorWa = formatWaPhone(u.hp || item.hp);
+    const teksWa = encodeURIComponent("Assalamu'alaikum Bpk/Ibu " + u.nama + ",\n\nPassword akun operator Anda (" + u.role + ") telah direset:\n- Username: " + u.username + "\n- Password Baru: " + u.password + "\n\nSilakan masuk melalui aplikasi: " + window.location.origin + "\n\nTerima kasih.");
+
+    const credContent = `
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="width:50px;height:50px;border-radius:50%;background:#ccfbf1;color:#0d9488;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;">
+          ${Icons.checkCircle}
+        </div>
+        <h3 style="font-size:16px;font-weight:800;color:#0f172a;margin:0;">Password Berhasil Direset!</h3>
+        <p style="font-size:12px;color:#64748b;margin-top:4px;">Kata sandi baru telah aktif di server.</p>
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:13px;">
+        <div><strong>Nama:</strong> ${escapeHtml(u.nama)}</div>
+        <div><strong>Role:</strong> ${escapeHtml(u.role)}</div>
+        <div><strong>Wilayah:</strong> ${escapeHtml(u.kecamatan || '')} / ${escapeHtml(u.desa || '')}</div>
+        <div><strong>Username:</strong> <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-weight:700;">${escapeHtml(u.username)}</code></div>
+        <div><strong>Password Baru:</strong> <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-weight:700;color:#15803d;">${escapeHtml(u.password)}</code></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a href="https://wa.me/${nomorWa}?text=${teksWa}" target="_blank" class="btn-wa-touch">
+          ${Icons.whatsapp} Kirim Password Baru via WA
+        </a>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:44px;" onclick="salinMobileOperatorCreds()">
+          Salin Kredensial Baru
+        </button>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:40px;" onclick="closeBottomSheet()">
+          Tutup
+        </button>
+      </div>
+    `;
+
+    openBottomSheet('Password Operator Baru', credContent);
+    showToast('Password operator berhasil direset!', 'success');
+  } else {
+    const err = (res.data && res.data.message) ? res.data.message : 'Gagal mereset password operator.';
+    showToast(err, 'warning');
   }
 }
 

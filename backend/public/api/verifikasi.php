@@ -47,15 +47,17 @@ switch ($action) {
                 $params['uKec'] = $user['kecamatan'];
             }
 
-            $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", $where) : "";
-            $sql = "SELECT id as rowNumber, id, jalur as jalurKey, nik, nama, hp, alamat, 
-                           foto_wajah as foto, kecamatan, desa, koordinator, jabatan, 
-                           input_by_user_name as userInput, 
-                           DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') as tanggal,
-                           status, catatan
-                    FROM pendukung 
+            $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", array_map(fn($w) => "p." . $w, $where)) : "";
+            $sql = "SELECT p.id as rowNumber, p.id, p.jalur as jalurKey, p.nik, p.nama, p.hp, p.alamat, 
+                           p.foto_wajah as foto, p.kecamatan, p.desa, p.koordinator, p.jabatan, 
+                           p.input_by_user_name as userInput, 
+                           DATE_FORMAT(p.created_at, '%d/%m/%Y %H:%i') as tanggal,
+                           p.status, p.catatan,
+                           u.id as operator_user_id, u.username as operator_username, u.role as operator_role, u.status as operator_status
+                    FROM pendukung p
+                    LEFT JOIN users u ON (u.pendukung_id = p.id OR (p.hp != '' AND (u.username = p.hp OR u.username = REPLACE(REPLACE(p.hp, '-', ''), ' ', ''))))
                     {$whereSql} 
-                    ORDER BY id DESC";
+                    ORDER BY p.id DESC";
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll();

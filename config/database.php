@@ -106,6 +106,11 @@ class Database {
                 self::$pdo->exec("ALTER TABLE `users` ADD COLUMN `password_hash` varchar(255) DEFAULT NULL AFTER `password`");
                 self::$pdo->exec("UPDATE `users` SET `password_hash` = `password` WHERE `password_hash` IS NULL");
             }
+
+            $colsPid = self::$pdo->query("SHOW COLUMNS FROM `users` LIKE 'pendukung_id'")->fetchAll();
+            if (empty($colsPid)) {
+                self::$pdo->exec("ALTER TABLE `users` ADD COLUMN `pendukung_id` INT NULL DEFAULT NULL AFTER `id`, ADD INDEX (`pendukung_id`)");
+            }
         } catch (\Throwable $ex) {
             // Self-healing fallback silently ignores existing structures
         }

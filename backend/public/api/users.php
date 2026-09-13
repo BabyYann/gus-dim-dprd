@@ -258,9 +258,10 @@ switch ($action) {
 
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, nama, role, kecamatan, desa, ranting, status) 
-                                   VALUES (:u, :p, :n, :r, :k, :d, :rt, 'Aktif')");
+            $stmt = $pdo->prepare("INSERT INTO users (pendukung_id, username, password_hash, nama, role, kecamatan, desa, ranting, status) 
+                                   VALUES (:pid, :u, :p, :n, :r, :k, :d, :rt, 'Aktif')");
             $stmt->execute([
+                'pid' => $pendukungId,
                 'u' => $username,
                 'p' => $hash,
                 'n' => $nama,
@@ -275,6 +276,7 @@ switch ($action) {
             $newId = count($data['users']) > 0 ? (max(array_column($data['users'], 'id')) + 1) : 1;
             $data['users'][] = [
                 'id' => $newId,
+                'pendukung_id' => $pendukungId,
                 'username' => $username,
                 'password_hash' => $hash,
                 'nama' => $nama,
@@ -304,6 +306,90 @@ switch ($action) {
                 'desa' => $desa,
                 'ranting' => $ranting,
                 'hp' => $pendukung['hp'] ?? ''
+            ]
+        ]);
+        break;
+
+    case 'reset-password-operator':
+        $pendukungId = (int)($body['pendukung_id'] ?? ($body['id'] ?? 0));
+        $userId = (int)($body['user_id'] ?? 0);
+
+        if (!$pendukungId && !$userId) {
+            json_response(['success' => false, 'message' => 'ID tidak valid.'], 400);
+        }
+
+        $targetUser = null;
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            if ($userId) {
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+                $stmt->execute(['id' => $userId]);
+                $targetUser = $stmt->fetch();
+            } else {
+                $stmt = $pdo->prepare("SELECT u.*, p.hp as pendukung_hp, p.nik as pendukung_nik FROM users u 
+                                       JOIN pendukung p ON (u.pendukung_id = p.id OR (p.hp != '' AND (u.username = p.hp OR u.username = REPLACE(REPLACE(p.hp, '-', ''), ' ', ''))))
+                                       WHERE p.id = :pid LIMIT 1");
+                $stmt->execute(['pid' => $pendukungId]);
+                $targetUser = $stmt->fetch();
+            }
+        } else {
+            $data = Database::getJsonData();
+            foreach ($data['users'] as $u) {
+                if ($userId && (int)$u['id'] === $userId) {
+                    $targetUser = $u;
+                    break;
+                }
+                if ($pendukungId && ((int)($u['pendukung_id'] ?? 0) === $pendukungId)) {
+                    $targetUser = $u;
+                    break;
+                }
+            }
+        }
+
+        if (!$targetUser) {
+            json_response(['success' => false, 'message' => 'Akun operator tidak ditemukan.'], 404);
+        }
+
+        $newPassword = trim($body['newPassword'] ?? '');
+        if (!$newPassword) {
+            $cleanNik = preg_replace('/[^0-9]/', '', $targetUser['pendukung_nik'] ?? '');
+            if (strlen($cleanNik) >= 6) {
+                $newPassword = substr($cleanNik, -6);
+            } else {
+                $newPassword = 'p' . rand(100000, 999999);
+            }
+        }
+
+        $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p WHERE id = :id");
+            $stmt->execute(['p' => $hash, 'id' => $targetUser['id']]);
+        } else {
+            foreach ($data['users'] as &$u) {
+                if ((int)$u['id'] === (int)$targetUser['id']) {
+                    $u['password_hash'] = $hash;
+                    break;
+                }
+            }
+            Database::saveJsonData($data);
+        }
+
+        log_activity($user['id'], $user['nama'], 'Reset Password Operator', (string)$targetUser['id'], "Mereset password operator #{$targetUser['id']} ({$targetUser['nama']})");
+
+        json_response([
+            'success' => true,
+            'message' => "Password operator untuk '{$targetUser['nama']}' berhasil direset.",
+            'user' => [
+                'id' => $targetUser['id'],
+                'username' => $targetUser['username'],
+                'password' => $newPassword,
+                'nama' => $targetUser['nama'],
+                'role' => $targetUser['role'],
+                'kecamatan' => $targetUser['kecamatan'],
+                'desa' => $targetUser['desa'],
+                'hp' => $targetUser['pendukung_hp'] ?? ($targetUser['hp'] ?? '')
             ]
         ]);
         break;
