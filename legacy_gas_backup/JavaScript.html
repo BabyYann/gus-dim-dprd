@@ -1,0 +1,1279 @@
+<script>
+  let SESSION_TOKEN = localStorage.getItem('dprd_token') || null;
+  let CURRENT_USER = null;
+  let mapInstance = null;
+  let chartInstance = null;
+  let chartJalurInstance = null;
+
+  const JALUR_LABEL = { DPC: 'DPC Kecamatan', DPRT: 'DPRT Desa', PIP: 'PIP', KIP: 'KIP', RELAWAN: 'Relawan' };
+
+  /** Hitung umur dari 16 digit NIK (format Indonesia: digit 7-12 = DDMMYY, perempuan +40 di digit hari) */
+  function hitungUmurDariNIK(nik) {
+    if (!nik || String(nik).length < 12) return null;
+    nik = String(nik);
+    let dd = parseInt(nik.substring(6, 8), 10);
+    const mm = parseInt(nik.substring(8, 10), 10);
+    const yy = parseInt(nik.substring(10, 12), 10);
+    if (isNaN(dd) || isNaN(mm) || isNaN(yy)) return null;
+    if (dd > 40) dd -= 40;
+    if (dd < 1 || dd > 31 || mm < 1 || mm > 12) return null;
+
+    const now = new Date();
+    const currentYY = now.getFullYear() % 100;
+    const fullYear = yy <= currentYY ? 2000 + yy : 1900 + yy;
+    const lahir = new Date(fullYear, mm - 1, dd);
+    let umur = now.getFullYear() - lahir.getFullYear();
+    const belumUlangTahun = (now.getMonth() < lahir.getMonth()) || (now.getMonth() === lahir.getMonth() && now.getDate() < lahir.getDate());
+    if (belumUlangTahun) umur--;
+    return (umur >= 0 && umur < 130) ? umur : null;
+  }
+
+  function inisial(nama) {
+    if (!nama) return '-';
+    const parts = nama.trim().split(/\s+/);
+    return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].substring(0, 2).toUpperCase();
+  }
+
+  /** Render daftar orang jadi kartu list (avatar bulat + nama + umur), klik untuk buka detail */
+  function renderPeopleCardList(containerId, rows, opsi) {
+    opsi = opsi || {};
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    if (!rows || rows.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px 0;">Belum ada data</div>';
+      return;
+    }
+
+    rows.forEach(function (r, idx) {
+      const umur = hitungUmurDariNIK(r.nik);
+      const subInfo = [umur !== null ? umur + ' thn' : null, opsi.showJalur ? r.jalur : null].filter(Boolean).join(' &middot; ');
+      const avatarHtml = r.foto
+        ? '<img class="people-card-avatar" src="' + r.foto + '" alt="">'
+        : '<div class="people-card-avatar-placeholder">' + inisial(r.nama) + '</div>';
+
+      const badgeClass = r.status === 'Final' ? 'badge-final' : r.status === 'Ditolak' ? 'badge-ditolak' : (r.status === 'Diverifikasi Desa' || r.status === 'Divalidasi Kecamatan') ? 'badge-diverifikasi' : 'badge-diinput';
+
+      const card = document.createElement('div');
+      card.className = 'people-card';
+      card.innerHTML =
+        avatarHtml +
+        '<div class="people-card-info">' +
+          '<div class="people-card-nama">' + r.nama + '</div>' +
+          '<div class="people-card-sub">' + (subInfo || '-') + '</div>' +
+        '</div>' +
+        (r.status ? '<span class="badge ' + badgeClass + ' people-card-badge">' + r.status + '</span>' : '') +
+        '<span class="people-card-chevron">›</span>';
+      card.onclick = function () {
+        const opsiBaris = r.jalurKeyAsal ? Object.assign({}, opsi, { jalurKey: r.jalurKeyAsal }) : opsi;
+        bukaDetailOrang(r, opsiBaris);
+      };
+      container.appendChild(card);
+    });
+  }
+
+  /** Ubah nomor HP lokal (08xx / 62xx / +62xx) jadi format internasional untuk link wa.me */
+  function formatNomorWa(hp) {
+    if (!hp) return '';
+    let digits = String(hp).replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('0')) digits = '62' + digits.substring(1);
+    else if (!digits.startsWith('62')) digits = '62' + digits;
+    return digits;
+  }
+
+  function bukaDetailOrang(r, opsi) {
+    opsi = opsi || {};
+    const umur = hitungUmurDariNIK(r.nik);
+    document.getElementById('detailNama').textContent = r.nama || '-';
+    document.getElementById('detailSub').textContent = [r.jalur, r.jabatan, r.koordinator].filter(Boolean).join(' · ');
+
+    if (r.foto) {
+      document.getElementById('detailFoto').src = r.foto;
+      document.getElementById('detailFoto').style.display = 'inline-block';
+      document.getElementById('detailFotoPlaceholder').style.display = 'none';
+    } else {
+      document.getElementById('detailFoto').style.display = 'none';
+      const ph = document.getElementById('detailFotoPlaceholder');
+      ph.style.display = 'flex';
+      ph.textContent = inisial(r.nama);
+    }
+
+    const rowsData = [
+      ['NIK', r.nik],
+      ['Umur', umur !== null ? umur + ' tahun' : '-'],
+      ['No. HP', r.hp || '-'],
+      ['Alamat', r.alamat || '-'],
+      ['Kecamatan / Desa', [r.kecamatan, r.desa].filter(Boolean).join(' / ') || '-'],
+      ['Status', r.status || '-'],
+      ['Tanggal Input', r.tanggal || '-'],
+      ['Diinput oleh', r.userInput || '-'],
+      ['Catatan', r.catatan || '-']
+    ];
+    document.getElementById('detailRows').innerHTML = rowsData.map(function (row) {
+      return '<div class="detail-row"><span class="k">' + row[0] + '</span><span class="v">' + row[1] + '</span></div>';
+    }).join('');
+
+    const bisaUbahStatus = opsi.jalurKey && r.rowNumber && STATUS_LANJUTAN[CURRENT_USER.role];
+    const btnUbah = document.getElementById('btnUbahStatusDariDetail');
+    if (bisaUbahStatus) {
+      btnUbah.style.display = 'inline-block';
+      btnUbah.onclick = function () {
+        closeModal('modalDetailOrang');
+        openModalVerifikasi(opsi.jalurKey, r.rowNumber, r.nama, r.status);
+      };
+    } else {
+      btnUbah.style.display = 'none';
+    }
+
+    const btnWa = document.getElementById('btnChatWa');
+    const nomorWa = formatNomorWa(r.hp);
+    if (nomorWa) {
+      btnWa.href = 'https://wa.me/' + nomorWa;
+      btnWa.style.display = 'inline-flex';
+    } else {
+      btnWa.style.display = 'none';
+    }
+
+    openModal('modalDetailOrang');
+  }
+
+  // ============ INIT ============
+  window.onload = function () {
+    if (SESSION_TOKEN) {
+      google.script.run.withSuccessHandler(onSessionChecked).checkSession(SESSION_TOKEN);
+    }
+  };
+
+  function onSessionChecked(result) {
+    if (result.valid) {
+      CURRENT_USER = result.user;
+      enterApp();
+    } else {
+      localStorage.removeItem('dprd_token');
+      SESSION_TOKEN = null;
+    }
+  }
+
+  // ============ LOGIN ============
+  function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errBox = document.getElementById('loginError');
+    errBox.style.display = 'none';
+
+    if (!username || !password) {
+      errBox.textContent = 'Username dan password wajib diisi.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('btnLogin');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Memproses...';
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+        if (res.success) {
+          SESSION_TOKEN = res.token;
+          CURRENT_USER = res.user;
+          localStorage.setItem('dprd_token', SESSION_TOKEN);
+          enterApp();
+        } else {
+          errBox.textContent = res.message;
+          errBox.style.display = 'block';
+        }
+      })
+      .withFailureHandler(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+        errBox.style.display = 'block';
+      })
+      .login(username, password);
+  }
+
+  function doLogout() {
+    google.script.run.logout(SESSION_TOKEN);
+    localStorage.removeItem('dprd_token');
+    SESSION_TOKEN = null;
+    CURRENT_USER = null;
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+
+  function enterApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+
+    document.getElementById('userName').textContent = CURRENT_USER.nama;
+    document.getElementById('userRole').textContent = CURRENT_USER.role +
+      (CURRENT_USER.ranting ? ' - ' + CURRENT_USER.ranting : '');
+    if (CURRENT_USER.fotoProfil) {
+      document.getElementById('userAvatar').innerHTML = '<img src="' + CURRENT_USER.fotoProfil + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+    } else {
+      document.getElementById('userAvatar').textContent = CURRENT_USER.nama.charAt(0).toUpperCase();
+    }
+
+    if (CURRENT_USER.role !== 'Admin Ranting' && CURRENT_USER.role !== 'Superadmin') {
+      document.querySelector('[data-page="input"]').classList.add('disabled');
+      document.querySelector('[data-page="input"]').onclick = null;
+    }
+
+    if (CURRENT_USER.role !== 'Superadmin') {
+      document.querySelector('[data-page="pengaturan"]').classList.add('disabled');
+      document.querySelector('[data-page="pengaturan"]').onclick = null;
+    }
+
+    loadDashboard();
+  }
+
+  // ============ NAVIGASI ============
+  function showPage(pageName) {
+    document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+    const menuEl = document.querySelector('[data-page="' + pageName + '"]');
+    if (menuEl) menuEl.classList.add('active');
+
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.getElementById('page-' + pageName).classList.add('active');
+
+    const titles = {
+      dashboard: 'Dashboard',
+      input: 'Input Data',
+      riwayat: 'Riwayat & Log Aktivitas',
+      pengaturan: 'Pengaturan Pengguna',
+      profil: 'Profil Saya',
+      aspirasi: 'Aspirasi',
+      leaderboard: 'Leaderboard'
+    };
+    document.getElementById('pageTitle').textContent = titles[pageName] || '';
+
+    if (pageName === 'dashboard') loadDashboard();
+    if (pageName === 'riwayat') { loadRiwayat(); loadLogAktivitas(); }
+    if (pageName === 'pengaturan') loadUsersList();
+    if (pageName === 'profil') loadProfil();
+    if (pageName === 'aspirasi') loadAspirasi();
+    if (pageName === 'leaderboard') loadLeaderboard();
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  // ============ TOGGLE SIDEBAR (Desktop collapse / Mobile drawer) ============
+  function isMobileView() { return window.innerWidth <= 768; }
+
+  function toggleSidebar(forceState) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (isMobileView()) {
+      const shouldOpen = forceState !== undefined ? forceState : !sidebar.classList.contains('mobile-open');
+      sidebar.classList.toggle('mobile-open', shouldOpen);
+      overlay.classList.toggle('show', shouldOpen);
+    } else {
+      sidebar.classList.toggle('collapsed');
+    }
+  }
+
+  // Tutup drawer sidebar otomatis di mobile setelah pilih menu
+  const _showPageAsli = showPage;
+  showPage = function (pageName) {
+    _showPageAsli(pageName);
+    if (isMobileView()) toggleSidebar(false);
+  };
+
+  // ============ DASHBOARD (Interaktif: Kecamatan -> Desa -> List Data) ============
+  let DASHBOARD_DATA = null;
+  let chartLevel = 'kecamatan'; // 'kecamatan' | 'desa'
+  let chartKecamatanAktif = null;
+
+  function loadDashboard() {
+    google.script.run.withSuccessHandler(renderDashboard).getDashboardData(SESSION_TOKEN);
+  }
+
+  function renderDashboard(data) {
+    if (!data.success) { alert(data.message); return; }
+    DASHBOARD_DATA = data;
+    chartLevel = 'kecamatan';
+    chartKecamatanAktif = null;
+
+    renderStatCards(data);
+    renderMap(data.mapPoints);
+    renderChartJalur(data.byJalur);
+    renderChartKecamatan();
+    populateFilterDropdowns();
+    resetListFilter();
+  }
+
+  function renderChartJalur(byJalur) {
+    const ctx = document.getElementById('chartJalur');
+    const labels = Object.keys(byJalur);
+    const values = Object.values(byJalur);
+
+    if (chartJalurInstance) chartJalurInstance.destroy();
+    chartJalurInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: values, backgroundColor: ['#16225e', '#ffb703', '#2f5fd6', '#f59e0b', '#7c93e8'] }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+    });
+  }
+
+  function renderStatCards(data) {
+    const cardsWrap = document.getElementById('statCards');
+    cardsWrap.innerHTML =
+      '<div class="stat-card stat-total clickable" onclick="filterListByJalur(null)">' +
+        '<div class="label">Total Semua Jalur</div><div class="value">' + data.total + '</div>' +
+      '</div>';
+    Object.keys(data.byJalur).forEach(function (jalur) {
+      cardsWrap.innerHTML +=
+        '<div class="stat-card clickable" onclick="filterListByJalur(\'' + jalur.replace(/'/g,"\\'") + '\')">' +
+          '<div class="label">' + jalur + '</div><div class="value">' + data.byJalur[jalur] + '</div>' +
+        '</div>';
+    });
+  }
+
+  function filterListByJalur(jalurLabel) {
+    if (!DASHBOARD_DATA) return;
+    document.getElementById('flJalur').value = jalurLabel || '';
+    document.getElementById('flKecamatan').value = '';
+    document.getElementById('flDesa').value = '';
+    document.getElementById('flPenginput').value = '';
+    sortColumn = null; sortDirection = 'asc'; updateSortIcons();
+    applyListFilter();
+    document.getElementById('listPanelTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderChartKecamatan() {
+    document.getElementById('chartTitle').textContent = 'Rekap per Kecamatan';
+    document.getElementById('btnKembaliChart').style.display = 'none';
+    chartLevel = 'kecamatan';
+    chartKecamatanAktif = null;
+
+    const labels = Object.keys(DASHBOARD_DATA.byKecamatan);
+    const values = labels.map(function (k) { return DASHBOARD_DATA.byKecamatan[k]; });
+    drawChart(labels, values, function (index) { bukaDesaChart(labels[index]); });
+  }
+
+  function bukaDesaChart(kecamatan) {
+    chartLevel = 'desa';
+    chartKecamatanAktif = kecamatan;
+    document.getElementById('chartTitle').textContent = 'Rekap per Desa — ' + kecamatan;
+    document.getElementById('btnKembaliChart').style.display = 'inline-block';
+
+    const recordsKec = DASHBOARD_DATA.allRecords.filter(function (r) { return r.kecamatan === kecamatan; });
+    const byDesa = {};
+    recordsKec.forEach(function (r) {
+      const label = r.desa || '(' + r.jalur + ' - tanpa desa)';
+      byDesa[label] = (byDesa[label] || 0) + 1;
+    });
+    const labels = Object.keys(byDesa);
+    const values = labels.map(function (d) { return byDesa[d]; });
+    drawChart(labels, values, function (index) { bukaListDesa(kecamatan, labels[index]); });
+  }
+
+  function bukaListDesa(kecamatan, desaLabel) {
+    const isTanpaDesa = desaLabel.indexOf('(') === 0;
+    document.getElementById('flJalur').value = '';
+    document.getElementById('flPenginput').value = '';
+    sortColumn = null; sortDirection = 'asc'; updateSortIcons();
+    document.getElementById('flKecamatan').value = kecamatan;
+
+    if (isTanpaDesa) {
+      document.getElementById('flDesa').value = '';
+      const limit = parseInt(document.getElementById('flLimit').value, 10) || 10;
+      const rows = DASHBOARD_DATA.allRecords.filter(function (r) { return r.kecamatan === kecamatan && !r.desa; });
+      document.getElementById('listPanelTitle').textContent = 'Data: ' + kecamatan + ' / ' + desaLabel + ' (' + rows.length + ')';
+      renderTabelList(rows.slice(0, limit));
+    } else {
+      document.getElementById('flDesa').value = desaLabel;
+      applyListFilter();
+    }
+    document.getElementById('listPanelTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function chartKembali() {
+    renderChartKecamatan();
+  }
+
+  function drawChart(labels, values, onClickBar) {
+    const ctx = document.getElementById('chartProgram');
+    const palet = ['#16225e', '#ffb703', '#2f5fd6', '#f59e0b', '#7c93e8', '#a5b4fc', '#fcd34d'];
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ data: values, backgroundColor: labels.map(function (_, i) { return palet[i % palet.length]; }), borderRadius: 6 }] },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        onClick: function (evt, elements) {
+          if (elements.length > 0 && onClickBar) onClickBar(elements[0].index);
+        },
+        onHover: function (evt, elements) {
+          evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        }
+      }
+    });
+  }
+
+  function renderMap(points) {
+    if (!mapInstance) {
+      mapInstance = L.map('peta').setView([-7.7833, 113.4], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapInstance);
+      mapInstance._markersLayer = L.layerGroup().addTo(mapInstance);
+    } else {
+      mapInstance._markersLayer.clearLayers();
+    }
+
+    points.forEach(function (p) {
+      const marker = L.marker([p.lat, p.lng]).addTo(mapInstance._markersLayer);
+      const wilayah = [p.desa, p.kecamatan].filter(Boolean).join(', ');
+      const alamatSingkat = p.alamat ? (p.alamat.length > 60 ? p.alamat.substring(0, 60) + '...' : p.alamat) : wilayah;
+
+      marker.bindTooltip(
+        '<b>' + p.nama + '</b> (' + p.jalur + ')<br>' + alamatSingkat + '<span class="hint">Ketuk untuk buka di Google Maps</span>',
+        { className: 'tooltip-lokasi', direction: 'top', offset: [0, -8] }
+      );
+
+      marker.on('click', function () {
+        window.open('https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng, '_blank');
+      });
+    });
+  }
+
+  // ============ FILTER PANEL "Data Terbaru Diinput" ============
+  const KOLOM_FILTER_LIST = ['nama', 'jalur', 'wilayah', 'penginput', 'status'];
+  let sortColumn = null;   // kolom yang sedang diurutkan, null = default (tanggal terbaru)
+  let sortDirection = 'asc'; // 'asc' (A-Z) atau 'desc' (Z-A)
+
+  const ICON_FILTER_NETRAL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>';
+  const ICON_FILTER_AKTIF_ASC = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>';
+  const ICON_FILTER_AKTIF_DESC = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="currentColor" stroke-width="1"><rect x="5" y="5" width="14" height="14" rx="3" fill="none"/><rect x="9" y="9" width="6" height="6"/></svg>';
+
+  function toggleFilterPanel() {
+    const panel = document.getElementById('filterPanelList');
+    const btn = document.getElementById('btnToggleFilter');
+    panel.classList.toggle('open');
+    btn.textContent = panel.classList.contains('open') ? 'Filter ▴' : 'Filter ▾';
+  }
+
+  function populateFilterDropdowns() {
+    const desaSet = new Set();
+    const penginputSet = new Set();
+    (DASHBOARD_DATA.allRecords || []).forEach(function (r) {
+      if (r.desa) desaSet.add(r.desa);
+      if (r.userInput) penginputSet.add(r.userInput);
+    });
+    document.getElementById('flDesa').innerHTML = '<option value="">Semua Desa</option>' +
+      Array.from(desaSet).sort().map(function (d) { return '<option value="' + d + '">' + d + '</option>'; }).join('');
+    document.getElementById('flPenginput').innerHTML = '<option value="">Semua Penginput</option>' +
+      Array.from(penginputSet).sort().map(function (p) { return '<option value="' + p + '">' + p + '</option>'; }).join('');
+  }
+
+  function getColumnValue(r, col) {
+    if (col === 'nama') return r.nama || '-';
+    if (col === 'jalur') return r.jalur || '-';
+    if (col === 'wilayah') return [r.kecamatan, r.desa].filter(Boolean).join(' / ') || '-';
+    if (col === 'penginput') return r.userInput || '-';
+    if (col === 'status') return r.status || '-';
+    return '';
+  }
+
+  function resetListFilter() {
+    document.getElementById('flJalur').value = '';
+    document.getElementById('flKecamatan').value = '';
+    document.getElementById('flDesa').value = '';
+    document.getElementById('flPenginput').value = '';
+    document.getElementById('flLimit').value = '10';
+    sortColumn = null;
+    sortDirection = 'asc';
+    updateSortIcons();
+    applyListFilter();
+  }
+
+  // ---- Klik ikon di header = langsung urutkan A-Z, klik lagi = Z-A (ikon terbalik) ----
+  function toggleColumnSort(col, evt) {
+    if (evt) evt.stopPropagation();
+    if (sortColumn === col) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = col;
+      sortDirection = 'asc';
+    }
+    updateSortIcons();
+    applyListFilter();
+  }
+
+  function updateSortIcons() {
+    document.querySelectorAll('.th-filter-btn').forEach(function (btn) {
+      const col = btn.getAttribute('data-filter-btn');
+      const aktif = col === sortColumn;
+      btn.classList.toggle('active', aktif);
+      btn.classList.toggle('sort-desc', aktif && sortDirection === 'desc');
+      if (aktif) {
+        btn.innerHTML = sortDirection === 'asc' ? ICON_FILTER_AKTIF_ASC : ICON_FILTER_AKTIF_DESC;
+      } else {
+        btn.innerHTML = ICON_FILTER_NETRAL;
+      }
+    });
+  }
+
+  function applyListFilter() {
+    if (!DASHBOARD_DATA) return;
+    const jalur = document.getElementById('flJalur').value;
+    const kecamatan = document.getElementById('flKecamatan').value;
+    const desa = document.getElementById('flDesa').value;
+    const penginput = document.getElementById('flPenginput').value;
+    const limit = parseInt(document.getElementById('flLimit').value, 10) || 10;
+
+    let rows = (DASHBOARD_DATA.allRecords || []).slice();
+    if (jalur) rows = rows.filter(function (r) { return r.jalur === jalur; });
+    if (kecamatan) rows = rows.filter(function (r) { return r.kecamatan === kecamatan; });
+    if (desa) rows = rows.filter(function (r) { return r.desa === desa; });
+    if (penginput) rows = rows.filter(function (r) { return r.userInput === penginput; });
+
+    if (sortColumn) {
+      rows.sort(function (a, b) {
+        const cmp = String(getColumnValue(a, sortColumn)).localeCompare(String(getColumnValue(b, sortColumn)), 'id');
+        return sortDirection === 'asc' ? cmp : -cmp;
+      });
+    } else {
+      rows.sort(function (a, b) { return new Date(b.tanggalRaw || b.tanggal) - new Date(a.tanggalRaw || a.tanggal); });
+    }
+
+    const total = rows.length;
+    rows = rows.slice(0, limit);
+
+    document.getElementById('listPanelTitle').textContent = 'Data Terbaru Diinput (' + total + ')';
+    renderTabelList(rows);
+  }
+
+  function renderTabelList(rows) {
+    const tbody = document.querySelector('#tabelRecent tbody');
+    tbody.innerHTML = '';
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">Tidak ada data</td></tr>';
+      return;
+    }
+    rows.forEach(function (r) {
+      const badgeClass = r.status === 'Final' ? 'badge-final' : r.status === 'Ditolak' ? 'badge-ditolak' : (r.status === 'Diverifikasi Desa' || r.status === 'Divalidasi Kecamatan' ? 'badge-diverifikasi' : 'badge-diinput');
+      tbody.innerHTML += '<tr>' +
+        '<td>' + r.nama + '</td>' +
+        '<td>' + r.jalur + '</td>' +
+        '<td>' + [r.kecamatan, r.desa].filter(Boolean).join(' / ') + '</td>' +
+        '<td><div class="cell-stack"><span class="cell-title">' + (r.userInput || '-') + '</span><span class="cell-sub">' + (r.tanggal || '-') + '</span></div></td>' +
+        '<td><div class="cell-stack"><span class="badge ' + badgeClass + '" style="width:fit-content;">' + r.status + '</span><span class="cell-sub">' + (r.tanggal || '-') + '</span></div></td>' +
+        '</tr>';
+    });
+  }
+
+  // ============ PROFIL SAYA ============
+  function loadProfil() {
+    if (DASHBOARD_DATA) { renderProfil(); return; }
+    google.script.run.withSuccessHandler(function (data) {
+      DASHBOARD_DATA = data;
+      renderProfil();
+    }).getDashboardData(SESSION_TOKEN);
+  }
+
+  function renderProfil() {
+    document.getElementById('profilAvatarInisial').textContent = inisial(CURRENT_USER.nama);
+    if (CURRENT_USER.fotoProfil) {
+      document.getElementById('profilAvatarFoto').src = CURRENT_USER.fotoProfil;
+      document.getElementById('profilAvatarFoto').style.display = 'block';
+      document.getElementById('profilAvatarInisial').style.display = 'none';
+    } else {
+      document.getElementById('profilAvatarFoto').style.display = 'none';
+      document.getElementById('profilAvatarInisial').style.display = 'block';
+    }
+    document.getElementById('profilNama').textContent = CURRENT_USER.nama;
+    document.getElementById('profilRole').textContent = CURRENT_USER.role;
+    document.getElementById('profilWilayah').textContent = [CURRENT_USER.ranting, CURRENT_USER.desa, CURRENT_USER.kecamatan].filter(Boolean).join(' · ') || 'Dapil Kraksaan Raya';
+
+    const dataSaya = (DASHBOARD_DATA.allRecords || []).filter(function (r) { return r.userInput === CURRENT_USER.nama; });
+    document.getElementById('profilJumlah').textContent = '(' + dataSaya.length + ')';
+    renderPeopleCardList('listProfil', dataSaya, { showJalur: true });
+  }
+
+  // ---- Ganti Foto Profil ----
+  function bukaEditFotoProfil() {
+    document.getElementById('inputFotoProfil').click();
+  }
+
+  function prosesGantiFotoProfil(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result.split(',')[1];
+      document.getElementById('profilAvatarFoto').src = e.target.result;
+      document.getElementById('profilAvatarFoto').style.display = 'block';
+      document.getElementById('profilAvatarInisial').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (res.success) {
+            CURRENT_USER = res.user;
+            document.getElementById('userAvatar').innerHTML = '<img src="' + res.fotoUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+          } else {
+            alert(res.message);
+          }
+        })
+        .withFailureHandler(function (err) { alert('Gagal ganti foto: ' + err.message); })
+        .updateFotoProfilSaya(SESSION_TOKEN, base64, file.type);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ---- Edit Profil (Nama) ----
+  function openModalEditProfil() {
+    document.getElementById('epNama').value = CURRENT_USER.nama;
+    document.getElementById('epRole').value = CURRENT_USER.role;
+    document.getElementById('epWilayah').value = [CURRENT_USER.ranting, CURRENT_USER.desa, CURRENT_USER.kecamatan].filter(Boolean).join(' / ') || '-';
+    document.getElementById('modalEditProfilError').style.display = 'none';
+    document.getElementById('modalEditProfilSuccess').style.display = 'none';
+    openModal('modalEditProfil');
+  }
+
+  function simpanEditProfil() {
+    const namaBaru = document.getElementById('epNama').value.trim();
+    const errBox = document.getElementById('modalEditProfilError');
+    const okBox = document.getElementById('modalEditProfilSuccess');
+    errBox.style.display = 'none'; okBox.style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.success) {
+          CURRENT_USER = res.user;
+          document.getElementById('userName').textContent = CURRENT_USER.nama;
+          okBox.textContent = res.message;
+          okBox.style.display = 'block';
+          renderProfil();
+          setTimeout(function () { closeModal('modalEditProfil'); }, 900);
+        } else {
+          errBox.textContent = res.message;
+          errBox.style.display = 'block';
+        }
+      })
+      .withFailureHandler(function (err) {
+        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+        errBox.style.display = 'block';
+      })
+      .updateProfilSaya(SESSION_TOKEN, { nama: namaBaru });
+  }
+
+  // ============ ASPIRASI (gabungan semua jalur, 1 list) ============
+  let aspirasiSortDir = 'desc'; // 'desc' = terbaru dulu, 'asc' = terlama dulu
+
+  const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const BULAN_ID_LENGKAP = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+  function formatTanggalIndonesiaLengkap(d) {
+    if (!d || isNaN(d.getTime())) return '-';
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return HARI_ID[d.getDay()] + ', ' + d.getDate() + ' ' + BULAN_ID_LENGKAP[d.getMonth()] + ' ' + d.getFullYear() + ', ' + hh + ':' + mi;
+  }
+
+  function loadAspirasi() {
+    if (DASHBOARD_DATA) { renderAspirasiList(); return; }
+    google.script.run.withSuccessHandler(function (data) { DASHBOARD_DATA = data; renderAspirasiList(); }).getDashboardData(SESSION_TOKEN);
+  }
+
+  function toggleAspirasiSort() {
+    aspirasiSortDir = aspirasiSortDir === 'desc' ? 'asc' : 'desc';
+    renderAspirasiList();
+  }
+
+  function renderAspirasiList() {
+    if (!DASHBOARD_DATA) return;
+    const keyword = (document.getElementById('aspirasiSearch').value || '').trim().toLowerCase();
+    const jalurFilter = document.getElementById('aspirasiJalurFilter').value;
+
+    let rows = (DASHBOARD_DATA.allRecords || []).slice();
+    if (jalurFilter) rows = rows.filter(function (r) { return r.jalur === jalurFilter; });
+    if (keyword) {
+      rows = rows.filter(function (r) {
+        return (r.nama || '').toLowerCase().indexOf(keyword) > -1 || String(r.nik || '').indexOf(keyword) > -1;
+      });
+    }
+
+    rows.sort(function (a, b) {
+      const ta = new Date(a.tanggalRaw || a.tanggal);
+      const tb = new Date(b.tanggalRaw || b.tanggal);
+      return aspirasiSortDir === 'desc' ? tb - ta : ta - tb;
+    });
+
+    document.getElementById('aspirasiCount').textContent = rows.length + ' Aspirasi';
+
+    const container = document.getElementById('listAspirasi');
+    container.innerHTML = '';
+    if (rows.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px 0;">Tidak ada data</div>';
+      return;
+    }
+
+    rows.forEach(function (r) {
+      const avatarHtml = r.foto
+        ? '<img class="people-card-avatar" src="' + r.foto + '" alt="">'
+        : '<div class="people-card-avatar-placeholder">' + inisial(r.nama) + '</div>';
+      const wilayah = [r.kecamatan, r.desa].filter(Boolean).join(', ') || '-';
+      const tglFormat = formatTanggalIndonesiaLengkap(new Date(r.tanggalRaw || r.tanggal));
+
+      const card = document.createElement('div');
+      card.className = 'people-card';
+      card.innerHTML =
+        avatarHtml +
+        '<div class="people-card-info">' +
+          '<div class="people-card-nama">' + r.nama + '<span class="aspirasi-jalur-tag">' + r.jalur + '</span></div>' +
+          '<div class="people-card-sub">' + wilayah + '</div>' +
+          '<div class="people-card-sub" style="font-style:italic;">Direkrut ' + tglFormat + '</div>' +
+        '</div>';
+      card.onclick = function () { bukaDetailOrang(r, {}); };
+      container.appendChild(card);
+    });
+  }
+
+  // ============ LEADERBOARD (ranking performa input per akun) ============
+  let leaderboardRange = 'minggu_ini';
+
+  function loadLeaderboard() {
+    if (DASHBOARD_DATA) { renderLeaderboard(); return; }
+    google.script.run.withSuccessHandler(function (data) { DASHBOARD_DATA = data; renderLeaderboard(); }).getDashboardData(SESSION_TOKEN);
+  }
+
+  function gantiRangeLeaderboard(range) {
+    leaderboardRange = range;
+    document.querySelectorAll('.lb-toggle-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-range') === range);
+    });
+    renderLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    if (!DASHBOARD_DATA) return;
+    const now = new Date();
+    let mulai, akhir;
+    if (leaderboardRange === 'minggu_ini') {
+      akhir = now;
+      mulai = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+    } else {
+      akhir = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+      mulai = new Date(now.getTime() - 14 * 24 * 3600 * 1000);
+    }
+
+    const records = (DASHBOARD_DATA.allRecords || []).filter(function (r) {
+      const t = new Date(r.tanggalRaw || r.tanggal);
+      return t >= mulai && t <= akhir;
+    });
+
+    const perUser = {};
+    records.forEach(function (r) {
+      const user = r.userInput || 'Tidak diketahui';
+      if (!perUser[user]) perUser[user] = { count: 0, kecamatanSet: new Set() };
+      perUser[user].count++;
+      if (r.kecamatan) perUser[user].kecamatanSet.add(r.kecamatan);
+    });
+
+    const ranking = Object.keys(perUser).map(function (user) {
+      return { nama: user, count: perUser[user].count, wilayah: Array.from(perUser[user].kecamatanSet).join(', ') };
+    }).sort(function (a, b) { return b.count - a.count; });
+
+    const container = document.getElementById('listLeaderboard');
+    container.innerHTML = '';
+    if (ranking.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px 0;">Belum ada data pada periode ini</div>';
+      return;
+    }
+
+    const MEDALI = ['🥇', '🥈', '🥉'];
+    ranking.forEach(function (item, idx) {
+      const rankHtml = idx < 3
+        ? '<div class="lb-rank lb-rank-medali">' + MEDALI[idx] + '</div>'
+        : '<div class="lb-rank">' + (idx + 1) + '</div>';
+
+      container.innerHTML +=
+        '<div class="lb-item">' +
+          rankHtml +
+          '<div class="people-card-avatar-placeholder">' + inisial(item.nama) + '</div>' +
+          '<div class="people-card-info">' +
+            '<div class="people-card-nama">' + item.nama + '</div>' +
+            '<div class="people-card-sub">' + (item.wilayah || '-') + '</div>' +
+          '</div>' +
+          '<div class="lb-count">▲ ' + item.count + '</div>' +
+        '</div>';
+    });
+  }
+
+  // ============ INPUT DATA (5 Jalur) ============
+  let fotoBase64Data = null, fotoMimeType = null;
+  let ktpBase64Data = null, ktpMimeType = null;
+
+  const JALUR_BOLEH_SCAN = ['DPC', 'DPRT', 'RELAWAN']; // PIP & KIP tidak, karena datanya kompleks (banyak field)
+
+  function gantiJalur() {
+    const jalur = document.getElementById('fJalur').value;
+    document.querySelectorAll('.jalur-form').forEach(el => el.classList.remove('active'));
+
+    const btn = document.getElementById('btnSubmit');
+    if (!jalur) { btn.style.display = 'none'; return; }
+
+    document.getElementById('form-' + jalur).classList.add('active');
+
+    if (JALUR_BOLEH_SCAN.indexOf(jalur) > -1) {
+      // DPC / DPRT / RELAWAN: tampilkan pilihan "Pindai KTP" atau "Input Manual" dulu
+      document.getElementById('scanBlock-' + jalur).style.display = 'block';
+      document.getElementById('manualFields-' + jalur).style.display = 'none';
+      document.getElementById('form-foto-ktp').classList.remove('active');
+      btn.style.display = 'none';
+    } else {
+      // PIP / KIP: langsung tampilkan form manual penuh
+      document.getElementById('form-foto-ktp').classList.add('active');
+      btn.style.display = 'block';
+    }
+  }
+
+  function bukaFormManual(jalur) {
+    const scanBlock = document.getElementById('scanBlock-' + jalur);
+    const manualBlock = document.getElementById('manualFields-' + jalur);
+    if (scanBlock) scanBlock.style.display = 'none';
+    if (manualBlock) manualBlock.style.display = 'block';
+    document.getElementById('form-foto-ktp').classList.add('active');
+    document.getElementById('btnSubmit').style.display = 'block';
+  }
+
+  // ---- Pindai KTP (OCR, jalan di HP tanpa perlu API berbayar) ----
+  function bukaPindaiKtp(jalur) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = function () { prosesPindaiKtp(input.files[0], jalur); };
+    input.click();
+  }
+
+  function parseHasilOcrKtp(teks) {
+    const lines = teks.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    const hasil = { nik: '', nama: '', alamat: '' };
+
+    const nikMatch = teks.replace(/\s+/g, ' ').match(/\b\d{16}\b/);
+    if (nikMatch) hasil.nik = nikMatch[0];
+
+    for (let i = 0; i < lines.length; i++) {
+      if (/nama/i.test(lines[i])) {
+        const sama = lines[i].match(/nama\s*[:\-]?\s*(.+)/i);
+        if (sama && sama[1] && sama[1].trim().length > 2) hasil.nama = sama[1].trim();
+        else if (lines[i + 1]) hasil.nama = lines[i + 1].trim();
+        break;
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      if (/alamat/i.test(lines[i])) {
+        const sama = lines[i].match(/alamat\s*[:\-]?\s*(.+)/i);
+        if (sama && sama[1] && sama[1].trim().length > 2) hasil.alamat = sama[1].trim();
+        else if (lines[i + 1]) hasil.alamat = lines[i + 1].trim();
+        break;
+      }
+    }
+
+    return hasil;
+  }
+
+  function isiFieldOcr(jalur, hasil) {
+    const peta = {
+      DPC: { nik: 'dpcNik', nama: 'dpcNama', alamat: 'dpcAlamat' },
+      DPRT: { nik: 'dprtNik', nama: 'dprtNama', alamat: 'dprtAlamat' },
+      RELAWAN: { nik: 'rlwNikAnggota', nama: 'rlwNamaAnggota', alamat: 'rlwAlamatAnggota' }
+    };
+    const f = peta[jalur];
+    if (!f) return;
+    if (hasil.nik) document.getElementById(f.nik).value = hasil.nik;
+    if (hasil.nama) document.getElementById(f.nama).value = hasil.nama;
+    if (hasil.alamat) document.getElementById(f.alamat).value = hasil.alamat;
+  }
+
+  function prosesPindaiKtp(file, jalur) {
+    if (!file) return;
+    const statusEl = document.getElementById('ocrStatus-' + jalur);
+    statusEl.style.display = 'block';
+    statusEl.className = 'ocr-status ocr-status-proses';
+    statusEl.innerHTML = '<span class="spinner"></span> Memindai KTP, mohon tunggu (bisa 10-30 detik, tergantung koneksi)...';
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const dataUrl = e.target.result;
+      const base64 = dataUrl.split(',')[1];
+
+      // Foto hasil pindai otomatis dipakai sebagai Foto KTP, dan Foto Penerima jika belum ada foto lain
+      ktpBase64Data = base64; ktpMimeType = file.type;
+      document.getElementById('previewKtp').src = dataUrl;
+      document.getElementById('previewKtp').style.display = 'block';
+      document.getElementById('dropKtp').classList.add('has-file');
+      document.getElementById('dropKtp').textContent = '✅ Dari hasil pindai KTP';
+
+      if (!fotoBase64Data) {
+        fotoBase64Data = base64; fotoMimeType = file.type;
+        document.getElementById('previewFoto').src = dataUrl;
+        document.getElementById('previewFoto').style.display = 'block';
+        document.getElementById('dropFoto').classList.add('has-file');
+        document.getElementById('dropFoto').textContent = '✅ Dari hasil pindai (boleh diganti foto asli)';
+      }
+
+      if (typeof Tesseract === 'undefined') {
+        statusEl.className = 'ocr-status ocr-status-gagal';
+        statusEl.textContent = 'Fitur pindai otomatis tidak bisa dimuat (cek koneksi internet). Silakan isi manual di bawah.';
+        bukaFormManual(jalur);
+        return;
+      }
+
+      Tesseract.recognize(dataUrl, 'ind')
+        .then(function (out) {
+          const hasil = parseHasilOcrKtp(out.data.text || '');
+          isiFieldOcr(jalur, hasil);
+          statusEl.className = 'ocr-status ocr-status-sukses';
+          statusEl.textContent = '✅ Berhasil dipindai. Mohon cek & perbaiki data di bawah sebelum disimpan (hasil baca otomatis tidak selalu 100% akurat).';
+          bukaFormManual(jalur);
+        })
+        .catch(function () {
+          statusEl.className = 'ocr-status ocr-status-gagal';
+          statusEl.textContent = 'Gagal memindai otomatis. Foto KTP tetap tersimpan — silakan lengkapi data di bawah secara manual.';
+          bukaFormManual(jalur);
+        });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function previewFile(input, previewId, dropId) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result.split(',')[1];
+      if (previewId === 'previewFoto') { fotoBase64Data = base64; fotoMimeType = file.type; }
+      else { ktpBase64Data = base64; ktpMimeType = file.type; }
+      const img = document.getElementById(previewId);
+      img.src = e.target.result;
+      img.style.display = 'block';
+      document.getElementById(dropId).classList.add('has-file');
+      document.getElementById(dropId).textContent = '✅ ' + file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function v(id) { return document.getElementById(id).value.trim(); }
+
+  function submitData() {
+    const jalur = document.getElementById('fJalur').value;
+    const errBox = document.getElementById('inputError');
+    const okBox = document.getElementById('inputSuccess');
+    errBox.style.display = 'none';
+    okBox.style.display = 'none';
+
+    if (!jalur) { errBox.textContent = 'Pilih jalur data terlebih dahulu.'; errBox.style.display = 'block'; return; }
+
+    let formData = { fotoBase64: fotoBase64Data, fotoMime: fotoMimeType, ktpBase64: ktpBase64Data, ktpMime: ktpMimeType };
+    let fungsi = '';
+
+    if (jalur === 'DPC') {
+      formData = Object.assign(formData, { nama: v('dpcNama'), nik: v('dpcNik'), hp: v('dpcHp'), jabatan: v('dpcJabatan'), kecamatan: v('dpcKecamatan'), alamat: v('dpcAlamat') });
+      fungsi = 'submitDPC';
+    } else if (jalur === 'DPRT') {
+      formData = Object.assign(formData, { nama: v('dprtNama'), nik: v('dprtNik'), hp: v('dprtHp'), jabatan: v('dprtJabatan'), desa: v('dprtDesa'), kecamatan: v('dprtKecamatan'), alamat: v('dprtAlamat') });
+      fungsi = 'submitDPRT';
+    } else if (jalur === 'PIP') {
+      formData = Object.assign(formData, {
+        namaAnak: v('pipNamaAnak'), nikAnak: v('pipNikAnak'), hpAnak: v('pipHpAnak'),
+        namaSekolah: v('pipNamaSekolah'), alamatSekolah: v('pipAlamatSekolah'),
+        namaAyah: v('pipNamaAyah'), nikAyah: v('pipNikAyah'), hpAyah: v('pipHpAyah'),
+        namaIbu: v('pipNamaIbu'), nikIbu: v('pipNikIbu'), hpIbu: v('pipHpIbu'),
+        alamatKeluarga: v('pipAlamatKeluarga'),
+        jumlahSaudara: v('pipJumlahSaudara'), namaSaudara: v('pipNamaSaudara'), nikSaudara: v('pipNikSaudara'), hpSaudara: v('pipHpSaudara'), alamatSaudara: v('pipAlamatSaudara'),
+        desa: v('pipDesa'), kecamatan: v('pipKecamatan')
+      });
+      fungsi = 'submitPIP';
+    } else if (jalur === 'KIP') {
+      formData = Object.assign(formData, {
+        namaAnak: v('kipNamaAnak'), nikAnak: v('kipNikAnak'), hpAnak: v('kipHpAnak'),
+        namaKampus: v('kipNamaKampus'), alamatKampus: v('kipAlamatKampus'),
+        namaAyah: v('kipNamaAyah'), nikAyah: v('kipNikAyah'), hpAyah: v('kipHpAyah'),
+        namaIbu: v('kipNamaIbu'), nikIbu: v('kipNikIbu'), hpIbu: v('kipHpIbu'),
+        alamatKeluarga: v('kipAlamatKeluarga'),
+        jumlahSaudara: v('kipJumlahSaudara'), namaSaudara: v('kipNamaSaudara'), nikSaudara: v('kipNikSaudara'), hpSaudara: v('kipHpSaudara'), alamatSaudara: v('kipAlamatSaudara'),
+        desa: v('kipDesa'), kecamatan: v('kipKecamatan')
+      });
+      fungsi = 'submitKIP';
+    } else if (jalur === 'RELAWAN') {
+      formData = Object.assign(formData, {
+        namaKoordinator: v('rlwKoordinator'), desa: v('rlwDesa'), kecamatan: v('rlwKecamatan'),
+        namaAnggota: v('rlwNamaAnggota'), nikAnggota: v('rlwNikAnggota'), hpAnggota: v('rlwHpAnggota'), alamatAnggota: v('rlwAlamatAnggota')
+      });
+      fungsi = 'submitRelawan';
+    }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Data';
+        if (res.success) {
+          okBox.textContent = res.message;
+          okBox.style.display = 'block';
+          resetForm(jalur);
+        } else {
+          errBox.textContent = res.message;
+          errBox.style.display = 'block';
+        }
+      })
+      .withFailureHandler(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Data';
+        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+        errBox.style.display = 'block';
+      })
+      [fungsi](SESSION_TOKEN, formData);
+  }
+
+  function resetForm(jalur) {
+    document.querySelectorAll('#form-' + jalur + ' input, #form-' + jalur + ' textarea').forEach(el => el.value = '');
+    document.querySelectorAll('#form-' + jalur + ' select').forEach(el => el.selectedIndex = 0);
+    ['previewFoto', 'previewKtp'].forEach(id => { document.getElementById(id).style.display = 'none'; document.getElementById(id).src = ''; });
+    document.getElementById('dropFoto').textContent = '📷 Klik untuk pilih/ambil foto';
+    document.getElementById('dropFoto').classList.remove('has-file');
+    document.getElementById('dropKtp').textContent = '🪪 Klik untuk scan/pilih KTP';
+    document.getElementById('dropKtp').classList.remove('has-file');
+    fotoBase64Data = null; ktpBase64Data = null;
+
+    // Kembalikan ke tampilan awal (blok Pindai KTP) untuk jalur yang mendukungnya
+    if (JALUR_BOLEH_SCAN.indexOf(jalur) > -1) {
+      document.getElementById('scanBlock-' + jalur).style.display = 'block';
+      document.getElementById('manualFields-' + jalur).style.display = 'none';
+      const statusEl = document.getElementById('ocrStatus-' + jalur);
+      statusEl.style.display = 'none';
+      statusEl.textContent = '';
+    }
+  }
+
+  // ============ RIWAYAT DATA (per Jalur) ============
+  function loadRiwayat() {
+    const jalurKey = document.getElementById('filterJalur').value;
+    const filters = {
+      keyword: document.getElementById('filterKeyword').value.trim(),
+      status: document.getElementById('filterStatus').value
+    };
+
+    if (!jalurKey) {
+      // "Semua Data" -> ambil kelima jalur sekaligus, lalu gabungkan jadi satu list
+      const daftarJalur = ['DPC', 'DPRT', 'PIP', 'KIP', 'RELAWAN'];
+      let selesai = 0;
+      let gabungan = [];
+      let userRoleHasil = null;
+
+      document.getElementById('listRiwayat').innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px 0;">Memuat data...</div>';
+
+      daftarJalur.forEach(function (jk) {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            selesai++;
+            if (res.success) {
+              userRoleHasil = res.userRole;
+              res.rows.forEach(function (r) {
+                r.jalurKeyAsal = jk;
+                r.jalur = JALUR_LABEL[jk];
+              });
+              gabungan = gabungan.concat(res.rows);
+            }
+            if (selesai === daftarJalur.length) {
+              gabungan.sort(function (a, b) { return b.rowNumber - a.rowNumber; });
+              renderPeopleCardList('listRiwayat', gabungan, { showJalur: true, userRole: userRoleHasil });
+            }
+          })
+          .getRiwayatData(SESSION_TOKEN, jk, filters);
+      });
+      return;
+    }
+
+    google.script.run.withSuccessHandler(renderRiwayat).getRiwayatData(SESSION_TOKEN, jalurKey, filters);
+  }
+
+  const STATUS_LANJUTAN = {
+    'Koordinator Desa': [{ value: 'Diverifikasi Desa', label: 'Verifikasi (tingkat Desa)' }, { value: 'Ditolak', label: 'Tolak' }],
+    'Koordinator Kecamatan': [{ value: 'Divalidasi Kecamatan', label: 'Validasi (tingkat Kecamatan)' }, { value: 'Final', label: 'Set Final' }, { value: 'Ditolak', label: 'Tolak' }],
+    'Superadmin': [
+      { value: 'Diinput', label: 'Diinput' }, { value: 'Diverifikasi Desa', label: 'Diverifikasi Desa' },
+      { value: 'Divalidasi Kecamatan', label: 'Divalidasi Kecamatan' }, { value: 'Final', label: 'Final' }, { value: 'Ditolak', label: 'Ditolak' }
+    ]
+  };
+
+  function renderRiwayat(res) {
+    if (!res.success) { alert(res.message); return; }
+    renderPeopleCardList('listRiwayat', res.rows, { showJalur: false, jalurKey: res.jalur, userRole: res.userRole });
+  }
+
+  let verifikasiJalur = null;
+  let verifikasiRowNumber = null;
+  function openModalVerifikasi(jalurKey, rowNumber, nama, statusSaatIni) {
+    verifikasiJalur = jalurKey;
+    verifikasiRowNumber = rowNumber;
+    document.getElementById('modalVerifikasiNama').textContent = nama + ' (' + JALUR_LABEL[jalurKey] + ') — status saat ini: ' + statusSaatIni;
+    document.getElementById('modalVerifikasiError').style.display = 'none';
+    document.getElementById('modalVerifikasiCatatan').value = '';
+
+    const select = document.getElementById('modalVerifikasiStatus');
+    select.innerHTML = '';
+    (STATUS_LANJUTAN[CURRENT_USER.role] || []).forEach(function (opt) {
+      select.innerHTML += '<option value="' + opt.value + '">' + opt.label + '</option>';
+    });
+
+    openModal('modalVerifikasi');
+  }
+
+  function simpanStatusVerifikasi() {
+    const newStatus = document.getElementById('modalVerifikasiStatus').value;
+    const catatan = document.getElementById('modalVerifikasiCatatan').value.trim();
+    const errBox = document.getElementById('modalVerifikasiError');
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.success) { closeModal('modalVerifikasi'); loadRiwayat(); }
+        else { errBox.textContent = res.message; errBox.style.display = 'block'; }
+      })
+      .withFailureHandler(function (err) {
+        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+        errBox.style.display = 'block';
+      })
+      .updateStatusVerifikasi(SESSION_TOKEN, verifikasiJalur, verifikasiRowNumber, newStatus, catatan);
+  }
+
+  // ============ LOG AKTIVITAS ============
+  function loadLogAktivitas() {
+    google.script.run.withSuccessHandler(renderLogAktivitas).getLogAktivitas(SESSION_TOKEN);
+  }
+
+  function renderLogAktivitas(res) {
+    if (!res.success) { alert(res.message); return; }
+    const tbody = document.querySelector('#tabelLog tbody');
+    tbody.innerHTML = '';
+    if (res.rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;">Belum ada log</td></tr>';
+      return;
+    }
+    res.rows.forEach(function (r) {
+      tbody.innerHTML += '<tr><td>' + r.waktu + '</td><td>' + r.user + '</td><td>' + r.aksi + '</td><td>' + r.keterangan + '</td></tr>';
+    });
+  }
+
+  // ============ PENGATURAN PENGGUNA ============
+  function loadUsersList() {
+    google.script.run.withSuccessHandler(renderUsersList).getUsersList(SESSION_TOKEN);
+  }
+
+  function renderUsersList(res) {
+    if (!res.success) { alert(res.message); return; }
+    const tbody = document.querySelector('#tabelUsers tbody');
+    tbody.innerHTML = '';
+    res.rows.forEach(function (u) {
+      const wilayah = [u.kecamatan, u.desa, u.ranting].filter(Boolean).join(' / ') || '-';
+      const statusBadge = u.status === 'Aktif' ? 'badge-aktif' : 'badge-nonaktif';
+      const toggleLabel = u.status === 'Aktif' ? 'Nonaktifkan' : 'Aktifkan';
+      const toggleTarget = u.status === 'Aktif' ? 'Nonaktif' : 'Aktif';
+
+      tbody.innerHTML += '<tr>' +
+        '<td>' + u.nama + '</td>' +
+        '<td>' + u.role + '</td>' +
+        '<td>' + wilayah + '</td>' +
+        '<td>' + u.username + '</td>' +
+        '<td><span class="badge ' + statusBadge + '">' + u.status + '</span></td>' +
+        '<td>' +
+          '<button class="btn-aksi btn-toggle" onclick="toggleUserStatus(' + u.rowNumber + ',\'' + toggleTarget + '\')">' + toggleLabel + '</button>' +
+          '<button class="btn-aksi btn-reset" onclick=\'openModalResetPassword(' + u.rowNumber + ',"' + u.nama.replace(/"/g,'') + '")\'>Reset Password</button>' +
+        '</td>' +
+        '</tr>';
+    });
+  }
+
+  function openModalTambahUser() {
+    ['uNama','uKecamatan','uDesa','uRanting','uUsername','uPassword'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('uRole').value = 'Admin Ranting';
+    document.getElementById('modalUserError').style.display = 'none';
+    openModal('modalTambahUser');
+  }
+
+  function toggleWilayahFields() {
+    // Placeholder jika ke depan ingin menyembunyikan/menampilkan kolom sesuai role
+  }
+
+  function simpanUserBaru() {
+    const userData = {
+      nama: document.getElementById('uNama').value.trim(),
+      role: document.getElementById('uRole').value,
+      kecamatan: document.getElementById('uKecamatan').value,
+      desa: document.getElementById('uDesa').value.trim(),
+      ranting: document.getElementById('uRanting').value.trim(),
+      username: document.getElementById('uUsername').value.trim(),
+      password: document.getElementById('uPassword').value
+    };
+    const errBox = document.getElementById('modalUserError');
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.success) { closeModal('modalTambahUser'); loadUsersList(); }
+        else { errBox.textContent = res.message; errBox.style.display = 'block'; }
+      })
+      .withFailureHandler(function (err) {
+        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+        errBox.style.display = 'block';
+      })
+      .addUserFromUI(SESSION_TOKEN, userData);
+  }
+
+  function toggleUserStatus(rowNumber, newStatus) {
+    if (!confirm('Ubah status pengguna ini menjadi "' + newStatus + '"?')) return;
+    google.script.run.withSuccessHandler(function (res) {
+      if (res.success) loadUsersList(); else alert(res.message);
+    }).updateUserStatus(SESSION_TOKEN, rowNumber, newStatus);
+  }
+
+  let resetPasswordRowNumber = null;
+  function openModalResetPassword(rowNumber, nama) {
+    resetPasswordRowNumber = rowNumber;
+    document.getElementById('modalResetNama').textContent = nama;
+    document.getElementById('uNewPassword').value = '';
+    document.getElementById('modalResetError').style.display = 'none';
+    openModal('modalResetPassword');
+  }
+
+  function simpanResetPassword() {
+    const newPassword = document.getElementById('uNewPassword').value;
+    const errBox = document.getElementById('modalResetError');
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.success) { closeModal('modalResetPassword'); alert('Password berhasil direset.'); }
+        else { errBox.textContent = res.message; errBox.style.display = 'block'; }
+      })
+      .withFailureHandler(function (err) {
+        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+        errBox.style.display = 'block';
+      })
+      .resetUserPassword(SESSION_TOKEN, resetPasswordRowNumber, newPassword);
+  }
+</script>

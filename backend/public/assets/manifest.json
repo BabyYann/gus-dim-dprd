@@ -1,0 +1,18 @@
+{
+  "name": "GUS DIM - Data Pendukung DPRD",
+  "short_name": "GUS DIM",
+  "description": "Sistem Informasi Manajemen Pendukung & Relawan DPRD Dapil Kraksaan Raya",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#16225e",
+  "theme_color": "#16225e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/img/gus-dim.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

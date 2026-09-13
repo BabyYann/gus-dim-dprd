@@ -1,0 +1,298 @@
+{
+    "users":  [
+                  {
+                      "id":  1,
+                      "username":  "superadmin",
+                      "password_hash":  "$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u",
+                      "nama":  "Superadmin Pusat",
+                      "role":  "Superadmin",
+                      "kecamatan":  "",
+                      "desa":  "",
+                      "ranting":  "",
+                      "foto_profil":  "",
+                      "status":  "Aktif",
+                      "created_at":  "2026-09-09 01:00:29"
+                  },
+                  {
+                      "id":  2,
+                      "username":  "korcam_kraksaan",
+                      "password_hash":  "$2y$12$cWtQjSrwcYAJrQUQVjJ5CuPtbnQoHG.PZe4VTskvAt17c/yUNG3Ne",
+                      "nama":  "H. Mansyur (Korcam)",
+                      "role":  "Koordinator Kecamatan",
+                      "kecamatan":  "Kraksaan",
+                      "desa":  "",
+                      "ranting":  "",
+                      "foto_profil":  "",
+                      "status":  "Aktif",
+                      "created_at":  "2026-09-09 01:00:29"
+                  },
+                  {
+                      "id":  3,
+                      "username":  "kordes_wetan",
+                      "password_hash":  "$2y$12$cWtQjSrwcYAJrQUQVjJ5CuPtbnQoHG.PZe4VTskvAt17c/yUNG3Ne",
+                      "nama":  "Ust. Bahri (Kordes)",
+                      "role":  "Koordinator Desa",
+                      "kecamatan":  "Kraksaan",
+                      "desa":  "Kraksaan Wetan",
+                      "ranting":  "",
+                      "foto_profil":  "",
+                      "status":  "Aktif",
+                      "created_at":  "2026-09-09 01:00:29"
+                  },
+                  {
+                      "id":  4,
+                      "username":  "ranting_kraksaan",
+                      "password_hash":  "$2y$12$cWtQjSrwcYAJrQUQVjJ5CuPtbnQoHG.PZe4VTskvAt17c/yUNG3Ne",
+                      "nama":  "Admin Ranting Kraksaan Kota",
+                      "role":  "Admin Ranting",
+                      "kecamatan":  "Kraksaan",
+                      "desa":  "Kraksaan Wetan",
+                      "ranting":  "Ranting Kraksaan Kota",
+                      "foto_profil":  "",
+                      "status":  "Aktif",
+                      "created_at":  "2026-09-09 01:00:29"
+                  }
+              ],
+    "tokens":  [
+                   {
+                       "user_id":  1,
+                       "token":  "578d47d31628a1735b9a4def5dabe2210322ae2320dd1762e11a7895bf708af0",
+                       "expires_at":  "2026-10-09 01:45:16"
+                   },
+                   {
+                       "user_id":  1,
+                       "token":  "f70c9b4c60582107ba3210038c6eafbf6ea95545b4bf9b9e88a755c87aea9f73",
+                       "expires_at":  "2026-10-09 01:46:58"
+                   },
+                   {
+                       "user_id":  1,
+                       "token":  "b23200729e505a360bb28110612ae47d1fd605aa3df6a93f4d78ad75aa192f5f",
+                       "expires_at":  "2026-10-09 02:01:14"
+                   }
+               ],
+    "pendukung":  [
+                      {
+                          "id":  1,
+                          "jalur":  "DPC",
+                          "nik":  "3513121508820001",
+                          "nama":  "Ahmad Fauzi, S.Pd",
+                          "hp":  "081234567890",
+                          "umur":  44,
+                          "jabatan":  "Ketua DPC",
+                          "koordinator":  "",
+                          "alamat":  "Jl. Panglima Sudirman No. 45",
+                          "kecamatan":  "Kraksaan",
+                          "desa":  "Kraksaan Wetan",
+                          "latitude":  -7.758,
+                          "longitude":  113.415,
+                          "foto_wajah":  "",
+                          "foto_ktp":  "",
+                          "data_khusus":  null,
+                          "status":  "Final",
+                          "catatan":  "Tokoh masyarakat Kraksaan",
+                          "input_by_user_id":  1,
+                          "input_by_user_name":  "Superadmin Pusat",
+                          "created_at":  "2026-09-04 01:00:29"
+                      },
+                      {
+                          "id":  2,
+                          "jalur":  "DPRT",
+                          "nik":  "3513125203890002",
+                          "nama":  "Siti Aminah",
+                          "hp":  "085233445566",
+                          "umur":  37,
+                          "jabatan":  "Sekretaris DPRT",
+                          "koordinator":  "",
+                          "alamat":  "Dusun Krajan RT 02/RW 01",
+                          "kecamatan":  "Kraksaan",
+                          "desa":  "Kraksaan Kulon",
+                          "latitude":  -7.755,
+                          "longitude":  113.409,
+                          "foto_wajah":  "",
+                          "foto_ktp":  "",
+                          "data_khusus":  null,
+                          "status":  "Divalidasi Kecamatan",
+                          "catatan":  "Koordinator ibu-ibu pengajian",
+                          "input_by_user_id":  4,
+                          "input_by_user_name":  "Admin Ranting Kraksaan Kota",
+                          "created_at":  "2026-09-05 01:00:29"
+                      },
+                      {
+                          "id":  3,
+                          "jalur":  "PIP",
+                          "nik":  "3513120101080003",
+                          "nama":  "Rizky Ramadhan",
+                          "hp":  "087811223344",
+                          "umur":  18,
+                          "jabatan":  "",
+                          "koordinator":  "",
+                          "alamat":  "Jl. Ikan Paus RT 03/RW 02",
+                          "kecamatan":  "Kraksaan",
+                          "desa":  "Semampir",
+                          "latitude":  -7.748,
+                          "longitude":  113.421,
+                          "foto_wajah":  "",
+                          "foto_ktp":  "",
+                          "data_khusus":  {
+                                              "sekolah":  "SMAN 1 Kraksaan"
+                                          },
+                          "status":  "Diverifikasi Desa",
+                          "catatan":  "Siswa SMAN 1 Kraksaan berprestasi",
+                          "input_by_user_id":  4,
+                          "input_by_user_name":  "Admin Ranting Kraksaan Kota",
+                          "created_at":  "2026-09-06 01:00:29"
+                      },
+                      {
+                          "id":  4,
+                          "jalur":  "KIP",
+                          "nik":  "3513134511030004",
+                          "nama":  "Putri Ayu Lestari",
+                          "hp":  "089677889900",
+                          "umur":  23,
+                          "jabatan":  "",
+                          "koordinator":  "",
+                          "alamat":  "Dusun Timur RT 01/RW 04",
+                          "kecamatan":  "Besuk",
+                          "desa":  "Besuk Kidul",
+                          "latitude":  -7.802,
+                          "longitude":  113.442,
+                          "foto_wajah":  "",
+                          "foto_ktp":  "",
+                          "data_khusus":  {
+                                              "kampus":  "Universitas Nurul Jadid"
+                                          },
+                          "status":  "Diinput",
+                          "catatan":  "Mahasiswi Universitas Nurul Jadid",
+                          "input_by_user_id":  2,
+                          "input_by_user_name":  "H. Mansyur (Korcam)",
+                          "created_at":  "2026-09-07 01:00:29"
+                      },
+                      {
+                          "id":  5,
+                          "jalur":  "RELAWAN",
+                          "nik":  "3513141006950005",
+                          "nama":  "Bambang Sutrisno",
+                          "hp":  "082199887766",
+                          "umur":  31,
+                          "jabatan":  "Anggota",
+                          "koordinator":  "Relawan Sayap Muda Gus Dim",
+                          "alamat":  "Jl. Raya Gading No. 12",
+                          "kecamatan":  "Gading",
+                          "desa":  "Gading Wetan",
+                          "latitude":  -7.85,
+                          "longitude":  113.46,
+                          "foto_wajah":  "",
+                          "foto_ktp":  "",
+                          "data_khusus":  null,
+                          "status":  "Final",
+                          "catatan":  "Koordinator pemuda Gading",
+                          "input_by_user_id":  1,
+                          "input_by_user_name":  "Superadmin Pusat",
+                          "created_at":  "2026-09-08 01:00:29"
+                      }
+                  ],
+    "logs":  [
+                 {
+                     "id":  1,
+                     "aksi":  "Verifikasi Final",
+                     "tipe":  "success",
+                     "pengguna":  "Superadmin Pusat",
+                     "keterangan":  "Menyetujui status verifikasi data Bambang Sutrisno (Relawan Sayap Muda)",
+                     "waktu":  "09/09/2026 08:30"
+                 },
+                 {
+                     "id":  2,
+                     "aksi":  "Entri Data Baru",
+                     "tipe":  "info",
+                     "pengguna":  "H. Mansyur (Korcam)",
+                     "keterangan":  "Menambahkan usulan beasiswa KIP Putri Ayu Lestari di Besuk Kidul",
+                     "waktu":  "08/09/2026 14:15"
+                 },
+                 {
+                     "id":  3,
+                     "aksi":  "Validasi Ranting",
+                     "tipe":  "success",
+                     "pengguna":  "Admin Ranting Kraksaan Kota",
+                     "keterangan":  "Memvalidasi berkas siswa berprestasi PIP Rizky Ramadhan (Semampir)",
+                     "waktu":  "07/09/2026 11:20"
+                 },
+                 {
+                     "id":  4,
+                     "aksi":  "Entri Data Baru",
+                     "tipe":  "info",
+                     "pengguna":  "Admin Ranting Kraksaan Kota",
+                     "keterangan":  "Mendaftarkan Siti Aminah sebagai pengurus DPRT Desa Kraksaan Kulon",
+                     "waktu":  "06/09/2026 09:40"
+                 },
+                 {
+                     "id":  5,
+                     "aksi":  "Verifikasi Final",
+                     "tipe":  "success",
+                     "pengguna":  "Superadmin Pusat",
+                     "keterangan":  "Menyetujui berkas struktural DPC Ahmad Fauzi, S.Pd (Kraksaan Wetan)",
+                     "waktu":  "05/09/2026 16:00"
+                 }
+             ],
+    "aspirasi":  [
+                     {
+                         "kategori":  "Infrastruktur",
+                         "id":  1,
+                         "hp":  "081234567890",
+                         "tanggal":  "08/09/2026 15:30",
+                         "status":  "Diproses",
+                         "kecamatan":  "Kraksaan",
+                         "aspirasi":  "Permohonan perbaikan lampu penerangan jalan dan normalisasi saluran air di Jl. Panglima Sudirman Kraksaan Wetan menjelang musim hujan.",
+                         "nama":  "Ahmad Fauzi, S.Pd",
+                         "desa":  "Kraksaan Wetan",
+                         "jalur":  "DPC Kecamatan"
+                     },
+                     {
+                         "kategori":  "Pendidikan",
+                         "id":  2,
+                         "hp":  "087811223344",
+                         "tanggal":  "07/09/2026 11:15",
+                         "status":  "Terealisasi",
+                         "kecamatan":  "Kraksaan",
+                         "aspirasi":  "Pengusulan beasiswa PIP tambahan bagi siswa-siswi yatim/dhuafa berprestasi di wilayah pesisir Semampir.",
+                         "nama":  "Rizky Ramadhan",
+                         "desa":  "Semampir",
+                         "jalur":  "PIP"
+                     },
+                     {
+                         "kategori":  "UMKM",
+                         "id":  3,
+                         "hp":  "085233445566",
+                         "tanggal":  "06/09/2026 09:45",
+                         "status":  "Baru",
+                         "kecamatan":  "Kraksaan",
+                         "aspirasi":  "Fasilitasi pelatihan kewirausahaan dan akses bantuan permodalan bagi kelompok pengrajin olahan ikan ibu-ibu pengajian.",
+                         "nama":  "Siti Aminah",
+                         "desa":  "Kraksaan Kulon",
+                         "jalur":  "DPRT Desa"
+                     },
+                     {
+                         "kategori":  "Pertanian",
+                         "id":  4,
+                         "hp":  "082199887766",
+                         "tanggal":  "05/09/2026 14:00",
+                         "status":  "Diproses",
+                         "kecamatan":  "Gading",
+                         "aspirasi":  "Bantuan pengadaan bibit jagung hibrida dan kemudahan ketersediaan pupuk bagi gabungan kelompok tani lereng Gading.",
+                         "nama":  "Bambang Sutrisno",
+                         "desa":  "Gading Wetan",
+                         "jalur":  "Relawan"
+                     },
+                     {
+                         "kategori":  "Pendidikan",
+                         "id":  5,
+                         "hp":  "089677889900",
+                         "tanggal":  "04/09/2026 16:20",
+                         "status":  "Baru",
+                         "kecamatan":  "Besuk",
+                         "aspirasi":  "Pendampingan pendaftaran beasiswa KIP Kuliah untuk lulusan madrasah aliyah agar dapat melanjutkan ke jenjang sarjana.",
+                         "nama":  "Putri Ayu Lestari",
+                         "desa":  "Besuk Kidul",
+                         "jalur":  "KIP"
+                     }
+                 ]
+}

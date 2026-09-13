@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Gus Dim - Sistem Informasi Pemenangan Dapil Kraksaan Raya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ asset('assets/img/gus-dim.png') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+  @vite(['resources/css/app.css'])
+  <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-[#f4f6fa] text-slate-800 antialiased font-sans">
+
+  <!-- ============ LOGIN SCREEN ============ -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <img src="{{ asset('assets/img/gus-dim.png') }}" class="login-photo" alt="Gus Dim">
+      <h1>GUS DIM</h1>
+      <p class="subtitle">Sistem Pemenangan &bull; Dapil Kraksaan Raya &bull; Partai NasDem</p>
+
+      <div class="error-msg" id="loginError"></div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="Masukkan username akun">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Masukkan password">
+      </div>
+      <button class="btn-primary" id="btnLogin" onclick="doLogin()">Masuk ke Sistem</button>
+
+      <div style="margin-top:10px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:11.5px; color:#475569; text-align:left;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-weight:700; color:#1e293b;">Akun Superadmin:</span>
+          <span style="font-weight:600; color:#2563eb;">admin / admin</span>
+        </div>
+        <button type="button" onclick="document.getElementById('loginUsername').value='admin';document.getElementById('loginPassword').value='admin';doLogin();" style="width:100%; padding:6px 10px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; font-weight:700; font-size:11.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Masuk Cepat Otomatis (1-Klik)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ APLIKASI UTAMA ============ -->
+  <div id="appScreen">
+    <div class="app-window"><div class="app-window-inner"><div class="app-layout">
+
+      <!-- OVERLAY DRAWER MOBILE -->
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="brand-chip" onclick="showPage('dashboard')">
+            <div class="sidebar-logo-avatar">GD</div>
+            <div class="sidebar-logo-meta">
+              <span class="brand-title">GUS DIM</span>
+              <span class="sidebar-logo-sub">Dapil Kraksaan Raya</span>
+            </div>
+          </div>
+          <button class="btn-toggle-sidebar" onclick="toggleSidebarCollapse()" title="Kecilkan Menu">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+        </div>
+
+        <div class="sidebar-nav">
+          <div class="menu-section-title">MENU UTAMA</div>
+          <div class="menu-item active" data-page="dashboard" data-title="Dashboard" onclick="showPage('dashboard')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span class="menu-text">Dashboard</span>
+          </div>
+          <div class="menu-item" data-page="pendukung" data-title="Data Pendukung" onclick="showPage('pendukung')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="menu-text">Data Pendukung</span>
+          </div>
+          <div class="menu-item" data-page="reses" data-title="Masa Reses & Pokir" onclick="showPage('reses')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
+            <span class="menu-text">Reses &amp; Pokir</span>
+          </div>
+          <div class="menu-item" data-page="input" data-title="Input Data" onclick="showPage('input')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span class="menu-text">Input Data</span>
+          </div>
+          <div class="menu-item" data-page="riwayat" data-title="Riwayat & Log" onclick="showPage('riwayat')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="menu-text">Riwayat &amp; Log</span>
+          </div>
+          <div class="menu-item" data-page="aspirasi" data-title="Aspirasi Warga" onclick="showPage('aspirasi')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="menu-text">Aspirasi Warga</span>
+          </div>
+          <div class="menu-item" data-page="leaderboard" data-title="Leaderboard" onclick="showPage('leaderboard')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+            <span class="menu-text">Leaderboard</span>
+          </div>
+
+          <div class="menu-section-title" style="margin-top:16px;">SISTEM &amp; AKUN</div>
+          <div class="menu-item" data-page="pengaturan" data-title="Pengaturan" onclick="showPage('pengaturan')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0-9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1-0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="menu-text">Pengaturan</span>
+          </div>
+          <div class="menu-item" data-page="profil" data-title="Profil Saya" onclick="showPage('profil')">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="menu-text">Profil Saya</span>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="nasdem-subtle-badge">
+            <span class="nasdem-dot"></span>
+            <span>Partai NasDem &bull; Dapil 3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <!-- TOPBAR -->
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="btn-hamburger" onclick="toggleSidebar()" aria-label="Buka/Tutup Menu">
+              <span></span><span></span><span></span>
+            </button>
+            <div class="topbar-location-badge">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Dapil Kraksaan Raya</span>
+            </div>
+            <div class="topbar-page-breadcrumb">
+              <span class="topbar-breadcrumb-sep">/</span>
+              <span id="pageTitle" class="topbar-page-title">Dashboard</span>
+            </div>
+          </div>
+
+          <div class="topbar-right">
+            <div class="topbar-search-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="globalSearchInput" placeholder="Cari data di sistem..." oninput="handleGlobalSearch(this.value)">
+            </div>
+
+            <button class="btn-topbar-add" onclick="showPage('input')">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Input Baru</span>
+            </button>
+
+            <div class="topbar-bell-btn" title="Notifikasi Sistem">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="bell-dot"></span>
+            </div>
+
+            <div class="topbar-divider"></div>
+
+            <div class="user-chip-modern" onclick="showPage('profil')">
+              <div class="avatar" id="userAvatar">-</div>
+              <div class="user-chip-info">
+                <div class="user-chip-name" id="userName">Admin</div>
+                <div class="user-chip-role" id="userRole">Koordinator</div>
+              </div>
+            </div>
+
+            <button class="btn-topbar-logout" onclick="doLogout()" title="Keluar">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="page-content">
+
+          <!-- ================= PAGE 1: DASHBOARD ================= -->
+          <div class="page active" id="page-dashboard">
+            <div class="stat-cards" id="statCards"></div>
+
+            <div class="card card-peta">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <h3 style="margin:0; font-size:15px; font-weight:700;">Peta Geospasial Sebaran Dukungan</h3>
+                  <span class="meta-pill meta-pill-blue">3 Kecamatan</span>
+                </div>
+                <span style="font-size:12px; color:#64748b;">Pin otomatis terplot dari data KTP &amp; Geocoding</span>
+              </div>
+              <div id="peta"></div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <h3 style="font-size:15px; font-weight:700; margin-bottom:12px;">Komposisi Data per Jalur</h3>
+                <canvas id="chartJalur" height="200"></canvas>
+              </div>
+              <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                  <h3 id="chartTitle" style="margin:0; font-size:15px; font-weight:700;">Rekap per Kecamatan</h3>
+                  <button class="btn-secondary" id="btnKembaliChart" style="display:none; padding:4px 10px; font-size:12px;" onclick="chartKembali()">&larr; Kembali ke Kecamatan</button>
+                </div>
+                <canvas id="chartProgram" height="200"></canvas>
+              </div>
+            </div>
+
+                        <!-- QUICK LINK KE MENU DATA PENDUKUNG -->
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; background:linear-gradient(135deg, #f8fafc, #f0f7ff); border:1px solid #bfdbfe; border-radius:14px; margin-top:20px; flex-wrap:wrap; gap:14px;">
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; border:1px solid #bfdbfe;">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <h4 style="margin:0 0 4px; font-size:15px; font-weight:700; color:#0f172a;">Basis Data Pendukung &amp; Konstituen</h4>
+                  <p style="margin:0; font-size:12.5px; color:#64748b;">Kelola seluruh entri dari 5 jalur, pencarian NIK, verifikasi berjenjang, dan ekspor berkas CSV/Excel.</p>
+                </div>
+              </div>
+              <button class="btn-primary-nasdem" onclick="showPage('pendukung')" style="padding:0 18px; height:38px; display:inline-flex; align-items:center; gap:8px;">
+                <span>Buka Data Pendukung</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- ================= PAGE: DATA PENDUKUNG (MENU KHUSUS) ================= -->
+          <div class="page" id="page-pendukung">
+            <!-- MODERN ENTERPRISE SAAS DATA TABLE PANEL -->
+            <div class="card saas-table-card">
+              <div class="saas-card-header">
+                <div class="saas-card-header-left">
+                  <div class="breadcrumb-tag">Basis Data Konstituen</div>
+                  <h2 class="saas-card-title" id="listPanelTitle">Daftar Pendukung Terverifikasi</h2>
+                  <div class="saas-card-meta">
+                    <span class="meta-pill meta-pill-blue">Dapil Kraksaan Raya</span>
+                    <span class="meta-pill">Kraksaan &bull; Besuk &bull; Gading</span>
+                    <span class="meta-pill meta-pill-green">&#x25CF; Data Tersinkronisasi</span>
+                  </div>
+                </div>
+                <div class="saas-card-header-right">
+                  <button class="btn-toolbar-filter" onclick="exportDataExcel('')" title="Ekspor Data Excel" style="height:34px; padding:0 12px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span style="font-size:12px;">Ekspor CSV</span>
+                  </button>
+                  <button class="btn-toolbar-filter" onclick="resetListFilter()" title="Reset Filter" style="height:34px; padding:0 12px;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M20.49 15A6 6 0 1 1 9 8.5h12"/></svg>
+                    <span style="font-size:12px;">Reset</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Secondary Filter Tabs -->
+              <div class="saas-tabs-bar">
+                <div class="saas-tab-pill active" onclick="filterJalurTab('', this)">Semua Jalur</div>
+                <div class="saas-tab-pill" onclick="filterJalurTab('DPC Kecamatan', this)">DPC Kecamatan</div>
+                <div class="saas-tab-pill" onclick="filterJalurTab('DPRT Desa', this)">DPRT Desa</div>
+                <div class="saas-tab-pill" onclick="filterJalurTab('PIP', this)">Program PIP</div>
+                <div class="saas-tab-pill" onclick="filterJalurTab('KIP', this)">Program KIP</div>
+                <div class="saas-tab-pill" onclick="filterJalurTab('Relawan', this)">Relawan Basis</div>
+              </div>
+
+              <!-- Action Toolbar -->
+              <div class="saas-action-toolbar">
+                <div class="toolbar-search-box">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="tableFilterInput" placeholder="Cari nama warga, NIK, kelurahan/desa..." oninput="handleTableSearch(this.value)">
+                </div>
+
+                <div class="toolbar-actions">
+                  <button class="btn-toolbar-filter" onclick="toggleFilterPanel()" id="btnToggleFilter">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    <span>Filter Lanjutan</span>
+                  </button>
+                  <select class="toolbar-select" id="flLimit" onchange="applyListFilter()" title="Tampilkan per halaman">
+                    <option value="10" selected>10 baris</option>
+                    <option value="25">25 baris</option>
+                    <option value="50">50 baris</option>
+                  </select>
+                  <button class="btn-primary-nasdem" onclick="showPage('input')">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Tambah Pendukung</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Filter Panel Collapse -->
+              <div id="filterPanelList" class="filter-panel-collapse">
+                <div class="filter-panel-grid">
+                  <div class="form-group">
+                    <label>Jalur Dukungan</label>
+                    <select id="flJalur" onchange="applyListFilter()">
+                      <option value="">Semua Jalur</option>
+                      <option value="DPC Kecamatan">DPC Kecamatan</option>
+                      <option value="DPRT Desa">DPRT Desa</option>
+                      <option value="PIP">PIP</option>
+                      <option value="KIP">KIP</option>
+                      <option value="Relawan">Relawan</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Kecamatan</label>
+                    <select id="flKecamatan" onchange="applyListFilter()">
+                      <option value="">Semua Kecamatan</option>
+                      <option value="Kraksaan">Kraksaan</option>
+                      <option value="Besuk">Besuk</option>
+                      <option value="Gading">Gading</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Desa / Kelurahan</label>
+                    <select id="flDesa" onchange="applyListFilter()">
+                      <option value="">Semua Desa</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Petugas Penginput</label>
+                    <select id="flPenginput" onchange="applyListFilter()">
+                      <option value="">Semua Petugas</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="display:flex; align-items:flex-end;">
+                    <button class="btn-secondary" style="width:100%; height:38px;" onclick="resetListFilter()">Reset Filter</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table Data -->
+              <div class="saas-table-wrapper">
+                <table id="tabelRecent" class="saas-table">
+                  <thead>
+                    <tr>
+                      <th class="col-check">
+                        <input type="checkbox" id="selectAllRows" onchange="toggleSelectAll(this)" title="Pilih Semua">
+                      </th>
+                      <th>
+                        <div class="th-content">
+                          <span>NAMA &amp; NIK</span>
+                          <button class="th-sort-btn" onclick="toggleColumnSort('nama', event)">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+                          </button>
+                        </div>
+                      </th>
+                      <th>
+                        <div class="th-content">
+                          <span>JALUR</span>
+                          <button class="th-sort-btn" onclick="toggleColumnSort('jalur', event)">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+                          </button>
+                        </div>
+                      </th>
+                      <th>
+                        <div class="th-content">
+                          <span>KECAMATAN / DESA</span>
+                          <button class="th-sort-btn" onclick="toggleColumnSort('wilayah', event)">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+                          </button>
+                        </div>
+                      </th>
+                      <th>
+                        <div class="th-content">
+                          <span>PENGINPUT &amp; WAKTU</span>
+                          <button class="th-sort-btn" onclick="toggleColumnSort('penginput', event)">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+                          </button>
+                        </div>
+                      </th>
+                      <th>
+                        <div class="th-content">
+                          <span>STATUS VERIFIKASI</span>
+                          <button class="th-sort-btn" onclick="toggleColumnSort('status', event)">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="col-action">AKSI</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+
+              <!-- Pagination Footer -->
+              <div class="saas-pagination-bar">
+                <div class="pag-count" id="paginationInfo">
+                  Menampilkan <strong id="pagStart">0</strong> - <strong id="pagEnd">0</strong> dari <strong id="pagTotal">0</strong> data pendukung
+                </div>
+                <div class="pag-buttons" id="paginationControls">
+                  <button class="pag-btn" id="btnPrevPage" onclick="prevListPage()" disabled>&lsaquo;</button>
+                  <div class="pag-num-list" id="pagNumList">
+                    <button class="pag-btn active">1</button>
+                  </div>
+                  <button class="pag-btn" id="btnNextPage" onclick="nextListPage()">&rsaquo;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+                    <!-- ================= PAGE: MASA RESES & POKIR ================= -->
+          <div class="page" id="page-reses">
+            <div class="saas-card-header" style="margin-bottom:18px;">
+              <div class="saas-card-header-left">
+                <div class="breadcrumb-tag">Penjaringan Konstituen &amp; Advokasi APBD</div>
+                <h2 class="saas-card-title">Masa Reses &amp; Pengawalan Pokir DPRD</h2>
+                <div class="saas-card-meta">
+                  <span class="meta-pill meta-pill-blue">Dapil Kraksaan Raya</span>
+                  <span class="meta-pill">Kraksaan &bull; Besuk &bull; Gading</span>
+                  <span class="meta-pill meta-pill-green">&#x25CF; Integrasi SIPD &amp; APBD</span>
+                </div>
+              </div>
+              <div class="saas-card-header-right">
+                <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>+ Jadwalkan Titik Reses</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 RESES KPI CARDS -->
+            <div class="stat-cards" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:20px;">
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon" style="background:#eff6ff; color:#2563eb;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </div>
+                  <span class="stat-card-badge">Agenda</span>
+                </div>
+                <div class="label">Total Titik Reses</div>
+                <div class="value" id="kpiTitikReses">0</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon" style="background:#f0fdf4; color:#16a34a;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <span class="stat-card-badge">Konstituen</span>
+                </div>
+                <div class="label">Total Warga Hadir</div>
+                <div class="value" id="kpiWargaHadir">0</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon" style="background:#fffbeb; color:#d97706;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  </div>
+                  <span class="stat-card-badge">Aspirasi</span>
+                </div>
+                <div class="label">Proposal Pokir Masuk</div>
+                <div class="value" id="kpiUsulanPokir">0</div>
+              </div>
+
+              <div class="stat-card stat-total">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="20"/><line x1="12" y1="4" x2="12" y2="6"/></svg>
+                  </div>
+                  <span class="stat-card-badge">APBD</span>
+                </div>
+                <div class="label">Pagu Tembus APBD</div>
+                <div class="value" id="kpiPaguRealisasi" style="font-size:20px;">Rp 0</div>
+              </div>
+            </div>
+
+            <!-- RESES TABS BAR -->
+            <div class="saas-tabs-bar" style="margin-bottom:18px;">
+              <div class="saas-tab-pill active" onclick="switchResesTab('events', this)" id="tabPillEvents">Titik &amp; Agenda Kunjungan Reses</div>
+              <div class="saas-tab-pill" onclick="switchResesTab('pokir', this)" id="tabPillPokir">Bank Usulan &amp; Siklus Pokir DPRD</div>
+            </div>
+
+            <!-- SECTION TAB 1: EVENTS -->
+            <div id="resesSectionEvents" class="reses-subtab-section">
+              <div class="card card-compact" style="margin-bottom:16px;">
+                <div class="filter-row filter-row-nowrap">
+                  <input type="text" id="resesEventSearch" placeholder="Cari desa, kecamatan, atau nama tuan rumah..." oninput="filterResesEvents()">
+                  <select id="resesKecamatanFilter" onchange="filterResesEvents()">
+                    <option value="">Semua Kecamatan</option>
+                    <option value="Kraksaan">Kraksaan</option>
+                    <option value="Besuk">Besuk</option>
+                    <option value="Gading">Gading</option>
+                  </select>
+                  <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()" style="white-space:nowrap; padding:0 16px;">
+                    + Tambah Titik
+                  </button>
+                </div>
+              </div>
+
+              <!-- Grid Events Container -->
+              <div id="resesEventsGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;"></div>
+            </div>
+
+            <!-- SECTION TAB 2: POKIR PIPELINE -->
+            <div id="resesSectionPokir" class="reses-subtab-section" style="display:none;">
+              <div class="card card-compact" style="margin-bottom:16px;">
+                <div class="filter-row filter-row-nowrap">
+                  <input type="text" id="pokirSearch" placeholder="Cari judul proyek, pengusul, atau desa..." oninput="filterPokirList()">
+                  <select id="pokirKategoriFilter" onchange="filterPokirList()">
+                    <option value="">Semua Bidang</option>
+                    <option value="Infrastruktur">Infrastruktur &amp; Jalan</option>
+                    <option value="Pertanian">Pertanian &amp; Irigasi</option>
+                    <option value="Pendidikan/Keagamaan">Sarana Keagamaan / Pendidikan</option>
+                    <option value="Sosial">Bansos &amp; Sarana Warga</option>
+                    <option value="UMKM">Pemberdayaan Ekonomi UMKM</option>
+                  </select>
+                  <select id="pokirTahapFilter" onchange="filterPokirList()">
+                    <option value="">Semua Tahap Siklus</option>
+                    <option value="Aspirasi Reses">1. Aspirasi Reses</option>
+                    <option value="Disetujui Gus Dim">2. Disetujui Gus Dim</option>
+                    <option value="Input SIPD">3. Terinput di SIPD</option>
+                    <option value="Verifikasi OPD / Dinas">4. Verifikasi Dinas</option>
+                    <option value="Masuk APBD Resmi">5. Masuk APBD Resmi</option>
+                    <option value="Realisasi Lapangan">6. Realisasi Lapangan</option>
+                  </select>
+                  <button class="btn-primary-nasdem" onclick="openModalTambahPokir()" style="white-space:nowrap; padding:0 16px;">
+                    + Catat Usulan Pokir
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pokir Table Card -->
+              <div class="card saas-table-card">
+                <div class="saas-table-wrapper">
+                  <table class="saas-table" id="tabelPokir">
+                    <thead>
+                      <tr>
+                        <th>USULAN PROGRAM POKIR</th>
+                        <th>BIDANG &amp; WILAYAH</th>
+                        <th>ESTIMASI ANGGARAN</th>
+                        <th>PENGUSUL / KELOMPOK</th>
+                        <th>TAHAPAN SIKLUS</th>
+                        <th class="col-action">TINDAKAN</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbodyPokir"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================= PAGE 2: INPUT DATA ================= -->
+          <div class="page" id="page-input">
+            <div style="max-width:920px; margin:0 auto;">
+              <!-- Header Section -->
+              <div style="margin-bottom:20px;">
+                <div class="breadcrumb-tag">Registrasi Konstituen</div>
+                <h2 style="font-family:'Poppins',sans-serif; font-size:22px; font-weight:800; color:#0f172a; margin:4px 0 6px;">Pendaftaran &amp; Verifikasi Data Pendukung</h2>
+                <p style="font-size:13px; color:#64748b; margin:0;">Pilih jalur penjaringan di bawah ini untuk memulai input data dengan integrasi Smart AI OCR &amp; Geocoding otomatis.</p>
+              </div>
+
+              <div class="error-msg" id="inputError"></div>
+              <div class="success-msg" id="inputSuccess"></div>
+
+              <!-- VISUAL CATEGORY SELECTOR CARDS (100% PURE SVG ICONS) -->
+              <div class="jalur-cards-grid">
+                <div class="jalur-selector-card active" data-jalur="DPC" onclick="pilihJalurCard('DPC')">
+                  <div class="jalur-card-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></svg>
+                  </div>
+                  <div class="jalur-card-title">DPC Kecamatan</div>
+                  <div class="jalur-card-desc">Pengurus &amp; kader inti tingkat Kecamatan</div>
+                </div>
+
+                <div class="jalur-selector-card" data-jalur="DPRT" onclick="pilihJalurCard('DPRT')">
+                  <div class="jalur-card-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  </div>
+                  <div class="jalur-card-title">DPRT Desa</div>
+                  <div class="jalur-card-desc">Pengurus ranting tingkat Desa / Kelurahan</div>
+                </div>
+
+                <div class="jalur-selector-card" data-jalur="PIP" onclick="pilihJalurCard('PIP')">
+                  <div class="jalur-card-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  </div>
+                  <div class="jalur-card-title">Program PIP</div>
+                  <div class="jalur-card-desc">Bantuan siswa &amp; jejaring wali murid keluarga</div>
+                </div>
+
+                <div class="jalur-selector-card" data-jalur="KIP" onclick="pilihJalurCard('KIP')">
+                  <div class="jalur-card-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  </div>
+                  <div class="jalur-card-title">Program KIP</div>
+                  <div class="jalur-card-desc">Bantuan kuliah mahasiswa &amp; civitas akademika</div>
+                </div>
+
+                <div class="jalur-selector-card" data-jalur="RELAWAN" onclick="pilihJalurCard('RELAWAN')">
+                  <div class="jalur-card-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <div class="jalur-card-title">Relawan Basis</div>
+                  <div class="jalur-card-desc">Jaringan relawan independen akar rumput</div>
+                </div>
+              </div>
+
+              <!-- Hidden native select for full backwards compatibility -->
+              <select id="fJalur" onchange="gantiJalur()" style="display:none;">
+                <option value="DPC" selected>DPC Kecamatan</option>
+                <option value="DPRT">DPRT Desa</option>
+                <option value="PIP">PIP (per Desa)</option>
+                <option value="KIP">KIP (per Desa)</option>
+                <option value="RELAWAN">Relawan</option>
+              </select>
+
+              <!-- MODERN FORM CONTAINER -->
+              <div class="form-card-modern">
+
+                <!-- STEP 1: FORM DPC -->
+                <div class="jalur-form active" id="form-DPC">
+                  <!-- SMART OCR HUB -->
+                  <div class="modern-ocr-hub" id="scanBlock-DPC">
+                    <div class="ocr-icon-circle">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <div class="ocr-title">Smart AI OCR KTP</div>
+                    <div class="ocr-subtitle">Unggah berkas atau pindai foto KTP untuk mengisi Nama, NIK 16 digit, dan Alamat secara otomatis.</div>
+                    <div class="ocr-actions-row">
+                      <button type="button" class="btn-ocr-scan" onclick="bukaPindaiKtp('DPC')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Pindai KTP Kamera / Berkas</span>
+                      </button>
+                      <button type="button" class="btn-ocr-manual" onclick="bukaFormManual('DPC')">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Input Manual</span>
+                      </button>
+                    </div>
+                    <div class="ocr-status" id="ocrStatus-DPC" style="display:none; margin-top:12px;"></div>
+                  </div>
+
+                  <!-- Segmented Fields -->
+                  <div id="manualFields-DPC" style="display:block;">
+                    <div class="form-section-header">
+                      <div class="step-badge">1</div>
+                      <h4 class="form-section-title">Data Identitas Personal</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Lengkap (Sesuai KTP)</label><input type="text" id="dpcNama" placeholder="Contoh: Mochamad Hasan"></div>
+                      <div class="form-group"><label>NIK (16 Digit Angka)</label><input type="text" id="dpcNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nomor WhatsApp / HP</label><input type="text" id="dpcHp" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Jabatan Organisasi</label><input type="text" id="dpcJabatan" placeholder="Contoh: Ketua DPC, Sekretaris, Bendahara"></div>
+                    </div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">2</div>
+                      <h4 class="form-section-title">Wilayah Penugasan &amp; Domisili</h4>
+                    </div>
+                    <div class="form-group"><label>Kecamatan</label>
+                      <select id="dpcKecamatan"><option value="">-- Pilih Kecamatan --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    </div>
+                    <div class="form-group"><label>Alamat Lengkap</label><textarea id="dpcAlamat" rows="2" placeholder="Nama jalan, RT/RW, Dusun"></textarea></div>
+                  </div>
+                </div>
+
+                <!-- STEP 1: FORM DPRT -->
+                <div class="jalur-form" id="form-DPRT">
+                  <div class="modern-ocr-hub" id="scanBlock-DPRT">
+                    <div class="ocr-icon-circle">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <div class="ocr-title">Smart AI OCR KTP</div>
+                    <div class="ocr-subtitle">Ekstraksi data KTP pengurus DPRT Desa secara otomatis dan akurat.</div>
+                    <div class="ocr-actions-row">
+                      <button type="button" class="btn-ocr-scan" onclick="bukaPindaiKtp('DPRT')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Pindai KTP Kamera / Berkas</span>
+                      </button>
+                      <button type="button" class="btn-ocr-manual" onclick="bukaFormManual('DPRT')">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Input Manual</span>
+                      </button>
+                    </div>
+                    <div class="ocr-status" id="ocrStatus-DPRT" style="display:none; margin-top:12px;"></div>
+                  </div>
+
+                  <div id="manualFields-DPRT" style="display:block;">
+                    <div class="form-section-header">
+                      <div class="step-badge">1</div>
+                      <h4 class="form-section-title">Data Pengurus DPRT</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Lengkap</label><input type="text" id="dprtNama" placeholder="Sesuai KTP"></div>
+                      <div class="form-group"><label>NIK (16 Digit)</label><input type="text" id="dprtNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>No. WhatsApp</label><input type="text" id="dprtHp" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Jabatan Ranting</label><input type="text" id="dprtJabatan" placeholder="Ketua Ranting, Sekretaris"></div>
+                    </div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">2</div>
+                      <h4 class="form-section-title">Wilayah Ranting</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Kecamatan</label>
+                        <select id="dprtKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                      </div>
+                      <div class="form-group"><label>Desa / Kelurahan</label><input type="text" id="dprtDesa" placeholder="Nama desa/kelurahan"></div>
+                    </div>
+                    <div class="form-group"><label>Alamat Domisili</label><textarea id="dprtAlamat" rows="2" placeholder="Nama dusun, RT/RW"></textarea></div>
+                  </div>
+                </div>
+
+                <!-- STEP 1: FORM PIP -->
+                <div class="jalur-form" id="form-PIP">
+                  <div class="modern-ocr-hub" id="scanBlock-PIP">
+                    <div class="ocr-icon-circle">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <div class="ocr-title">Smart AI OCR KTP Siswa / Wali</div>
+                    <div class="ocr-subtitle">Pindai KTP siswa atau orang tua/wali untuk mengisi NIK dan alamat otomatis.</div>
+                    <div class="ocr-actions-row">
+                      <button type="button" class="btn-ocr-scan" onclick="bukaPindaiKtp('PIP')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Pindai KTP Kamera / Berkas</span>
+                      </button>
+                      <button type="button" class="btn-ocr-manual" onclick="bukaFormManual('PIP')">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Input Manual</span>
+                      </button>
+                    </div>
+                    <div class="ocr-status" id="ocrStatus-PIP" style="display:none; margin-top:12px;"></div>
+                  </div>
+                  <div id="manualFields-PIP" style="display:block;">
+                  <div class="form-section-header">
+                    <div class="step-badge">1</div>
+                    <h4 class="form-section-title">Data Siswa Penerima Beasiswa</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Lengkap Siswa</label><input type="text" id="pipNamaAnak" placeholder="Nama siswa penerima"></div>
+                    <div class="form-group"><label>NIK Siswa</label><input type="text" id="pipNikAnak" maxlength="16" placeholder="16 digit NIK siswa"></div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Sekolah / Madrasah</label><input type="text" id="pipNamaSekolah" placeholder="Contoh: SMPN 1 Kraksaan"></div>
+                    <div class="form-group"><label>No. HP Siswa / Kontak</label><input type="text" id="pipHpAnak" placeholder="08xxxxxxxxxx"></div>
+                  </div>
+                  <div class="form-group"><label>Alamat Sekolah</label><input type="text" id="pipAlamatSekolah" placeholder="Alamat atau kecamatan sekolah"></div>
+
+                  <div class="form-section-header">
+                    <div class="step-badge">2</div>
+                    <h4 class="form-section-title">Data Orang Tua / Wali</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Ayah</label><input type="text" id="pipNamaAyah" placeholder="Nama lengkap ayah"></div>
+                    <div class="form-group"><label>NIK Ayah</label><input type="text" id="pipNikAyah" maxlength="16" placeholder="NIK 16 digit"></div>
+                  </div>
+                  <div class="form-group"><label>No. HP Ayah</label><input type="text" id="pipHpAyah" placeholder="08xxxxxxxxxx"></div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Ibu</label><input type="text" id="pipNamaIbu" placeholder="Nama lengkap ibu"></div>
+                    <div class="form-group"><label>NIK Ibu</label><input type="text" id="pipNikIbu" maxlength="16" placeholder="NIK 16 digit"></div>
+                  </div>
+                  <div class="form-group"><label>No. HP Ibu</label><input type="text" id="pipHpIbu" placeholder="08xxxxxxxxxx"></div>
+                  <div class="form-group"><label>Alamat Rumah Keluarga</label><textarea id="pipAlamatKeluarga" rows="2" placeholder="Alamat lengkap keluarga"></textarea></div>
+
+                  <div class="form-section-header">
+                    <div class="step-badge">3</div>
+                    <h4 class="form-section-title">Data Saudara Kandung &amp; Wilayah</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="pipJumlahSaudara" min="0" placeholder="0"></div>
+                    <div class="form-group"><label>Nama Saudara (Kontak Tambahan)</label><input type="text" id="pipNamaSaudara" placeholder="Nama saudara"></div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>NIK Saudara</label><input type="text" id="pipNikSaudara" maxlength="16"></div>
+                    <div class="form-group"><label>No. HP Saudara</label><input type="text" id="pipHpSaudara"></div>
+                  </div>
+                  <div class="form-group"><label>Alamat Saudara</label><input type="text" id="pipAlamatSaudara"></div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Kecamatan</label>
+                      <select id="pipKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    </div>
+                    <div class="form-group"><label>Desa</label><input type="text" id="pipDesa" placeholder="Desa tempat tinggal"></div>
+                  </div>
+                  </div>
+                </div>
+
+                <!-- STEP 1: FORM KIP -->
+                <div class="jalur-form" id="form-KIP">
+                  <div class="modern-ocr-hub" id="scanBlock-KIP">
+                    <div class="ocr-icon-circle">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <div class="ocr-title">Smart AI OCR KTP Mahasiswa</div>
+                    <div class="ocr-subtitle">Pindai KTP mahasiswa penerima beasiswa KIP Kuliah untuk input instan.</div>
+                    <div class="ocr-actions-row">
+                      <button type="button" class="btn-ocr-scan" onclick="bukaPindaiKtp('KIP')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Pindai KTP Kamera / Berkas</span>
+                      </button>
+                      <button type="button" class="btn-ocr-manual" onclick="bukaFormManual('KIP')">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Input Manual</span>
+                      </button>
+                    </div>
+                    <div class="ocr-status" id="ocrStatus-KIP" style="display:none; margin-top:12px;"></div>
+                  </div>
+                  <div id="manualFields-KIP" style="display:block;">
+                  <div class="form-section-header">
+                    <div class="step-badge">1</div>
+                    <h4 class="form-section-title">Data Mahasiswa Penerima KIP</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Mahasiswa</label><input type="text" id="kipNamaAnak" placeholder="Nama lengkap mahasiswa"></div>
+                    <div class="form-group"><label>NIK Mahasiswa</label><input type="text" id="kipNikAnak" maxlength="16" placeholder="16 digit NIK"></div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Perguruan Tinggi / Kampus</label><input type="text" id="kipNamaKampus" placeholder="Contoh: Universitas Nurul Jadid"></div>
+                    <div class="form-group"><label>No. WhatsApp Mahasiswa</label><input type="text" id="kipHpAnak" placeholder="08xxxxxxxxxx"></div>
+                  </div>
+                  <div class="form-group"><label>Alamat Kampus</label><input type="text" id="kipAlamatKampus"></div>
+
+                  <div class="form-section-header">
+                    <div class="step-badge">2</div>
+                    <h4 class="form-section-title">Data Orang Tua Mahasiswa</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Ayah</label><input type="text" id="kipNamaAyah"></div>
+                    <div class="form-group"><label>NIK Ayah</label><input type="text" id="kipNikAyah" maxlength="16"></div>
+                  </div>
+                  <div class="form-group"><label>No. HP Ayah</label><input type="text" id="kipHpAyah"></div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Nama Ibu</label><input type="text" id="kipNamaIbu"></div>
+                    <div class="form-group"><label>NIK Ibu</label><input type="text" id="kipNikIbu" maxlength="16"></div>
+                  </div>
+                  <div class="form-group"><label>No. HP Ibu</label><input type="text" id="kipHpIbu"></div>
+                  <div class="form-group"><label>Alamat Keluarga</label><textarea id="kipAlamatKeluarga" rows="2"></textarea></div>
+
+                  <div class="form-section-header">
+                    <div class="step-badge">3</div>
+                    <h4 class="form-section-title">Saudara &amp; Wilayah Domisili</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="kipJumlahSaudara" min="0"></div>
+                    <div class="form-group"><label>Nama Saudara</label><input type="text" id="kipNamaSaudara"></div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>NIK Saudara</label><input type="text" id="kipNikSaudara" maxlength="16"></div>
+                    <div class="form-group"><label>No. HP Saudara</label><input type="text" id="kipHpSaudara"></div>
+                  </div>
+                  <div class="form-group"><label>Alamat Saudara</label><input type="text" id="kipAlamatSaudara"></div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Kecamatan</label>
+                      <select id="kipKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    </div>
+                    <div class="form-group"><label>Desa</label><input type="text" id="kipDesa" placeholder="Desa domisili"></div>
+                  </div>
+                  </div>
+                </div>
+
+                <!-- STEP 1: FORM RELAWAN -->
+                <div class="jalur-form" id="form-RELAWAN">
+                  <div class="modern-ocr-hub" id="scanBlock-RELAWAN">
+                    <div class="ocr-icon-circle">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <div class="ocr-title">Smart AI OCR KTP</div>
+                    <div class="ocr-subtitle">Pindai KTP anggota relawan untuk input data cepat otomatis.</div>
+                    <div class="ocr-actions-row">
+                      <button type="button" class="btn-ocr-scan" onclick="bukaPindaiKtp('RELAWAN')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Pindai KTP Kamera / Berkas</span>
+                      </button>
+                      <button type="button" class="btn-ocr-manual" onclick="bukaFormManual('RELAWAN')">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Input Manual</span>
+                      </button>
+                    </div>
+                    <div class="ocr-status" id="ocrStatus-RELAWAN" style="display:none; margin-top:12px;"></div>
+                  </div>
+
+                  <div id="manualFields-RELAWAN" style="display:block;">
+                    <div class="form-section-header">
+                      <div class="step-badge">1</div>
+                      <h4 class="form-section-title">Koordinator Jaringan Relawan</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Koordinator (mis. Relawan Kraksaan)</label><input type="text" id="rlwKoordinator" placeholder="Nama simpul relawan"></div>
+                      <div class="form-group"><label>Desa Basis</label><input type="text" id="rlwDesa" placeholder="Nama desa basis"></div>
+                    </div>
+                    <div class="form-group"><label>Kecamatan</label>
+                      <select id="rlwKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    </div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">2</div>
+                      <h4 class="form-section-title">Data Anggota / Simpatisan</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Anggota</label><input type="text" id="rlwNamaAnggota" placeholder="Nama lengkap"></div>
+                      <div class="form-group"><label>NIK Anggota</label><input type="text" id="rlwNikAnggota" maxlength="16" placeholder="16 digit"></div>
+                    </div>
+                    <div class="form-group"><label>Nomor WhatsApp Anggota</label><input type="text" id="rlwHpAnggota" placeholder="08xxxxxxxxxx"></div>
+                    <div class="form-group"><label>Alamat Lengkap</label><textarea id="rlwAlamatAnggota" rows="2" placeholder="Alamat rumah"></textarea></div>
+                  </div>
+                </div>
+
+                <!-- DOKUMEN PENDUKUNG & GPS GEOLOCATION -->
+                <div class="jalur-form active" id="form-foto-ktp" style="display:block;">
+                  <div class="form-section-header">
+                    <div class="step-badge">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <h4 class="form-section-title">Dokumen Pendukung &amp; Validasi Geospasial</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Foto Penerima / Tokoh</label>
+                      <div class="file-drop" id="dropFoto" onclick="document.getElementById('inputFoto').click()">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span class="file-drop-label" style="font-weight:600; font-size:13px; color:#1e293b;">Pilih atau Ambil Foto Penerima</span>
+                        <span style="font-size:11px; color:#94a3b8; display:block;">Format JPG, PNG (Maksimal 5MB)</span>
+                      </div>
+                      <input type="file" id="inputFoto" accept="image/*" capture="environment" style="display:none" onchange="previewFile(this,'previewFoto','dropFoto')">
+                      <img id="previewFoto" class="preview-img" style="display:none">
+                    </div>
+
+                    <div class="form-group">
+                      <label>Scan / Foto KTP</label>
+                      <div class="file-drop" id="dropKtp" onclick="document.getElementById('inputKtp').click()">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="11" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="14" y2="16"/></svg>
+                        <span class="file-drop-label" style="font-weight:600; font-size:13px; color:#1e293b;">Pindai atau Unggah Berkas KTP</span>
+                        <span style="font-size:11px; color:#94a3b8; display:block;">Format JPG, PNG (Maksimal 5MB)</span>
+                      </div>
+                      <input type="file" id="inputKtp" accept="image/*" capture="environment" style="display:none" onchange="previewFile(this,'previewKtp','dropKtp')">
+                      <img id="previewKtp" class="preview-img" style="display:none">
+                    </div>
+                  </div>
+
+                  <!-- GPS Auto-detection -->
+                  <div style="margin-top:14px; padding:12px 16px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                      <div style="font-weight:700; font-size:13px; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#2563eb" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                        <span>Verifikasi Titik Geospasial GPS</span>
+                      </div>
+                      <span id="gpsStatusBadge" style="font-size:11.5px; color:#64748b;">Koordinat otomatis dipadankan dari alamat atau GPS gawai langsung.</span>
+                    </div>
+                    <button type="button" class="btn-gps-detect" onclick="deteksiGpsOtomatis()">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>Deteksi GPS Saya</span>
+                    </button>
+                    <input type="hidden" id="gpsLat" value="">
+                    <input type="hidden" id="gpsLng" value="">
+                  </div>
+                </div>
+
+                <!-- Sticky Action Footer -->
+                <div class="form-action-sticky" style="margin-top:24px;">
+                  <button type="button" class="btn-toolbar-filter" onclick="showPage('dashboard')">Batal</button>
+                  <button class="btn-primary-nasdem" id="btnSubmit" onclick="submitData()" style="padding:10px 24px; font-size:13.5px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Simpan &amp; Verifikasi Data</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= PAGE 3: RIWAYAT & AUDIT LOG ================= -->
+          <div class="page" id="page-riwayat">
+            <div class="saas-card-header" style="margin-bottom:16px;">
+              <div>
+                <div class="breadcrumb-tag">Monitoring &amp; Jejak Rekam</div>
+                <h2 class="saas-card-title">Riwayat Input &amp; Log Aktivitas Sistem</h2>
+              </div>
+              <div class="tabs" style="margin-bottom:0;">
+                <div class="tab-item active" data-tab="dataPenerima" onclick="switchTab('dataPenerima')">Data Pendukung</div>
+                <div class="tab-item" data-tab="logAktivitas" onclick="switchTab('logAktivitas')">Audit Trail Log</div>
+              </div>
+            </div>
+
+            <!-- TAB 1: DATA PENERIMA -->
+            <div class="tab-content active" id="tab-dataPenerima">
+              <div class="card card-compact" style="margin-bottom:16px;">
+                <div class="filter-row filter-row-nowrap">
+                  <select id="filterJalur" onchange="loadRiwayat()">
+                    <option value="" selected>Semua Jalur</option>
+                    <option value="DPC">DPC Kecamatan</option>
+                    <option value="DPRT">DPRT Desa</option>
+                    <option value="PIP">PIP</option>
+                    <option value="KIP">KIP</option>
+                    <option value="RELAWAN">Relawan</option>
+                  </select>
+                  <select id="filterStatus" onchange="loadRiwayat()">
+                    <option value="">Semua Status Verifikasi</option>
+                    <option value="Diinput">Diinput</option>
+                    <option value="Diverifikasi Desa">Diverifikasi Desa</option>
+                    <option value="Divalidasi Kecamatan">Divalidasi Kecamatan</option>
+                    <option value="Final">Final</option>
+                    <option value="Ditolak">Ditolak</option>
+                  </select>
+                  <input type="text" id="filterKeyword" placeholder="Cari nama warga / NIK..." onkeyup="if(event.key==='Enter')loadRiwayat()">
+                  <button class="btn-primary-nasdem" style="padding:0 16px; height:38px;" onclick="loadRiwayat()">Cari</button>
+                </div>
+              </div>
+
+              <div class="card">
+                <div id="listRiwayat" class="people-card-list"></div>
+              </div>
+            </div>
+
+            <!-- TAB 2: AUDIT LOG TIMELINE -->
+            <div class="tab-content" id="tab-logAktivitas">
+              <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                  <div>
+                    <h3 style="margin:0; font-size:15px; font-weight:700;">Jejak Audit Aktivitas Operator</h3>
+                    <p style="margin:2px 0 0; font-size:12px; color:#64748b;">Mencatat seluruh rekam jejak sistem (autentikasi, pendaftaran, modifikasi status, reset sandi).</p>
+                  </div>
+                  <button class="btn-toolbar-filter" onclick="loadLogAktivitas()" title="Segarkan Log" style="height:32px;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    <span>Segarkan</span>
+                  </button>
+                </div>
+
+                <div id="timelineLogContainer" class="timeline-feed"></div>
+
+                <!-- Fallback Table for raw audit inspection -->
+                <div style="overflow-x:auto; margin-top:20px; border-top:1px solid #f1f5f9; padding-top:16px;">
+                  <table id="tabelLog" class="saas-table" style="display:none;">
+                    <thead>
+                      <tr><th>WAKTU</th><th>OPERATOR</th><th>AKSI</th><th>KETERANGAN</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= PAGE 4: ASPIRASI WARGA ================= -->
+          <div class="page" id="page-aspirasi">
+            <div class="saas-card-header" style="margin-bottom:16px;">
+              <div class="saas-card-header-left">
+                <div class="breadcrumb-tag">Jaring Aspirasi Konstituen</div>
+                <h2 class="saas-card-title">Kanal Aspirasi &amp; Keluhan Warga</h2>
+                <div class="saas-card-meta">
+                  <span class="meta-pill meta-pill-blue" id="aspirasiCount">0 Aspirasi Terdata</span>
+                  <span class="meta-pill">Kraksaan &bull; Besuk &bull; Gading</span>
+                </div>
+              </div>
+              <div class="saas-card-header-right">
+                <button class="btn-primary-nasdem" onclick="openModalTambahAspirasi()">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Tambah Aspirasi Warga</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="card card-compact" style="margin-bottom:16px;">
+              <div class="filter-row filter-row-nowrap">
+                <input type="text" id="aspirasiSearch" placeholder="Cari nama warga, desa, atau isi keluhan..." oninput="renderAspirasiList()">
+                <select id="aspirasiKategoriFilter" onchange="renderAspirasiList()">
+                  <option value="">Semua Kategori</option>
+                  <option value="Infrastruktur">Infrastruktur (Jalan / Jembatan / PJU)</option>
+                  <option value="Bansos">Bantuan Sosial &amp; Sembako</option>
+                  <option value="Pendidikan">Pendidikan &amp; Beasiswa</option>
+                  <option value="Pertanian">Pertanian &amp; Pupuk</option>
+                  <option value="Kesehatan">Layanan Kesehatan</option>
+                </select>
+                <select id="aspirasiJalurFilter" onchange="renderAspirasiList()">
+                  <option value="">Semua Jalur</option>
+                  <option value="DPC Kecamatan">DPC Kecamatan</option>
+                  <option value="DPRT Desa">DPRT Desa</option>
+                  <option value="PIP">PIP</option>
+                  <option value="KIP">KIP</option>
+                  <option value="Relawan">Relawan</option>
+                </select>
+                <button class="btn-toolbar-filter" onclick="toggleAspirasiSort()" title="Urutkan Waktu">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4v16M8 4l-3 3M8 4l3 3M16 20V4M16 20l-3-3M16 20l3-3"/></svg>
+                  <span>Urutan</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Aspirasi Modern Cards Grid -->
+            <div id="listAspirasi" class="aspirasi-grid"></div>
+          </div>
+
+          <!-- ================= PAGE 5: LEADERBOARD ================= -->
+          <div class="page" id="page-leaderboard">
+            <div class="saas-card-header" style="margin-bottom:16px;">
+              <div class="saas-card-header-left">
+                <div class="breadcrumb-tag">Performa Koordinator</div>
+                <h2 class="saas-card-title">Peringkat &amp; Produktivitas Tim Lapangan</h2>
+                <div class="saas-card-meta">
+                  <span class="meta-pill meta-pill-blue">Dapil Kraksaan Raya</span>
+                  <span class="meta-pill meta-pill-green">&#x25CF; Realtime Ranking</span>
+                </div>
+              </div>
+              <div class="saas-card-header-right">
+                <div class="lb-toggle">
+                  <button class="lb-toggle-btn" data-range="minggu_lalu" onclick="gantiRangeLeaderboard('minggu_lalu')">Minggu Lalu</button>
+                  <button class="lb-toggle-btn active" data-range="minggu_ini" onclick="gantiRangeLeaderboard('minggu_ini')">Minggu Ini</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Podium Visual Top 3 -->
+            <div id="podiumTopThree" class="leaderboard-podium"></div>
+
+            <!-- Ranked List for #4 onwards -->
+            <div class="card">
+              <h3 style="font-size:15px; font-weight:700; margin-bottom:14px;">Peringkat Keseluruhan Koordinator</h3>
+              <div id="listLeaderboard" class="lb-list"></div>
+            </div>
+          </div>
+
+          <!-- ================= PAGE 6: PENGATURAN ================= -->
+          <div class="page" id="page-pengaturan">
+            <div class="saas-card-header" style="margin-bottom:16px;">
+              <div class="saas-card-header-left">
+                <div class="breadcrumb-tag">Kontrol Akses &amp; Keamanan</div>
+                <h2 class="saas-card-title">Manajemen Operator &amp; Akun Petugas</h2>
+                <div class="saas-card-meta">
+                  <span class="meta-pill meta-pill-blue">Hak Akses Berjenjang</span>
+                  <span class="meta-pill">Superadmin &bull; Korcam &bull; Kordes &bull; Ranting</span>
+                </div>
+              </div>
+              <div class="saas-card-header-right">
+                <button class="btn-primary-nasdem" onclick="openModalTambahUser()">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Tambah Operator Baru</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="card saas-table-card">
+              <div class="saas-table-wrapper">
+                <table id="tabelUsers" class="saas-table">
+                  <thead>
+                    <tr>
+                      <th>NAMA OPERATOR</th>
+                      <th>ROLE &amp; TINGKAT</th>
+                      <th>WILAYAH KERJA</th>
+                      <th>USERNAME</th>
+                      <th>STATUS AKUN</th>
+                      <th class="col-action">TINDAKAN</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= PAGE 7: PROFIL SAYA ================= -->
+          <div class="page" id="page-profil">
+                        <div class="profile-card-modern">
+              <div class="profile-cover-modern">
+                <div class="profile-cover-glow"></div>
+              </div>
+              <div class="profile-body-modern">
+                <!-- Top Row: Avatar & Action Button -->
+                <div class="profile-head-bar">
+                  <div class="profile-avatar-large" id="profilAvatarWrap" onclick="bukaEditFotoProfil()" title="Klik untuk ubah foto">
+                    <span id="profilAvatarInisial">-</span>
+                    <img id="profilAvatarFoto" style="display:none; width:100%; height:100%; object-fit:cover;" alt="Foto Profil">
+                    <div class="profile-avatar-edit-badge" title="Ubah Foto">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                  </div>
+                  <div class="profile-action-btn-wrap">
+                    <button class="btn-primary-nasdem" onclick="openModalEditProfil()">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      <span>Perbarui Data Akun</span>
+                    </button>
+                    <input type="file" id="inputFotoProfil" accept="image/*" capture="user" style="display:none" onchange="prosesGantiFotoProfil(this)">
+                  </div>
+                </div>
+
+                <!-- Info Block: 100% on White Card Surface -->
+                <div class="profile-info-block">
+                  <div class="profile-title-line">
+                    <h2 class="profile-name-lg" id="profilNama">Administrator</h2>
+                    <span class="profile-verified-badge" title="Akun Terverifikasi Resmi">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </span>
+                  </div>
+                  <div class="profile-meta-row">
+                    <span class="meta-pill meta-pill-blue" id="profilRole">Superadmin</span>
+                    <span class="meta-pill" id="profilWilayah">Dapil Kraksaan Raya</span>
+                    <span class="meta-pill meta-pill-green">&#x25CF; Akun Terverifikasi</span>
+                  </div>
+                </div>
+
+                <!-- 3 Stat Metrics Cards -->
+                <div class="profile-stat-grid">
+                  <div class="profile-stat-box">
+                    <div class="profile-stat-val" id="profilJumlah">0</div>
+                    <div class="profile-stat-lbl">Total Diinput</div>
+                  </div>
+                  <div class="profile-stat-box">
+                    <div class="profile-stat-val" style="color:#16a34a;" id="profilVerif">0</div>
+                    <div class="profile-stat-lbl">Terverifikasi</div>
+                  </div>
+                  <div class="profile-stat-box">
+                    <div class="profile-stat-val" style="color:#2563eb;" id="profilFinal">0</div>
+                    <div class="profile-stat-lbl">Status Final</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size:15px; font-weight:700; margin-bottom:14px;">Kontribusi Data yang Pernah Diinput</h3>
+              <div id="listProfil" class="people-card-list"></div>
+            </div>
+          </div>
+
+        </div> <!-- /page-content -->
+      </div> <!-- /main-content -->
+
+    </div></div></div> <!-- /app-window -->
+
+    <!-- BOTTOM NAV MOBILE -->
+    <div class="mobile-bottom-nav">
+      <button class="mobile-nav-btn" onclick="showPage('input')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span class="mobile-nav-label">Input</span>
+      </button>
+      <button class="mobile-nav-btn mobile-nav-center" onclick="showPage('dashboard')" aria-label="Dashboard">
+        <span class="mobile-nav-center-inner">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+      </button>
+      <button class="mobile-nav-btn" onclick="showPage('riwayat')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="mobile-nav-label">Riwayat</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- MODAL: UBAH STATUS VERIFIKASI -->
+  <div class="modal-overlay" id="modalVerifikasi">
+    <div class="modal-box">
+      <h3>Ubah Status Verifikasi Konstituen</h3>
+      <p id="modalVerifikasiNama" style="font-size:13px; color:#64748b; margin-top:-8px;"></p>
+      <div class="error-msg" id="modalVerifikasiError"></div>
+      <div class="form-group">
+        <label>Tentukan Status Baru</label>
+        <select id="modalVerifikasiStatus"></select>
+      </div>
+      <div class="form-group">
+        <label>Catatan Petugas (Opsional)</label>
+        <textarea id="modalVerifikasiCatatan" rows="2" placeholder="Contoh: Dokumen KTP telah divalidasi dengan DPT fisik"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalVerifikasi')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanStatusVerifikasi()">Simpan Status</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH PENGGUNA BARU -->
+  <div class="modal-overlay" id="modalTambahUser">
+    <div class="modal-box">
+      <h3>Tambah Operator / Koordinator Baru</h3>
+      <div class="error-msg" id="modalUserError"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Nama Lengkap</label><input type="text" id="uNama" placeholder="Nama lengkap petugas"></div>
+        <div class="form-group">
+          <label>Role / Kewenangan</label>
+          <select id="uRole" onchange="toggleWilayahFields()">
+            <option value="Admin Ranting">Admin Ranting</option>
+            <option value="Koordinator Desa">Koordinator Desa (Kordes)</option>
+            <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam)</option>
+            <option value="Superadmin">Superadmin</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" id="wilayahFields">
+        <div class="form-group"><label>Kecamatan Tugas</label>
+          <select id="uKecamatan">
+            <option value="">-</option><option value="Kraksaan">Kraksaan</option><option value="Besuk">Besuk</option><option value="Gading">Gading</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Desa Tugas</label><input type="text" id="uDesa" placeholder="Wajib jika Kordes / Ranting"></div>
+      </div>
+      <div class="form-group" id="rantingField"><label>Nama Ranting</label><input type="text" id="uRanting" placeholder="Nama ranting (khusus Admin Ranting)"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Username</label><input type="text" id="uUsername" placeholder="Username untuk login"></div>
+        <div class="form-group"><label>Password Awal</label><input type="password" id="uPassword" placeholder="Minimal 6 karakter"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalTambahUser')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanUserBaru()">Simpan Akun</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESET PASSWORD -->
+  <div class="modal-overlay" id="modalResetPassword">
+    <div class="modal-box">
+      <h3>Reset Password Operator</h3>
+      <p id="modalResetNama" style="font-size:13px; color:#64748b; margin-top:-8px;"></p>
+      <div class="error-msg" id="modalResetError"></div>
+      <div class="form-group"><label>Password Baru</label><input type="password" id="uNewPassword" placeholder="Minimal 6 karakter baru"></div>
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalResetPassword')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanResetPassword()">Perbarui Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT PROFIL -->
+  <div class="modal-overlay" id="modalEditProfil">
+    <div class="modal-box">
+      <h3>Edit Profil Akun</h3>
+      <div class="error-msg" id="modalEditProfilError"></div>
+      <div class="success-msg" id="modalEditProfilSuccess"></div>
+      <div class="form-group">
+        <label>Nama Lengkap</label>
+        <input type="text" id="epNama">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <input type="text" id="epRole" disabled style="background:#f1f5f9; color:#94a3b8;">
+      </div>
+      <div class="form-group">
+        <label>Wilayah</label>
+        <input type="text" id="epWilayah" disabled style="background:#f1f5f9; color:#94a3b8;">
+      </div>
+      <p style="font-size:11.5px; color:#94a3b8; margin-top:-6px;">Penugasan Role &amp; Wilayah hanya dapat diubah oleh Superadmin.</p>
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalEditProfil')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanEditProfil()">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETAIL PENDUKUNG -->
+  <div class="modal-overlay" id="modalDetailOrang">
+    <div class="modal-box" style="max-width:440px;">
+      <div style="text-align:center; margin-bottom:14px;">
+        <img id="detailFoto" src="" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid #16225e;display:none;">
+        <div id="detailFotoPlaceholder" class="avatar" style="width:84px;height:84px;font-size:28px;margin:0 auto;background:#16225e;color:#fff;">-</div>
+      </div>
+      <h3 id="detailNama" style="text-align:center; margin:0 0 2px;">-</h3>
+      <p id="detailSub" style="text-align:center; color:#64748b; font-size:12.5px; margin-top:0;">-</p>
+      <div class="detail-rows" id="detailRows"></div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalDetailOrang')">Tutup</button>
+        <a class="btn-wa" id="btnChatWa" href="#" target="_blank" style="display:none; text-decoration:none;">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.92 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.14c-.24.68-1.4 1.32-1.93 1.36-.53.05-1.02.25-3.43-.72-2.9-1.15-4.76-4.08-4.9-4.28-.14-.19-1.17-1.56-1.17-2.98 0-1.42.75-2.11 1.01-2.4.26-.28.58-.35.77-.35.19 0 .39 0 .55.01.18.01.42-.07.65.5.24.58.81 2 .88 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.72-.84.92-1.13.19-.29.38-.24.64-.15.26.1 1.67.79 1.95.93.29.15.48.22.55.34.07.13.07.72-.17 1.4z"/></svg>
+          Chat WhatsApp
+        </a>
+        <button class="btn-primary-nasdem" id="btnUbahStatusDariDetail" style="display:none;">Ubah Status</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH ASPIRASI WARGA -->
+  <div class="modal-overlay" id="modalTambahAspirasi">
+    <div class="modal-box" style="max-width:480px;">
+      <h3>Catat Aspirasi &amp; Keluhan Warga</h3>
+      <div class="error-msg" id="modalAspirasiError"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Nama Warga</label><input type="text" id="aspNama" placeholder="Nama warga penyampai"></div>
+        <div class="form-group"><label>No. HP / WhatsApp</label><input type="text" id="aspHp" placeholder="08xxxxxxxxxx"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Kecamatan</label>
+          <select id="aspKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+        </div>
+        <div class="form-group"><label>Desa</label><input type="text" id="aspDesa" placeholder="Desa / Kelurahan"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Kategori Masalah</label>
+          <select id="aspKategori">
+            <option value="Infrastruktur">Infrastruktur (Jalan / Jembatan / PJU)</option>
+            <option value="Bansos">Bantuan Sosial &amp; Sembako</option>
+            <option value="Pendidikan">Pendidikan &amp; Sekolah</option>
+            <option value="Pertanian">Pertanian / Irigasi / Pupuk</option>
+            <option value="Kesehatan">Kesehatan Masyarakat</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Jalur Penjaringan</label>
+          <select id="aspJalur">
+            <option value="Relawan">Relawan</option>
+            <option value="DPC Kecamatan">DPC Kecamatan</option>
+            <option value="DPRT Desa">DPRT Desa</option>
+            <option value="PIP">PIP</option>
+            <option value="KIP">KIP</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Uraian Aspirasi / Keluhan</label>
+        <textarea id="aspIsi" rows="3" placeholder="Tuliskan aspirasi atau keluhan warga dengan jelas..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalTambahAspirasi')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanAspirasiBaru()">Simpan Aspirasi</button>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- ================= MODALS RESES & POKIR ================= -->
+
+  <!-- MODAL: TAMBAH TITIK RESES -->
+  <div class="modal-overlay" id="modalTambahTitikReses">
+    <div class="modal-box" style="max-width:500px;">
+      <h3>Jadwalkan Titik Kunjungan Reses Baru</h3>
+      <p style="font-size:12.5px; color:#64748b; margin-top:-6px;">Agenda silaturahmi tatap muka anggota dewan bersama warga dan konstituen.</p>
+      <div class="error-msg" id="modalTitikError"></div>
+      
+      <div class="form-group">
+        <label>Nama Agenda Reses</label>
+        <input type="text" id="trNama" placeholder="Contoh: Silaturahmi Reses Masa Sidang I - Wangkal">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Masa Sidang</label>
+          <select id="trSidang">
+            <option value="Masa Sidang I 2026">Masa Sidang I 2026</option>
+            <option value="Masa Sidang II 2026">Masa Sidang II 2026</option>
+            <option value="Masa Sidang III 2026">Masa Sidang III 2026</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Kecamatan</label>
+          <select id="trKecamatan">
+            <option value="Kraksaan">Kraksaan</option>
+            <option value="Besuk">Besuk</option>
+            <option value="Gading" selected>Gading</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Desa</label>
+          <input type="text" id="trDesa" placeholder="Nama desa / kelurahan">
+        </div>
+        <div class="form-group">
+          <label>Dusun</label>
+          <input type="text" id="trDusun" placeholder="Nama dusun">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Lokasi Pertemuan / Tuan Rumah</label>
+        <input type="text" id="trLokasi" placeholder="Contoh: Kediaman H. Fauzan (Tokoh Petani) / Balai Desa">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tanggal Pelaksanaan</label>
+          <input type="date" id="trTanggal">
+        </div>
+        <div class="form-group">
+          <label>Waktu (Jam)</label>
+          <input type="time" id="trWaktu" value="13:30">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Target Sasaran Kelompok</label>
+        <input type="text" id="trTarget" placeholder="Contoh: Kelompok Tani, Muslimat/Fatayat, Karang Taruna">
+      </div>
+
+      <div class="form-group">
+        <label>Catatan / Pokok Pembahasan (Opsional)</label>
+        <textarea id="trCatatan" rows="2" placeholder="Fokus masalah atau agenda yang dibahas..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalTambahTitikReses')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanTitikReses()">Jadwalkan Titik</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PRESENSI WARGA RESES -->
+  <div class="modal-overlay" id="modalPresensiReses">
+    <div class="modal-box" style="max-width:480px;">
+      <h3>Presensi Kehadiran Warga Reses</h3>
+      <p id="presensiSubTitle" style="font-size:12.5px; color:#64748b; margin-top:-6px;"></p>
+      <input type="hidden" id="presensiResesId">
+      <div class="error-msg" id="modalPresensiError"></div>
+
+      <div class="form-group">
+        <label>Nama Lengkap Warga</label>
+        <input type="text" id="prNama" placeholder="Nama warga yang hadir">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>NIK (16 Digit - Opsional)</label>
+          <input type="text" id="prNik" maxlength="16" placeholder="Otomatis masuk database pemilih jika diisi">
+        </div>
+        <div class="form-group">
+          <label>No. WhatsApp / HP</label>
+          <input type="text" id="prHp" placeholder="08xxxxxxxxxx">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kecamatan</label>
+          <input type="text" id="prKecamatan" readonly style="background:#f1f5f9;">
+        </div>
+        <div class="form-group">
+          <label>Desa</label>
+          <input type="text" id="prDesa" readonly style="background:#f1f5f9;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Dusun / RT / RW</label>
+        <input type="text" id="prDusun" placeholder="Nama dusun tempat tinggal warga">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalPresensiReses')">Tutup</button>
+        <button class="btn-primary-nasdem" onclick="simpanPresensiReses()">Catat Kehadiran</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH USULAN POKIR -->
+  <div class="modal-overlay" id="modalTambahPokir">
+    <div class="modal-box" style="max-width:520px;">
+      <h3>Catat Usulan Proposal Pokir Baru</h3>
+      <p style="font-size:12.5px; color:#64748b; margin-top:-6px;">Aspirasi masyarakat yang akan diperjuangkan ke dalam naskah Pokir DPRD.</p>
+      <div class="error-msg" id="modalPokirError"></div>
+
+      <div class="form-group">
+        <label>Judul Usulan / Proyek Pembangunan</label>
+        <input type="text" id="pkJudul" placeholder="Contoh: Pavingisasi Jalan Gang Makam Dusun Krajan (600m)">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Bidang / Kategori</label>
+          <select id="pkKategori">
+            <option value="Infrastruktur">Infrastruktur Jalan &amp; PJU</option>
+            <option value="Pertanian">Pertanian &amp; Irigasi</option>
+            <option value="Pendidikan/Keagamaan">Sarana Keagamaan / Pendidikan</option>
+            <option value="Sosial">Bansos &amp; Fasilitas Warga</option>
+            <option value="UMKM">Pemberdayaan Ekonomi UMKM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estimasi Kebutuhan Anggaran (Rp)</label>
+          <input type="number" id="pkEstimasi" placeholder="Contoh: 50000000">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kecamatan</label>
+          <select id="pkKecamatan">
+            <option value="Kraksaan">Kraksaan</option>
+            <option value="Besuk">Besuk</option>
+            <option value="Gading" selected>Gading</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Desa</label>
+          <input type="text" id="pkDesa" placeholder="Nama desa">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Dusun / Lokasi Spesifik Proyek</label>
+        <input type="text" id="pkDusun" placeholder="Contoh: Dusun Krajan RT 02 RW 01">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nama Pengusul / Ketua Kelompok</label>
+          <input type="text" id="pkPengusulNama" placeholder="Nama ketua kelompok / tokoh warga">
+        </div>
+        <div class="form-group">
+          <label>No. HP / WhatsApp Pengusul</label>
+          <input type="text" id="pkPengusulHp" placeholder="08xxxxxxxxxx">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Uraian Latar Belakang &amp; Kebutuhan Proyek</label>
+        <textarea id="pkDeskripsi" rows="3" placeholder="Jelaskan alasan mendesaknya usulan ini dan berapa banyak warga penerima manfaat..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalTambahPokir')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanPokirBaru()">Simpan Usulan Pokir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: UPDATE STATUS SIKLUS POKIR -->
+  <div class="modal-overlay" id="modalUpdateStatusPokir">
+    <div class="modal-box" style="max-width:480px;">
+      <h3>Kawal Tahapan Siklus Pokir</h3>
+      <p id="upPokirTitle" style="font-size:13px; font-weight:700; color:#0f172a; margin:4px 0 12px;"></p>
+      <input type="hidden" id="upPokirId">
+      <div class="error-msg" id="modalUpPokirError"></div>
+
+      <div class="form-group">
+        <label>Tahapan Siklus Saat Ini</label>
+        <select id="upStatusTahap">
+          <option value="Aspirasi Reses">1. Aspirasi Reses (Usulan Baru)</option>
+          <option value="Disetujui Gus Dim">2. Disetujui Gus Dim (Naskah Fraksi)</option>
+          <option value="Input SIPD">3. Terinput di SIPD Kemendagri</option>
+          <option value="Verifikasi OPD / Dinas">4. Sedang Diverifikasi Dinas Terkait</option>
+          <option value="Masuk APBD Resmi">5. Masuk APBD Resmi (Disahkan)</option>
+          <option value="Realisasi Lapangan">6. Realisasi Lapangan (Proyek Selesai)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Catatan Progres Lapangan</label>
+        <textarea id="upCatatan" rows="3" placeholder="Contoh: Proposal teknis telah disetujui Kepala Dinas PUPR dan pagu Rp 75jt masuk dalam APBD Murni 2026."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalUpdateStatusPokir')">Batal</button>
+        <button class="btn-primary-nasdem" onclick="simpanUpdateStatusPokir()">Simpan Tahapan</button>
+      </div>
+    </div>
+  </div>
+  <script src="{{ asset('assets/js/app.js') }}?v={{ time() }}"></script>
+</body>
+</html>
