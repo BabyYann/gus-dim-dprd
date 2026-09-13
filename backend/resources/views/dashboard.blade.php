@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script>
+    (function() {
+      var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      var isMobileWidth = window.innerWidth <= 768;
+      var isForcedDesktop = window.location.search.indexOf('desktop=1') !== -1 || sessionStorage.getItem('view_desktop') === '1';
+      if ((isMobileDevice || isMobileWidth) && !isForcedDesktop) {
+        window.location.replace('/mobile');
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Gus Dim - Sistem Informasi Pemenangan Dapil Kraksaan Raya</title>
@@ -1322,7 +1332,7 @@
     </div></div></div> <!-- /app-window -->
 
     <!-- BOTTOM NAV MOBILE -->
-    <div class="mobile-bottom-nav">
+    <div class="mobile-bottom-nav" style="display:none !important;">
       <button class="mobile-nav-btn" onclick="showPage('input')">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         <span class="mobile-nav-label">Input</span>
