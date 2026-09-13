@@ -307,6 +307,16 @@ function kirimUcapanWa(hp, nama, jalur) {
       return '<div class="detail-row"><span class="k">' + row[0] + '</span><span class="v">' + row[1] + '</span></div>';
     }).join('');
 
+    window.currentDetailRecord = r;
+    const btnJadikanOp = document.getElementById('btnJadikanOperatorDariDetail');
+    if (btnJadikanOp) {
+      if (CURRENT_USER && CURRENT_USER.role === 'Superadmin') {
+        btnJadikanOp.style.display = 'inline-block';
+      } else {
+        btnJadikanOp.style.display = 'none';
+      }
+    }
+
     const bisaUbahStatus = opsi.jalurKey && r.rowNumber && STATUS_LANJUTAN[CURRENT_USER.role];
     const btnUbah = document.getElementById('btnUbahStatusDariDetail');
     if (bisaUbahStatus) {
@@ -2873,4 +2883,116 @@ function kirimUcapanWa(hp, nama, jalur) {
       "https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan);
 
     window.open(waUrl, '_blank');
+  }
+
+  // ============ JADIKAN AKUN OPERATOR DARI DATA PENDUKUNG ============
+  function bukaModalJadikanOperator() {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+
+    document.getElementById('opNama').value = r.nama || '-';
+    document.getElementById('opWilayah').value = [r.kecamatan, r.desa].filter(Boolean).join(' / ') || '-';
+
+    const selRole = document.getElementById('opRole');
+    const jk = (r.jalurKey || r.jalur || '').toUpperCase();
+    if (jk.indexOf('DPC') !== -1) {
+      selRole.value = 'Koordinator Kecamatan';
+    } else if (jk.indexOf('DPRT') !== -1) {
+      selRole.value = 'Koordinator Desa';
+    } else {
+      selRole.value = 'Admin Ranting';
+    }
+
+    const cleanHp = (r.hp || '').replace(/[^0-9]/g, '');
+    document.getElementById('opUsername').value = cleanHp || ('op_' + (r.rowNumber || r.id || ''));
+
+    const cleanNik = (r.nik || '').replace(/[^0-9]/g, '');
+    document.getElementById('opPassword').value = cleanNik.length >= 6 ? cleanNik.slice(-6) : '123456';
+
+    const errBox = document.getElementById('modalKonfirmasiOperatorError');
+    if (errBox) errBox.style.display = 'none';
+
+    openModal('modalKonfirmasiOperator');
+  }
+
+  function prosesBuatAkunOperator() {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+
+    const opRole = document.getElementById('opRole').value;
+    const opUsername = document.getElementById('opUsername').value.trim();
+    const opPassword = document.getElementById('opPassword').value.trim();
+    const errBox = document.getElementById('modalKonfirmasiOperatorError');
+    errBox.style.display = 'none';
+
+    if (!opUsername || !opPassword) {
+      errBox.textContent = 'Username dan password awal wajib diisi.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('btnProsesBuatOperator');
+    btn.disabled = true;
+    btn.textContent = 'Memproses...';
+
+    const payload = {
+      pendukung_id: r.rowNumber || r.id,
+      role: opRole,
+      username: opUsername,
+      password: opPassword
+    };
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Buat Akun Sekarang';
+        if (res.success && res.user) {
+          closeModal('modalKonfirmasiOperator');
+          closeModal('modalDetailOrang');
+
+          document.getElementById('kredNama').textContent = res.user.nama;
+          document.getElementById('kredRole').textContent = res.user.role;
+          document.getElementById('kredWilayah').textContent = [res.user.kecamatan, res.user.desa].filter(Boolean).join(' / ') || '-';
+          document.getElementById('kredUsername').textContent = res.user.username;
+          document.getElementById('kredPassword').textContent = res.user.password;
+
+          window.lastCreatedOperator = res.user;
+
+          const nomorWa = formatNomorWa(res.user.hp || r.hp);
+          const btnWa = document.getElementById('btnKirimWaKredensial');
+          const teksWa = "Assalamu'alaikum Bpk/Ibu " + res.user.nama + ",\n\nBerikut akun login Anda sebagai " + res.user.role + " Tim Gus Dim (Wilayah: " + (res.user.kecamatan || '') + " " + (res.user.desa || '') + "):\n- Username: " + res.user.username + "\n- Password: " + res.user.password + "\n\nSilakan masuk melalui aplikasi: " + window.location.origin + "\n\nTerima kasih.";
+          if (nomorWa) {
+            btnWa.href = "https://wa.me/" + nomorWa + "?text=" + encodeURIComponent(teksWa);
+            btnWa.style.display = 'inline-flex';
+          } else {
+            btnWa.style.display = 'none';
+          }
+
+          openModal('modalKredensialOperator');
+          if (typeof loadUsersList === 'function') loadUsersList();
+        } else {
+          errBox.textContent = res.message || 'Gagal membuat akun operator.';
+          errBox.style.display = 'block';
+        }
+      })
+      .withFailureHandler(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Buat Akun Sekarang';
+        errBox.textContent = 'Terjadi kesalahan: ' + (err.message || err);
+        errBox.style.display = 'block';
+      })
+      .createOperatorFromPendukung(SESSION_TOKEN, payload);
+  }
+
+  function salinKredensialOperator() {
+    const op = window.lastCreatedOperator;
+    if (!op) return;
+    const text = "Akun Operator Gus Dim:\nNama: " + op.nama + "\nRole: " + op.role + "\nWilayah: " + (op.kecamatan || '') + " " + (op.desa || '') + "\nUsername: " + op.username + "\nPassword: " + op.password;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function () {
+        alert('Kredensial berhasil disalin ke clipboard!');
+      });
+    } else {
+      prompt('Salin kredensial berikut:', text);
+    }
   }

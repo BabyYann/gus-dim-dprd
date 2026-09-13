@@ -2768,6 +2768,18 @@ async function mobileApiCall(endpoint, method = 'GET', data = null) {
 // Load Semua Data dari Backend (Murni Data Produksi Bersih)
 async function loadAllData() {
   try {
+    // 0. Sinkronisasi User & Wilayah Tugas Aktif
+    try {
+      const checkRes = await mobileApiCall('auth.php?action=check');
+      if (checkRes.ok && checkRes.data && checkRes.data.valid) {
+        AppState.currentUser = checkRes.data.user;
+      } else {
+        AppState.currentUser = null;
+      }
+    } catch (e) {
+      console.warn('Gagal cek session:', e);
+    }
+
     // 1. Ambil data Dashboard Utama (berisi rekap statistik, map points, dan daftar pendukung)
     const dashRes = await mobileApiCall('dashboard.php');
     if (dashRes.ok && dashRes.data && dashRes.data.success) {
@@ -2829,10 +2841,13 @@ function renderMobileAuth() {
   if (!container) return;
   const token = localStorage.getItem('dprd_token');
   if (token) {
+    const u = AppState.currentUser || {};
+    const wilayahText = [u.kecamatan, u.desa].filter(Boolean).join(' · ') || 'Seluruh Dapil Kraksaan Raya';
     container.innerHTML = `
-      <div style="font-size:12px;color:#16a34a;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;"></span>
-        Akun aktif tersinkronisasi ke server pusat.
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">${escapeHtml(u.nama || u.username || 'Petugas Lapangan')}</div>
+        <div style="font-size:11px;font-weight:600;color:#2563eb;margin-top:2px;">${escapeHtml(u.role || 'Operator')}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">Wilayah Tugas: ${escapeHtml(wilayahText)}</div>
       </div>
       <button type="button" class="btn-outline-touch" style="width:100%;color:#dc2626;border-color:#fecaca;" onclick="handleMobileLogout()">
         Keluar (Logout)
@@ -3594,6 +3609,58 @@ function openSupporterDetail(index) {
   else if (curStatus === 'Divalidasi Kecamatan' || curStatus === 'Diverifikasi Desa') statusColor = '#2563eb';
   else if (curStatus === 'Ditolak') statusColor = '#dc2626';
 
+  const userRole = (AppState.currentUser && AppState.currentUser.role) || 'Superadmin';
+  const isSuperadmin = (userRole === 'Superadmin');
+
+  let verifButtonsHtml = '';
+  if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
+    verifButtonsHtml = `
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
+        Verif Desa
+      </button>
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+        Tolak Data
+      </button>
+    `;
+  } else if (userRole === 'Koordinator Kecamatan') {
+    verifButtonsHtml = `
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
+        Validasi Kec
+      </button>
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="updateSupporterStatus(${index}, 'Final')">
+        Tandai Final
+      </button>
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+        Tolak Data
+      </button>
+    `;
+  } else {
+    // Superadmin
+    verifButtonsHtml = `
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
+        Verif Desa
+      </button>
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
+        Validasi Kec
+      </button>
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="updateSupporterStatus(${index}, 'Final')">
+        Tandai Final
+      </button>
+      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+        Tolak Data
+      </button>
+    `;
+  }
+
+  let jadikanOperatorBtnHtml = '';
+  if (isSuperadmin) {
+    jadikanOperatorBtnHtml = `
+      <button type="button" class="btn-primary-touch" style="width:100%;height:44px;background:#0d9488;margin-top:2px;" onclick="openCreateOperatorSheet(${index})">
+        ${Icons.users} Jadikan Akun Operator
+      </button>
+    `;
+  }
+
   const content = `
     <div style="text-align:center;margin-bottom:18px;">
       <div style="width:60px;height:60px;border-radius:9999px;background:#eff6ff;color:#2563eb;font-size:22px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;border:2px solid #93c5fd;">
@@ -3635,24 +3702,15 @@ function openSupporterDetail(index) {
         ${Icons.phone} Panggilan Seluler
       </a>
 
-      <!-- Status Progression Workflow -->
+      <!-- Status Progression Workflow Berjenjang Sesuai Role -->
       <div style="background:#f1f5f9;padding:10px;border-radius:10px;margin-top:4px;">
-        <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;">Alur Validasi Berjenjang:</div>
+        <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;">Kewenangan Verifikasi:</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
-            Verif Desa
-          </button>
-          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
-            Validasi Kec
-          </button>
-          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="updateSupporterStatus(${index}, 'Final')">
-            Tandai Final
-          </button>
-          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
-            Tolak Data
-          </button>
+          ${verifButtonsHtml}
         </div>
       </div>
+
+      ${jadikanOperatorBtnHtml}
 
       <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#dc2626;border-color:#fecaca;" onclick="deleteSupporter(${index})">
         ${Icons.trash} Hapus Data
@@ -3667,22 +3725,35 @@ async function updateSupporterStatus(index, newStatus) {
   const item = AppState.supporters[index];
   if (!item) return;
 
-  item.status = newStatus;
-  calculateStats();
-  renderDashboardStats();
-  renderSupportersList();
-  closeBottomSheet();
-  showToast(`Status berhasil diperbarui menjadi ${newStatus}!`, 'success');
-
   if (item.id) {
+    showToast('Memperbarui status verifikasi...', 'info');
     try {
-      await mobileApiCall('verifikasi.php?action=update-status', 'POST', {
+      const res = await mobileApiCall('verifikasi.php?action=update-status', 'POST', {
         rowNumber: item.id,
         newStatus: newStatus
       });
+      if (res.ok && res.data && res.data.success) {
+        item.status = newStatus;
+        calculateStats();
+        renderDashboardStats();
+        renderSupportersList();
+        closeBottomSheet();
+        showToast(`Status berhasil diperbarui menjadi ${newStatus}!`, 'success');
+      } else {
+        const errMsg = (res.data && res.data.message) ? res.data.message : 'Gagal memperbarui status verifikasi.';
+        showToast(errMsg, 'warning');
+      }
     } catch (e) {
       console.warn('Gagal sinkron status verifikasi:', e);
+      showToast('Gagal menghubungi server.', 'warning');
     }
+  } else {
+    item.status = newStatus;
+    calculateStats();
+    renderDashboardStats();
+    renderSupportersList();
+    closeBottomSheet();
+    showToast(`Status lokal diperbarui menjadi ${newStatus}!`, 'success');
   }
 }
 
@@ -4274,6 +4345,136 @@ function generateDefaultLeaderboard() {
     { nama: 'Abdul Mukti', wilayah: 'Relawan Alas Sumur Lor', total: 360, persen: 71 }
   ];
 }
-  </script>
+  
+// ============ PEMBUATAN AKUN OPERATOR DARI MOBILE ============
+function openCreateOperatorSheet(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  const jk = (item.jalur || '').toUpperCase();
+  let defRole = 'Admin Ranting';
+  if (jk === 'DPC') defRole = 'Koordinator Kecamatan';
+  else if (jk === 'DPRT') defRole = 'Koordinator Desa';
+
+  const cleanHp = (item.hp || '').replace(/[^0-9]/g, '');
+  const cleanNik = (item.nik || '').replace(/[^0-9]/g, '');
+  const defUser = cleanHp || ('op_' + (item.id || index));
+  const defPass = cleanNik.length >= 6 ? cleanNik.slice(-6) : '123456';
+
+  const content = `
+    <div style="margin-bottom:14px;">
+      <p style="font-size:12.5px;color:#64748b;margin-top:0;">Buat akun login operator dan tentukan wilayah serta peran tugasnya.</p>
+      <div style="background:#f8fafc;padding:10px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">${escapeHtml(item.nama)}</div>
+        <div style="font-size:12px;color:#64748b;">Wilayah: ${escapeHtml(item.kecamatan || '')} / ${escapeHtml(item.desa || '')}</div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:4px;display:block;">Role / Kewenangan:</label>
+        <select id="mOpRole" class="form-input-touch">
+          <option value="Koordinator Desa" ${defRole === 'Koordinator Desa' ? 'selected' : ''}>Koordinator Desa (Kordes)</option>
+          <option value="Koordinator Kecamatan" ${defRole === 'Koordinator Kecamatan' ? 'selected' : ''}>Koordinator Kecamatan (Korcam)</option>
+          <option value="Admin Ranting" ${defRole === 'Admin Ranting' ? 'selected' : ''}>Admin Ranting</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:4px;display:block;">Username Login:</label>
+        <input type="text" id="mOpUsername" class="form-input-touch" value="${escapeHtml(defUser)}">
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:4px;display:block;">Password Awal:</label>
+        <input type="text" id="mOpPassword" class="form-input-touch" value="${escapeHtml(defPass)}">
+      </div>
+
+      <button type="button" class="btn-primary-touch" style="width:100%;height:44px;background:#0d9488;" onclick="submitCreateOperator(${index})">
+        Buat Akun Operator Sekarang
+      </button>
+    </div>
+  `;
+
+  openBottomSheet('Jadikan Akun Operator', content);
+}
+
+async function submitCreateOperator(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  const role = document.getElementById('mOpRole')?.value;
+  const username = document.getElementById('mOpUsername')?.value?.trim();
+  const password = document.getElementById('mOpPassword')?.value?.trim();
+
+  if (!username || !password) {
+    showToast('Username dan password wajib diisi.', 'warning');
+    return;
+  }
+
+  showToast('Membuat akun operator...', 'info');
+
+  const res = await mobileApiCall('users.php?action=create-from-pendukung', 'POST', {
+    pendukung_id: item.id,
+    role: role,
+    username: username,
+    password: password
+  });
+
+  if (res.ok && res.data && res.data.success && res.data.user) {
+    const u = res.data.user;
+    window.lastMobileCreatedOp = u;
+
+    const nomorWa = formatWaPhone(u.hp || item.hp);
+    const teksWa = encodeURIComponent("Assalamu'alaikum Bpk/Ibu " + u.nama + ",\n\nBerikut akun login Anda sebagai " + u.role + " Tim Gus Dim (Wilayah: " + (u.kecamatan || '') + " " + (u.desa || '') + "):\n- Username: " + u.username + "\n- Password: " + u.password + "\n\nSilakan masuk melalui aplikasi: " + window.location.origin + "\n\nTerima kasih.");
+
+    const credContent = `
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="width:50px;height:50px;border-radius:50%;background:#ccfbf1;color:#0d9488;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;">
+          ${Icons.checkCircle}
+        </div>
+        <h3 style="font-size:16px;font-weight:800;color:#0f172a;margin:0;">Akun Berhasil Dibuat!</h3>
+        <p style="font-size:12px;color:#64748b;margin-top:4px;">Akun telah aktif dan tersimpan di database server pusat.</p>
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:13px;">
+        <div><strong>Nama:</strong> ${escapeHtml(u.nama)}</div>
+        <div><strong>Role:</strong> ${escapeHtml(u.role)}</div>
+        <div><strong>Wilayah:</strong> ${escapeHtml(u.kecamatan || '')} / ${escapeHtml(u.desa || '')}</div>
+        <div><strong>Username:</strong> <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-weight:700;">${escapeHtml(u.username)}</code></div>
+        <div><strong>Password:</strong> <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-weight:700;">${escapeHtml(u.password)}</code></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a href="https://wa.me/${nomorWa}?text=${teksWa}" target="_blank" class="btn-wa-touch">
+          ${Icons.whatsapp} Kirim Akun via WhatsApp
+        </a>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:44px;" onclick="salinMobileOperatorCreds()">
+          Salin Kredensial Akun
+        </button>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:40px;" onclick="closeBottomSheet()">
+          Tutup
+        </button>
+      </div>
+    `;
+
+    openBottomSheet('Kredensial Akun Operator', credContent);
+    showToast('Akun operator berhasil dibuat!', 'success');
+  } else {
+    const err = (res.data && res.data.message) ? res.data.message : 'Gagal membuat akun operator.';
+    showToast(err, 'warning');
+  }
+}
+
+function salinMobileOperatorCreds() {
+  const u = window.lastMobileCreatedOp;
+  if (!u) return;
+  const txt = "Akun Operator Gus Dim:\nNama: " + u.nama + "\nRole: " + u.role + "\nWilayah: " + (u.kecamatan || '') + " " + (u.desa || '') + "\nUsername: " + u.username + "\nPassword: " + u.password;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(() => showToast('Kredensial disalin ke clipboard!', 'success'));
+  } else {
+    prompt('Salin kredensial berikut:', txt);
+  }
+}
+
+</script>
 </body>
 </html>

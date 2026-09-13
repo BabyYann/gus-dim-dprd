@@ -98,6 +98,16 @@ switch ($action) {
             json_response(['success' => false, 'message' => 'Nama dan NIK wajib diisi.']);
         }
 
+        // Kunci wilayah input jika user adalah Koordinator Desa / Admin Ranting / Koordinator Kecamatan
+        if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
+            $desa = $user['desa'];
+            if (!empty($user['kecamatan'])) {
+                $kecamatan = $user['kecamatan'];
+            }
+        } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
+            $kecamatan = $user['kecamatan'];
+        }
+
         // Validasi duplikasi NIK di sistem
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
@@ -213,13 +223,34 @@ switch ($action) {
 
     case 'list':
         $rows = [];
+        $where = [];
+        $params = [];
+
+        if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
+            $where[] = "desa = :uDesa";
+            $params['uDesa'] = $user['desa'];
+        } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
+            $where[] = "kecamatan = :uKec";
+            $params['uKec'] = $user['kecamatan'];
+        }
+
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->query("SELECT id, jalur, nik, nama, hp, umur, jabatan, koordinator, alamat, kecamatan, desa, latitude as lat, longitude as lng, foto_wajah as foto, foto_ktp, status, catatan, input_by_user_name, created_at FROM pendukung ORDER BY id DESC");
+            $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", $where) : "";
+            $stmt = $pdo->prepare("SELECT id, jalur, nik, nama, hp, umur, jabatan, koordinator, alamat, kecamatan, desa, latitude as lat, longitude as lng, foto_wajah as foto, foto_ktp, status, catatan, input_by_user_name, created_at FROM pendukung {$whereSql} ORDER BY id DESC");
+            $stmt->execute($params);
             $rows = $stmt->fetchAll();
         } else {
             $data = Database::getJsonData();
-            $rows = $data['pendukung'] ?? [];
+            $rawRows = $data['pendukung'] ?? [];
+            foreach ($rawRows as $r) {
+                if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
+                    if (strcasecmp($r['desa'] ?? '', $user['desa']) !== 0) continue;
+                } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
+                    if (strcasecmp($r['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
+                }
+                $rows[] = $r;
+            }
             usort($rows, fn($a, $b) => ($b['id'] ?? 0) - ($a['id'] ?? 0));
         }
         json_response([

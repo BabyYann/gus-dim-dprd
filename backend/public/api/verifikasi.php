@@ -38,8 +38,8 @@ switch ($action) {
                 $params['kw'] = '%' . $keyword . '%';
             }
 
-            // Batasi data per role jika Koordinator Desa / Kecamatan
-            if ($user['role'] === 'Koordinator Desa' && !empty($user['desa'])) {
+            // Batasi data per role jika Koordinator Desa / Admin Ranting / Kecamatan
+            if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
                 $where[] = "desa = :uDesa";
                 $params['uDesa'] = $user['desa'];
             } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
@@ -70,6 +70,13 @@ switch ($action) {
                     $haystack = strtolower(($item['nama'] ?? '') . ' ' . ($item['nik'] ?? '') . ' ' . ($item['alamat'] ?? ''));
                     if (strpos($haystack, strtolower($keyword)) === false) continue;
                 }
+                // Batasi wilayah jika bukan Superadmin
+                if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
+                    if (strcasecmp($item['desa'] ?? '', $user['desa']) !== 0) continue;
+                } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
+                    if (strcasecmp($item['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
+                }
+
                 $rows[] = [
                     'rowNumber' => $item['id'],
                     'id' => $item['id'],
@@ -112,7 +119,7 @@ switch ($action) {
         $catatan = trim($body['catatan'] ?? '');
 
         if (!$id || !$newStatus) {
-            json_response(['success' => false, 'message' => 'Data tidak lengkap.']);
+            json_response(['success' => false, 'message' => 'Data tidak lengkap.'], 400);
         }
 
         // Cek wewenang status sesuai Role
@@ -122,31 +129,66 @@ switch ($action) {
             $allowed = true;
         } else if ($role === 'Koordinator Kecamatan' && in_array($newStatus, ['Divalidasi Kecamatan', 'Final', 'Ditolak'])) {
             $allowed = true;
-        } else if ($role === 'Koordinator Desa' && in_array($newStatus, ['Diverifikasi Desa', 'Ditolak'])) {
+        } else if (($role === 'Koordinator Desa' || $role === 'Admin Ranting') && in_array($newStatus, ['Diverifikasi Desa', 'Ditolak'])) {
             $allowed = true;
         }
 
         if (!$allowed) {
-            json_response(['success' => false, 'message' => "Role '{$role}' tidak berwenang mengubah status menjadi '{$newStatus}'."]);
+            json_response(['success' => false, 'message' => "Role '{$role}' tidak berwenang mengubah status menjadi '{$newStatus}'."], 403);
         }
 
-        $targetName = "ID #{$id}";
+        // Ambil data pendukung untuk pengecekan wilayah
+        $item = null;
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("SELECT nama, jalur FROM pendukung WHERE id = :id LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, nama, jalur, kecamatan, desa FROM pendukung WHERE id = :id LIMIT 1");
             $stmt->execute(['id' => $id]);
             $item = $stmt->fetch();
-            if ($item) $targetName = "{$item['nama']} ({$item['jalur']})";
+        } else {
+            $data = Database::getJsonData();
+            foreach ($data['pendukung'] as $p) {
+                if ($p['id'] === $id) {
+                    $item = $p;
+                    break;
+                }
+            }
+        }
 
+        if (!$item) {
+            json_response(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+        }
+
+        // Territorial Guard: Pastikan akun hanya bekerja pada wilayahnya
+        if ($role === 'Koordinator Desa' || $role === 'Admin Ranting') {
+            $userDesa = trim($user['desa'] ?? '');
+            $targetDesa = trim($item['desa'] ?? '');
+            if ($userDesa !== '' && strcasecmp($userDesa, $targetDesa) !== 0) {
+                json_response([
+                    'success' => false, 
+                    'message' => "Akses Ditolak: Anda bertugas di Desa '{$userDesa}', tidak berwenang memverifikasi data Desa '{$targetDesa}'."
+                ], 403);
+            }
+        } else if ($role === 'Koordinator Kecamatan') {
+            $userKec = trim($user['kecamatan'] ?? '');
+            $targetKec = trim($item['kecamatan'] ?? '');
+            if ($userKec !== '' && strcasecmp($userKec, $targetKec) !== 0) {
+                json_response([
+                    'success' => false, 
+                    'message' => "Akses Ditolak: Anda bertugas di Kecamatan '{$userKec}', tidak berwenang memvalidasi data Kecamatan '{$targetKec}'."
+                ], 403);
+            }
+        }
+
+        $targetName = "{$item['nama']} ({$item['jalur']})";
+
+        if (Database::isMysql()) {
             $sql = "UPDATE pendukung SET status = :st" . ($catatan ? ", catatan = :ct" : "") . " WHERE id = :id";
             $params = ['st' => $newStatus, 'id' => $id];
             if ($catatan) $params['ct'] = $catatan;
             $pdo->prepare($sql)->execute($params);
         } else {
-            $data = Database::getJsonData();
             foreach ($data['pendukung'] as &$p) {
                 if ($p['id'] === $id) {
-                    $targetName = "{$p['nama']} ({$p['jalur']})";
                     $p['status'] = $newStatus;
                     if ($catatan) $p['catatan'] = $catatan;
                     break;
