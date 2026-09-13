@@ -445,7 +445,7 @@ function kirimUcapanWa(hp, nama, jalur) {
     };
     const pt = document.getElementById('pageTitle'); if (pt) pt.textContent = titles[pageName] || '';
 
-    if (pageName === 'dashboard') loadDashboard();
+    if (pageName === 'dashboard') { loadDashboard(); setTimeout(function() { if (mapInstance) mapInstance.invalidateSize(); }, 250); }
     if (pageName === 'pendukung') {
       if (!DASHBOARD_DATA) {
         google.script.run.withSuccessHandler(function (data) {
@@ -515,6 +515,7 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     renderStatCards(data);
     renderMap(data.mapPoints);
+    if (typeof loadReses === 'function') { loadReses(); }
     renderChartJalur(data.byJalur);
     renderChartKecamatan();
     populateFilterDropdowns();
@@ -689,31 +690,258 @@ function kirimUcapanWa(hp, nama, jalur) {
     });
   }
 
-  function renderMap(points) {
-    if (!mapInstance) {
-      mapInstance = L.map('peta').setView([-7.7833, 113.4], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapInstance);
-      mapInstance._markersLayer = L.layerGroup().addTo(mapInstance);
+    // Geospasial Dapil Kraksaan Raya Dictionary
+  const DAPIL_GEO = {
+    kraksaan: {
+      default: [-7.760, 113.430],
+      sidomukti: [-7.752, 113.425],
+      kraksaan_wetan: [-7.759, 113.435],
+      kandangjati_kulon: [-7.765, 113.418],
+      kandangjati_wetan: [-7.768, 113.431],
+      semampir: [-7.761, 113.424],
+      patokan: [-7.756, 113.419],
+      bulu: [-7.745, 113.420],
+      kalibuntu: [-7.738, 113.432],
+      kebonagung: [-7.771, 113.428],
+      kregenan: [-7.780, 113.415],
+      rondokuning: [-7.785, 113.428]
+    },
+    besuk: {
+      default: [-7.805, 113.465],
+      besuk_agung: [-7.802, 113.468],
+      besuk_kidul: [-7.815, 113.472],
+      alaskandang: [-7.790, 113.455],
+      bago: [-7.825, 113.460],
+      jambangan: [-7.810, 113.485],
+      kecik: [-7.800, 113.460],
+      klampokan: [-7.785, 113.480],
+      krampilan: [-7.820, 113.450],
+      matekan: [-7.795, 113.490],
+      randujalu: [-7.830, 113.475],
+      sindetlami: [-7.780, 113.465],
+      sumurdalam: [-7.835, 113.485]
+    },
+    gading: {
+      default: [-7.865, 113.445],
+      gading_wetan: [-7.855, 113.450],
+      wangkal: [-7.870, 113.440],
+      betek_kidul: [-7.845, 113.430],
+      batur: [-7.880, 113.435],
+      bulupandak: [-7.860, 113.420],
+      condong: [-7.890, 113.455],
+      jurangjero: [-7.875, 113.460],
+      kaliacar: [-7.850, 113.460],
+      kebik: [-7.865, 113.465],
+      nogosaren: [-7.900, 113.445],
+      prasi: [-7.840, 113.440],
+      ranuwurung: [-7.885, 113.430],
+      renteng: [-7.860, 113.455]
+    }
+  };
+
+  function getDapilCoords(kec, desa) {
+    const k = (kec || '').toLowerCase().trim();
+    const d = (desa || '').toLowerCase().replace(/desa\s+|kelurahan\s+/g, '').trim().replace(/\s+/g, '_');
+    
+    let base = null;
+    if (k.includes('kraksaan')) {
+      base = DAPIL_GEO.kraksaan[d] || DAPIL_GEO.kraksaan.default;
+    } else if (k.includes('besuk')) {
+      base = DAPIL_GEO.besuk[d] || DAPIL_GEO.besuk.default;
+    } else if (k.includes('gading')) {
+      base = DAPIL_GEO.gading[d] || DAPIL_GEO.gading.default;
     } else {
-      mapInstance._markersLayer.clearLayers();
+      base = [-7.7833, 113.42];
+    }
+    
+    const jitterLat = (Math.random() - 0.5) * 0.003;
+    const jitterLng = (Math.random() - 0.5) * 0.003;
+    return [base[0] + jitterLat, base[1] + jitterLng];
+  }
+
+  let activeMapLayerType = 'all';
+  let cachedMapPoints = [];
+
+  function setMapLayer(layer) {
+    activeMapLayerType = layer;
+    document.querySelectorAll('.map-layer-pill').forEach(p => p.classList.remove('active'));
+    const activePill = document.getElementById(
+      layer === 'all' ? 'pillLayerAll' :
+      layer === 'pendukung' ? 'pillLayerPendukung' :
+      layer === 'reses' ? 'pillLayerReses' : 'pillLayerPokir'
+    );
+    if (activePill) activePill.classList.add('active');
+
+    if (!mapInstance) return;
+
+    if (layer === 'all') {
+      if (mapInstance._pendukungLayer && !mapInstance.hasLayer(mapInstance._pendukungLayer)) mapInstance.addLayer(mapInstance._pendukungLayer);
+      if (mapInstance._resesLayer && !mapInstance.hasLayer(mapInstance._resesLayer)) mapInstance.addLayer(mapInstance._resesLayer);
+      if (mapInstance._pokirLayer && !mapInstance.hasLayer(mapInstance._pokirLayer)) mapInstance.addLayer(mapInstance._pokirLayer);
+    } else if (layer === 'pendukung') {
+      if (mapInstance._pendukungLayer && !mapInstance.hasLayer(mapInstance._pendukungLayer)) mapInstance.addLayer(mapInstance._pendukungLayer);
+      if (mapInstance._resesLayer && mapInstance.hasLayer(mapInstance._resesLayer)) mapInstance.removeLayer(mapInstance._resesLayer);
+      if (mapInstance._pokirLayer && mapInstance.hasLayer(mapInstance._pokirLayer)) mapInstance.removeLayer(mapInstance._pokirLayer);
+    } else if (layer === 'reses') {
+      if (mapInstance._pendukungLayer && mapInstance.hasLayer(mapInstance._pendukungLayer)) mapInstance.removeLayer(mapInstance._pendukungLayer);
+      if (mapInstance._resesLayer && !mapInstance.hasLayer(mapInstance._resesLayer)) mapInstance.addLayer(mapInstance._resesLayer);
+      if (mapInstance._pokirLayer && mapInstance.hasLayer(mapInstance._pokirLayer)) mapInstance.removeLayer(mapInstance._pokirLayer);
+    } else if (layer === 'pokir') {
+      if (mapInstance._pendukungLayer && mapInstance.hasLayer(mapInstance._pendukungLayer)) mapInstance.removeLayer(mapInstance._pendukungLayer);
+      if (mapInstance._resesLayer && mapInstance.hasLayer(mapInstance._resesLayer)) mapInstance.removeLayer(mapInstance._resesLayer);
+      if (mapInstance._pokirLayer && !mapInstance.hasLayer(mapInstance._pokirLayer)) mapInstance.addLayer(mapInstance._pokirLayer);
+    }
+  }
+
+  function zoomMapTo(target) {
+    if (!mapInstance) return;
+    if (target === 'all') {
+      mapInstance.flyTo([-7.795, 113.435], 11);
+    } else if (target === 'kraksaan') {
+      mapInstance.flyTo([-7.760, 113.430], 13);
+    } else if (target === 'besuk') {
+      mapInstance.flyTo([-7.805, 113.465], 13);
+    } else if (target === 'gading') {
+      mapInstance.flyTo([-7.865, 113.445], 13);
+    }
+  }
+
+  function renderMap(points) {
+    if (points) cachedMapPoints = points;
+    const pts = cachedMapPoints || [];
+
+    if (!mapInstance) {
+      mapInstance = L.map('peta').setView([-7.795, 113.435], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors | Fraksi NasDem Gus Dim'
+      }).addTo(mapInstance);
+
+      mapInstance._pendukungLayer = L.layerGroup().addTo(mapInstance);
+      mapInstance._resesLayer = L.layerGroup().addTo(mapInstance);
+      mapInstance._pokirLayer = L.layerGroup().addTo(mapInstance);
+    } else {
+      if (mapInstance._pendukungLayer) mapInstance._pendukungLayer.clearLayers();
+      if (mapInstance._resesLayer) mapInstance._resesLayer.clearLayers();
+      if (mapInstance._pokirLayer) mapInstance._pokirLayer.clearLayers();
     }
 
-    points.forEach(function (p) {
-      const marker = L.marker([p.lat, p.lng]).addTo(mapInstance._markersLayer);
-      const wilayah = [p.desa, p.kecamatan].filter(Boolean).join(', ');
-      const alamatSingkat = p.alamat ? (p.alamat.length > 60 ? p.alamat.substring(0, 60) + '...' : p.alamat) : wilayah;
-
-      marker.bindTooltip(
-        '<b>' + p.nama + '</b> (' + p.jalur + ')<br>' + alamatSingkat + '<span class="hint">Ketuk untuk buka di Google Maps</span>',
-        { className: 'tooltip-lokasi', direction: 'top', offset: [0, -8] }
-      );
-
-      marker.on('click', function () {
-        window.open('https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng, '_blank');
+    // 1. Plot Pendukung
+    let countPendukung = 0;
+    pts.forEach(function (p) {
+      if (!p.lat || !p.lng) return;
+      countPendukung++;
+      const icon = L.divIcon({
+        className: '',
+        html: '<div class="custom-pin pin-pendukung"><div class="custom-pin-inner"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -28]
       });
+
+      const marker = L.marker([p.lat, p.lng], { icon: icon }).addTo(mapInstance._pendukungLayer);
+      const wilayah = [p.desa, p.kecamatan].filter(Boolean).join(', ');
+
+      const popupHtml = `
+        <div class="popup-box">
+          <span class="popup-badge badge-blue">Pendukung &bull; ` + (p.jalur || 'Relawan') + `</span>
+          <div class="popup-title">` + (p.nama || 'Konstituen') + `</div>
+          <div class="popup-desc">` + (p.alamat ? (p.alamat.length > 55 ? p.alamat.substring(0, 55) + '...' : p.alamat) : wilayah) + `</div>
+          <div class="popup-meta">
+            <span>Wilayah: <b>Desa ` + (p.desa || '-') + `, Kec. ` + (p.kecamatan || '-') + `</b></span>
+            <span>Penginput: <b>` + (p.userInput || 'Relawan') + `</b></span>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn-primary-nasdem" style="width:100%; padding:5px 8px; font-size:11px; justify-content:center;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=` + p.lat + `,` + p.lng + `', '_blank')">
+              Buka di Google Maps
+            </button>
+          </div>
+        </div>
+      `;
+      marker.bindPopup(popupHtml, { className: 'custom-map-popup' });
     });
+
+    // 2. Plot Reses
+    let countReses = 0;
+    const events = (RESES_DATA && RESES_DATA.events) ? RESES_DATA.events : [];
+    events.forEach(function (ev) {
+      countReses++;
+      const coords = (ev.lat && ev.lng) ? [ev.lat, ev.lng] : getDapilCoords(ev.kecamatan, ev.desa);
+      const icon = L.divIcon({
+        className: '',
+        html: '<div class="custom-pin pin-reses"><div class="custom-pin-inner"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -28]
+      });
+
+      const marker = L.marker(coords, { icon: icon }).addTo(mapInstance._resesLayer);
+      const popupHtml = `
+        <div class="popup-box">
+          <span class="popup-badge badge-green">Titik Kunjungan Reses</span>
+          <div class="popup-title">` + (ev.nama_acara || 'Reses Gus Dim') + `</div>
+          <div class="popup-desc">` + (ev.lokasi_detail || 'Pertemuan Konstituen') + `</div>
+          <div class="popup-meta">
+            <span>Tanggal: <b>` + formatTanggalIndo(ev.tanggal) + `</b> ` + (ev.waktu ? '&bull; ' + ev.waktu : '') + `</span>
+            <span>Wilayah: <b>Desa ` + (ev.desa || '-') + `, Kec. ` + (ev.kecamatan || '-') + `</b></span>
+            <span>Target: <b>` + (ev.target_kelompok || 'Masyarakat Umum') + `</b></span>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn-primary-nasdem" style="width:100%; padding:5px 8px; font-size:11px; justify-content:center;" onclick="showPage('reses')">
+              Lihat Agenda Reses
+            </button>
+          </div>
+        </div>
+      `;
+      marker.bindPopup(popupHtml, { className: 'custom-map-popup' });
+    });
+
+    // 3. Plot Pokir
+    let countPokir = 0;
+    const pokirs = (RESES_DATA && RESES_DATA.pokir) ? RESES_DATA.pokir : [];
+    pokirs.forEach(function (pk) {
+      countPokir++;
+      const coords = (pk.lat && pk.lng) ? [pk.lat, pk.lng] : getDapilCoords(pk.kecamatan, pk.desa);
+      const icon = L.divIcon({
+        className: '',
+        html: '<div class="custom-pin pin-pokir"><div class="custom-pin-inner"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg></div></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -28]
+      });
+
+      const marker = L.marker(coords, { icon: icon }).addTo(mapInstance._pokirLayer);
+      const popupHtml = `
+        <div class="popup-box">
+          <span class="popup-badge badge-amber">Usulan Pokir &bull; ` + (pk.kategori || 'Umum') + `</span>
+          <div class="popup-title">` + (pk.judul_usulan || 'Program Pokir') + `</div>
+          <div class="popup-desc">Pagu: <b style="color:#0f172a;">` + formatRupiah(pk.estimasi_anggaran) + `</b></div>
+          <div class="popup-meta">
+            <span>Wilayah: <b>Desa ` + (pk.desa || '-') + `, Kec. ` + (pk.kecamatan || '-') + `</b></span>
+            <span>Tahap Siklus: <b>` + (pk.status_tahap || 'Aspirasi Reses') + `</b></span>
+            <span>Pengusul: <b>` + (pk.nama_pengusul || '-') + `</b></span>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn-primary-nasdem" style="width:100%; padding:5px 8px; font-size:11px; justify-content:center;" onclick="showPage('reses'); switchResesTab('pokir', document.getElementById('tabPillPokir'));">
+              Buka Bank Pokir
+            </button>
+          </div>
+        </div>
+      `;
+      marker.bindPopup(popupHtml, { className: 'custom-map-popup' });
+    });
+
+    // Update Counts on UI
+    const elCp = document.getElementById('mapCountPendukung');
+    if (elCp) elCp.textContent = countPendukung;
+    const elCr = document.getElementById('mapCountReses');
+    if (elCr) elCr.textContent = countReses;
+    const elCk = document.getElementById('mapCountPokir');
+    if (elCk) elCk.textContent = countPokir;
+    const elCt = document.getElementById('mapTotalPoints');
+    if (elCt) elCt.textContent = (countPendukung + countReses + countPokir);
+
+    // Apply active layer filter
+    setMapLayer(activeMapLayerType);
   }
 
   // ============ FILTER PANEL "Data Terbaru Diinput" ============
@@ -849,7 +1077,23 @@ function kirimUcapanWa(hp, nama, jalur) {
     tbody.innerHTML = '';
     window.currentListRows = rows || [];
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:36px; color:#94a3b8; font-weight:500;">Tidak ada data pendukung yang sesuai dengan filter.</td></tr>';
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:48px 20px;">
+            <div style="max-width:420px; margin:0 auto;">
+              <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; color:#2563eb; display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <h4 style="font-size:14px; font-weight:700; color:#1e293b; margin:0 0 6px;">Tidak Ada Data Pendukung Ditemukan</h4>
+              <p style="font-size:12px; color:#64748b; margin:0 0 14px;">Data tidak ditemukan berdasarkan kata kunci pencarian atau filter jalur yang aktif.</p>
+              <button class="btn-toolbar-filter" onclick="resetListFilter()" style="margin:0 auto; font-size:12px; padding:6px 14px;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M20.49 15A6 6 0 1 1 9 8.5h12"/></svg>
+                <span>Reset Semua Filter</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
       return;
     }
     rows.forEach(function (r, idx) {
@@ -1329,6 +1573,34 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     const countEl = document.getElementById('aspirasiCount');
     if (countEl) countEl.textContent = rows.length + ' Aspirasi Terdata';
+
+    // 4 KPI Counters
+    const totalAspirasi = ASPIRASI_DATA ? ASPIRASI_DATA.length : 0;
+    let countMenunggu = 0;
+    let countDiproses = 0;
+    let countSelesai = 0;
+
+    (ASPIRASI_DATA || []).forEach(function(r) {
+      const st = (r.status || '').toLowerCase();
+      if (st.includes('menunggu') || !st) {
+        countMenunggu++;
+      } else if (st.includes('proses') || st.includes('tindak') || st.includes('advokasi')) {
+        countDiproses++;
+      } else if (st.includes('selesai') || st.includes('pokir') || st.includes('apbd')) {
+        countSelesai++;
+      } else {
+        countDiproses++;
+      }
+    });
+
+    const elTotal = document.getElementById('kpiAspirasiTotal');
+    if (elTotal) elTotal.textContent = totalAspirasi.toLocaleString('id-ID');
+    const elMenunggu = document.getElementById('kpiAspirasiMenunggu');
+    if (elMenunggu) elMenunggu.textContent = countMenunggu.toLocaleString('id-ID');
+    const elDiproses = document.getElementById('kpiAspirasiDiproses');
+    if (elDiproses) elDiproses.textContent = countDiproses.toLocaleString('id-ID');
+    const elSelesai = document.getElementById('kpiAspirasiSelesai');
+    if (elSelesai) elSelesai.textContent = countSelesai.toLocaleString('id-ID');
 
     const container = document.getElementById('listAspirasi');
     if (!container) return;
@@ -2105,6 +2377,9 @@ function kirimUcapanWa(hp, nama, jalur) {
         // 2. Render Events & Pokir
         renderResesEvents(RESES_DATA.events || []);
         renderPokirList(RESES_DATA.pokir || []);
+        if (typeof mapInstance !== 'undefined' && mapInstance && typeof renderMap === 'function') {
+          renderMap();
+        }
       } else {
         console.error('Gagal memuat data reses:', res ? res.message : 'Unknown');
       }

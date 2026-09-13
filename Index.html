@@ -174,17 +174,72 @@
 
           <!-- ================= PAGE 1: DASHBOARD ================= -->
           <div class="page active" id="page-dashboard">
+            <!-- EXECUTIVE DASHBOARD HEADER -->
+            <div class="dashboard-header">
+              <div class="saas-card-header-left">
+                <div class="breadcrumb-tag">Pusat Komando &amp; Pemetaan Teritori</div>
+                <h2 class="saas-card-title">Dashboard Geospasial Dapil Kraksaan Raya</h2>
+                <div class="saas-card-meta">
+                  <span class="meta-pill meta-pill-blue">Kecamatan Kraksaan &bull; Besuk &bull; Gading</span>
+                  <span class="meta-pill meta-pill-green">&#x25CF; Pemantauan Lapangan Real-Time</span>
+                </div>
+              </div>
+              <div class="dashboard-header-actions">
+                <button class="btn-primary-nasdem" onclick="showPage('input')">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>+ Entri Pendukung</span>
+                </button>
+                <button class="btn-secondary-outline" onclick="showPage('reses')">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>Masa Reses &amp; Pokir</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- METRIC CARDS ROW -->
             <div class="stat-cards" id="statCards"></div>
 
+            <!-- MULTI-LAYER INTERACTIVE MAP CARD -->
             <div class="card card-peta">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <h3 style="margin:0; font-size:15px; font-weight:700;">Peta Geospasial Sebaran Dukungan</h3>
-                  <span class="meta-pill meta-pill-blue">3 Kecamatan</span>
+              <div class="map-header-wrap">
+                <div>
+                  <h3 style="margin:0 0 4px; font-size:15px; font-weight:700; color:#0f172a;">Peta Geospasial Multi-Layer Dapil</h3>
+                  <p style="margin:0; font-size:12px; color:#64748b;">Visualisasi komprehensif sebaran pendukung, agenda titik reses, dan usulan Pokir APBD.</p>
                 </div>
-                <span style="font-size:12px; color:#64748b;">Pin otomatis terplot dari data KTP &amp; Geocoding</span>
+                <div class="map-zoom-shortcuts">
+                  <span style="font-size:11.5px; font-weight:600; color:#64748b;">Fokus:</span>
+                  <button type="button" class="map-zoom-btn" onclick="zoomMapTo('all')">Semua Dapil</button>
+                  <button type="button" class="map-zoom-btn" onclick="zoomMapTo('kraksaan')">Kraksaan</button>
+                  <button type="button" class="map-zoom-btn" onclick="zoomMapTo('besuk')">Besuk</button>
+                  <button type="button" class="map-zoom-btn" onclick="zoomMapTo('gading')">Gading</button>
+                </div>
               </div>
-              <div id="peta"></div>
+
+              <!-- Map Multi-Layer Controls Bar -->
+              <div class="map-layer-toolbar">
+                <div class="map-layer-pills">
+                  <button type="button" class="map-layer-pill active" id="pillLayerAll" onclick="setMapLayer('all')">
+                    <span>Semua Layer</span>
+                  </button>
+                  <button type="button" class="map-layer-pill" id="pillLayerPendukung" onclick="setMapLayer('pendukung')">
+                    <span class="map-pill-dot blue"></span>
+                    <span>Pendukung (<span id="mapCountPendukung">0</span>)</span>
+                  </button>
+                  <button type="button" class="map-layer-pill" id="pillLayerReses" onclick="setMapLayer('reses')">
+                    <span class="map-pill-dot green"></span>
+                    <span>Titik Reses (<span id="mapCountReses">0</span>)</span>
+                  </button>
+                  <button type="button" class="map-layer-pill" id="pillLayerPokir" onclick="setMapLayer('pokir')">
+                    <span class="map-pill-dot amber"></span>
+                    <span>Usulan Pokir (<span id="mapCountPokir">0</span>)</span>
+                  </button>
+                </div>
+                <div style="font-size:11.5px; color:#64748b; font-weight:500;">
+                  <span style="color:#0f172a; font-weight:700;" id="mapTotalPoints">0</span> Titik Terplot
+                </div>
+              </div>
+
+              <div id="peta" style="height:400px; width:100%; border-radius:10px; border:1px solid #e2e8f0;"></div>
             </div>
 
             <div class="grid-2">
@@ -1071,6 +1126,30 @@
               </div>
             </div>
 
+            <!-- 4 ASPIRASI KPI CARDS -->
+            <div class="aspirasi-kpi-grid">
+              <div class="aspirasi-kpi-card theme-navy">
+                <div class="aspirasi-kpi-label">Total Aspirasi Masuk</div>
+                <div class="aspirasi-kpi-value" id="kpiAspirasiTotal">0</div>
+                <div class="aspirasi-kpi-sub">Keluhan &amp; masukan warga</div>
+              </div>
+              <div class="aspirasi-kpi-card theme-amber">
+                <div class="aspirasi-kpi-label">Menunggu Verifikasi</div>
+                <div class="aspirasi-kpi-value" id="kpiAspirasiMenunggu">0</div>
+                <div class="aspirasi-kpi-sub">Perlu telaah tim fraksi</div>
+              </div>
+              <div class="aspirasi-kpi-card theme-blue">
+                <div class="aspirasi-kpi-label">Dalam Advokasi Lapangan</div>
+                <div class="aspirasi-kpi-value" id="kpiAspirasiDiproses">0</div>
+                <div class="aspirasi-kpi-sub">Koordinasi instansi terkait</div>
+              </div>
+              <div class="aspirasi-kpi-card theme-green">
+                <div class="aspirasi-kpi-label">Terekalasi ke Pokir / Selesai</div>
+                <div class="aspirasi-kpi-value" id="kpiAspirasiSelesai">0</div>
+                <div class="aspirasi-kpi-sub">Masuk usulan APBD resmi</div>
+              </div>
+            </div>
+
             <div class="card card-compact" style="margin-bottom:16px;">
               <div class="filter-row filter-row-nowrap">
                 <input type="text" id="aspirasiSearch" placeholder="Cari nama warga, desa, atau isi keluhan..." oninput="renderAspirasiList()">
@@ -1652,6 +1731,6 @@
       </div>
     </div>
   </div>
-  <script src="assets/js/app.js?v=1789262869"></script>
+  <script src="assets/js/app.js?v=1789263318"></script>
 </body>
 </html>
