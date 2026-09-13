@@ -54,8 +54,11 @@ fi
 
 # 6. Hubungkan aset publik ke public_html
 echo "Menyinkronkan aset publik langsung ke $PUBLIC_HTML_DIR..."
+rm -f "$PUBLIC_HTML_DIR/index.html"
 mkdir -p "$PUBLIC_HTML_DIR"
 cp -ru "$BACKEND_DIR/public/." "$PUBLIC_HTML_DIR/"
+cp -f "$BACKEND_DIR/public/index.php" "$PUBLIC_HTML_DIR/index.php"
+cp -f "$BACKEND_DIR/public/.htaccess" "$PUBLIC_HTML_DIR/.htaccess"
 
 echo "=== DEPLOYMENT SELESAI DENGAN SUKSES ==="
 echo "Semua berkas publik telah terpasang rapi di $PUBLIC_HTML_DIR."

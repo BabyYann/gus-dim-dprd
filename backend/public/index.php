@@ -6,10 +6,10 @@ use Illuminate\Http\Request;
 define('LARAVEL_START', microtime(true));
 
 // Auto-detect core directory across various hosting layouts
-if (file_exists(__DIR__.'/../gusdim_project/backend/bootstrap/app.php')) {
-    $coreDir = __DIR__.'/../gusdim_project/backend';
-} elseif (file_exists(__DIR__.'/gusdim_project/backend/bootstrap/app.php')) {
+if (file_exists(__DIR__.'/gusdim_project/backend/bootstrap/app.php')) {
     $coreDir = __DIR__.'/gusdim_project/backend';
+} elseif (file_exists(__DIR__.'/../gusdim_project/backend/bootstrap/app.php')) {
+    $coreDir = __DIR__.'/../gusdim_project/backend';
 } elseif (file_exists(__DIR__.'/../gusdim_core/bootstrap/app.php')) {
     $coreDir = __DIR__.'/../gusdim_core';
 } else {
