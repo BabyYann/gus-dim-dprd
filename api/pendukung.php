@@ -25,29 +25,31 @@ switch ($action) {
         $dataKhusus = null;
 
         if ($jalur === 'DPC') {
-            $nama = trim($body['nama'] ?? '');
-            $nik = trim($body['nik'] ?? '');
-            $hp = trim($body['hp'] ?? '');
-            $jabatan = trim($body['jabatan'] ?? '');
+            $nama = trim($body['nama'] ?? $body['namaAnggota'] ?? '');
+            $nik = trim($body['nik'] ?? $body['nikAnggota'] ?? '');
+            $hp = trim($body['hp'] ?? $body['hpAnggota'] ?? '');
+            $jabatan = trim($body['jabatan'] ?? 'Pengurus DPC');
             $kecamatan = trim($body['kecamatan'] ?? '');
+            $desa = trim($body['desa'] ?? '');
             $alamat = trim($body['alamat'] ?? '');
         } else if ($jalur === 'DPRT') {
-            $nama = trim($body['nama'] ?? '');
-            $nik = trim($body['nik'] ?? '');
-            $hp = trim($body['hp'] ?? '');
-            $jabatan = trim($body['jabatan'] ?? '');
+            $nama = trim($body['nama'] ?? $body['namaAnggota'] ?? '');
+            $nik = trim($body['nik'] ?? $body['nikAnggota'] ?? '');
+            $hp = trim($body['hp'] ?? $body['hpAnggota'] ?? '');
+            $jabatan = trim($body['jabatan'] ?? 'Pengurus DPRT');
             $kecamatan = trim($body['kecamatan'] ?? '');
             $desa = trim($body['desa'] ?? '');
             $alamat = trim($body['alamat'] ?? '');
         } else if ($jalur === 'PIP') {
-            $nama = trim($body['namaAnak'] ?? '');
-            $nik = trim($body['nikAnak'] ?? '');
-            $hp = trim($body['hpAnak'] ?? '');
+            $nama = trim($body['namaAnak'] ?? $body['nama'] ?? '');
+            $nik = trim($body['nikAnak'] ?? $body['nik'] ?? '');
+            $hp = trim($body['hpAnak'] ?? $body['hp'] ?? '');
             $kecamatan = trim($body['kecamatan'] ?? '');
             $desa = trim($body['desa'] ?? '');
-            $alamat = trim($body['alamatKeluarga'] ?? '');
+            $alamat = trim($body['alamatKeluarga'] ?? $body['alamat'] ?? '');
             $dataKhusus = [
                 'namaSekolah' => trim($body['namaSekolah'] ?? ''),
+                'tingkatSekolah' => trim($body['tingkatSekolah'] ?? ''),
                 'alamatSekolah' => trim($body['alamatSekolah'] ?? ''),
                 'namaAyah' => trim($body['namaAyah'] ?? ''),
                 'nikAyah' => trim($body['nikAyah'] ?? ''),
@@ -60,14 +62,16 @@ switch ($action) {
                 'nikSaudara' => trim($body['nikSaudara'] ?? '')
             ];
         } else if ($jalur === 'KIP') {
-            $nama = trim($body['namaAnak'] ?? '');
-            $nik = trim($body['nikAnak'] ?? '');
-            $hp = trim($body['hpAnak'] ?? '');
+            $nama = trim($body['namaAnak'] ?? $body['nama'] ?? '');
+            $nik = trim($body['nikAnak'] ?? $body['nik'] ?? '');
+            $hp = trim($body['hpAnak'] ?? $body['hp'] ?? '');
             $kecamatan = trim($body['kecamatan'] ?? '');
             $desa = trim($body['desa'] ?? '');
-            $alamat = trim($body['alamatKeluarga'] ?? '');
+            $alamat = trim($body['alamatKeluarga'] ?? $body['alamat'] ?? '');
             $dataKhusus = [
                 'namaKampus' => trim($body['namaKampus'] ?? ''),
+                'fakultas' => trim($body['fakultas'] ?? ''),
+                'jurusan' => trim($body['jurusan'] ?? ''),
                 'alamatKampus' => trim($body['alamatKampus'] ?? ''),
                 'namaAyah' => trim($body['namaAyah'] ?? ''),
                 'nikAyah' => trim($body['nikAyah'] ?? ''),
@@ -80,14 +84,14 @@ switch ($action) {
                 'nikSaudara' => trim($body['nikSaudara'] ?? '')
             ];
         } else if ($jalur === 'RELAWAN') {
-            $nama = trim($body['namaAnggota'] ?? '');
-            $nik = trim($body['nikAnggota'] ?? '');
-            $hp = trim($body['hpAnggota'] ?? '');
-            $jabatan = 'Anggota';
-            $koordinator = trim($body['namaKoordinator'] ?? '');
+            $nama = trim($body['namaAnggota'] ?? $body['nama'] ?? '');
+            $nik = trim($body['nikAnggota'] ?? $body['nik'] ?? '');
+            $hp = trim($body['hpAnggota'] ?? $body['hp'] ?? '');
+            $jabatan = trim($body['jabatan'] ?? 'Anggota');
+            $koordinator = trim($body['namaKoordinator'] ?? $body['koordinator'] ?? '');
             $kecamatan = trim($body['kecamatan'] ?? '');
             $desa = trim($body['desa'] ?? '');
-            $alamat = trim($body['alamatAnggota'] ?? '');
+            $alamat = trim($body['alamatAnggota'] ?? $body['alamat'] ?? '');
         }
 
         if (!$nama || !$nik) {
@@ -129,7 +133,9 @@ switch ($action) {
             }
         }
 
-        $status = 'Diinput';
+        $allowedStatuses = ['Diinput', 'Diverifikasi Desa', 'Divalidasi Kecamatan', 'Final', 'Ditolak'];
+        $reqStatus = trim($body['status'] ?? '');
+        $status = in_array($reqStatus, $allowedStatuses) ? $reqStatus : 'Diinput';
         $now = date('Y-m-d H:i:s');
 
         if (Database::isMysql()) {

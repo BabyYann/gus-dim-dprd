@@ -884,6 +884,7 @@ html, body {
   color: var(--warning);
 }
 
+.badge-status.danger,
 .badge-status.duplicate {
   background-color: var(--danger-light);
   color: var(--danger);
@@ -2048,8 +2049,15 @@ html, body {
 
           <div class="filter-pills-scroll">
             <button type="button" class="filter-pill active" data-filter-type="all" data-filter-val="">Semua</button>
-            <button type="button" class="filter-pill" data-filter-type="status" data-filter-val="valid">Terverifikasi</button>
-            <button type="button" class="filter-pill" data-filter-type="status" data-filter-val="pending">Pending</button>
+            <button type="button" class="filter-pill" data-filter-type="jalur" data-filter-val="DPC">Jalur DPC</button>
+            <button type="button" class="filter-pill" data-filter-type="jalur" data-filter-val="DPRT">Jalur DPRT</button>
+            <button type="button" class="filter-pill" data-filter-type="jalur" data-filter-val="PIP">Jalur PIP</button>
+            <button type="button" class="filter-pill" data-filter-type="jalur" data-filter-val="KIP">Jalur KIP</button>
+            <button type="button" class="filter-pill" data-filter-type="jalur" data-filter-val="RELAWAN">Jalur Relawan</button>
+            <button type="button" class="filter-pill" data-filter-type="status" data-filter-val="Diinput">Diinput</button>
+            <button type="button" class="filter-pill" data-filter-type="status" data-filter-val="Diverifikasi Desa">Verif Desa</button>
+            <button type="button" class="filter-pill" data-filter-type="status" data-filter-val="Divalidasi Kecamatan">Validasi Kec</button>
+            <button type="button" class="filter-pill" data-filter-type="status" data-filter-val="Final">Final (Sah)</button>
             <button type="button" class="filter-pill" data-filter-type="kecamatan" data-filter-val="Kraksaan">Kraksaan</button>
             <button type="button" class="filter-pill" data-filter-type="kecamatan" data-filter-val="Besuk">Besuk</button>
             <button type="button" class="filter-pill" data-filter-type="kecamatan" data-filter-val="Gading">Gading</button>
@@ -2077,66 +2085,71 @@ html, body {
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-          <div class="touch-card" onclick="openEntryForm('mandiri', 'Jalur 1: Formulir Kilat &amp; AI OCR KTP')">
+          <!-- Jalur 1: DPC Kecamatan -->
+          <div class="touch-card" onclick="openEntryForm('DPC', 'Jalur 1: Struktur DPC Kecamatan')">
             <div class="card-top-row">
               <div class="card-avatar" style="background:#eff6ff;color:#2563eb;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>
               </div>
               <div class="card-info">
-                <div class="card-name">Jalur 1: Formulir Kilat &amp; AI OCR</div>
-                <div class="card-nik" style="font-family:inherit;">Pindai fisik KTP otomatis dan kunci GPS</div>
+                <div class="card-name">Jalur 1: DPC Kecamatan</div>
+                <div class="card-nik" style="font-family:inherit;">Pengurus DPC tingkat kecamatan se-Dapil Kraksaan Raya</div>
               </div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
 
-          <div class="touch-card" onclick="openEntryForm('struktur', 'Jalur 2: Struktur Relawan Kordes / Korcam')">
+          <!-- Jalur 2: DPRT Desa -->
+          <div class="touch-card" onclick="openEntryForm('DPRT', 'Jalur 2: Struktur DPRT Desa / Ranting')">
             <div class="card-top-row">
               <div class="card-avatar" style="background:#fef3c7;color:#d97706;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
               <div class="card-info">
-                <div class="card-name">Jalur 2: Struktur Kordes / Korcam</div>
-                <div class="card-nik" style="font-family:inherit;">Input berjenjang dari koordinator desa/kecamatan</div>
+                <div class="card-name">Jalur 2: DPRT Desa / Ranting</div>
+                <div class="card-nik" style="font-family:inherit;">Pengurus ranting tingkat 28 desa / kelurahan</div>
               </div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
 
-          <div class="touch-card" onclick="openEntryForm('tokoh', 'Jalur 3: Tokoh Masyarakat &amp; Kyai')">
+          <!-- Jalur 3: Program PIP (Pelajar) -->
+          <div class="touch-card" onclick="openEntryForm('PIP', 'Jalur 3: Program PIP Aspirasi (Pelajar)')">
             <div class="card-top-row">
               <div class="card-avatar" style="background:#f0fdf4;color:#16a34a;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
               </div>
               <div class="card-info">
-                <div class="card-name">Jalur 3: Tokoh Masyarakat &amp; Kyai</div>
-                <div class="card-nik" style="font-family:inherit;">Rekomendasi sesepuh, ustadz, dan paguyuban</div>
+                <div class="card-name">Jalur 3: Program PIP (Pelajar)</div>
+                <div class="card-nik" style="font-family:inherit;">Aspirasi beasiswa Program Indonesia Pintar SD, SMP, SMA</div>
               </div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
 
-          <div class="touch-card" onclick="openEntryForm('saksi', 'Jalur 4: Saksi TPS Terdata')">
+          <!-- Jalur 4: Program KIP Kuliah (Mahasiswa) -->
+          <div class="touch-card" onclick="openEntryForm('KIP', 'Jalur 4: Program KIP Kuliah (Mahasiswa)')">
             <div class="card-top-row">
               <div class="card-avatar" style="background:#fdf2f8;color:#db2777;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               </div>
               <div class="card-info">
-                <div class="card-name">Jalur 4: Saksi TPS Terdata</div>
-                <div class="card-nik" style="font-family:inherit;">Pendukung berkomitmen bertugas di TPS</div>
+                <div class="card-name">Jalur 4: Program KIP Kuliah</div>
+                <div class="card-nik" style="font-family:inherit;">Aspirasi beasiswa kuliah perguruan tinggi konstituen</div>
               </div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
 
-          <div class="touch-card" onclick="openEntryForm('simpatisan', 'Jalur 5: Relawan Mandiri &amp; Simpatisan')">
+          <!-- Jalur 5: Relawan & Simpatisan -->
+          <div class="touch-card" onclick="openEntryForm('RELAWAN', 'Jalur 5: Relawan Lapangan &amp; Simpatisan')">
             <div class="card-top-row">
               <div class="card-avatar" style="background:#faf5ff;color:#9333ea;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
               </div>
               <div class="card-info">
                 <div class="card-name">Jalur 5: Relawan &amp; Simpatisan</div>
-                <div class="card-nik" style="font-family:inherit;">Pendaftaran mandiri masyarakat pendukung Gus Dim</div>
+                <div class="card-nik" style="font-family:inherit;">Kader penggerak lapangan, saksi TPS, dan pemilih setia</div>
               </div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
@@ -2457,11 +2470,12 @@ const AppState = {
       Gading: 0
     }
   },
+  filterJalur: '',
   filterKecamatan: '',
   filterStatus: '',
   searchQuery: '',
   filterAspirasiCat: '',
-  activeJalur: 'mandiri',
+  activeJalur: 'RELAWAN',
   isOnline: navigator.onLine
 };
 
@@ -2703,15 +2717,22 @@ function setupEventListeners() {
       document.querySelectorAll('.filter-pill[data-filter-type]').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       const fType = pill.getAttribute('data-filter-type');
-      const fVal = pill.getAttribute('data-filter-val');
+      const fVal = pill.getAttribute('data-filter-val') || '';
 
-      if (fType === 'status') {
+      if (fType === 'jalur') {
+        AppState.filterJalur = fVal;
+        AppState.filterStatus = '';
+        AppState.filterKecamatan = '';
+      } else if (fType === 'status') {
         AppState.filterStatus = fVal;
+        AppState.filterJalur = '';
         AppState.filterKecamatan = '';
       } else if (fType === 'kecamatan') {
         AppState.filterKecamatan = fVal;
+        AppState.filterJalur = '';
         AppState.filterStatus = '';
       } else {
+        AppState.filterJalur = '';
         AppState.filterStatus = '';
         AppState.filterKecamatan = '';
       }
@@ -2863,7 +2884,10 @@ function handleMobileLogout() {
 // Kalkulasi Statistik
 function calculateStats() {
   const total = AppState.supporters.length;
-  const terverifikasi = AppState.supporters.filter(s => s.status === 'valid' || s.status === 'Terverifikasi').length;
+  const terverifikasi = AppState.supporters.filter(s => {
+    const st = s.status || '';
+    return st === 'Final' || st === 'valid' || st === 'Terverifikasi' || st === 'Divalidasi Kecamatan' || st === 'Diverifikasi Desa';
+  }).length;
   const target = 25000;
   const persen = Math.min(100, Math.round((total / target) * 100));
 
@@ -2939,20 +2963,30 @@ function renderSupportersList() {
       const nik = (item.nik || '').toLowerCase();
       const desa = (item.desa || '').toLowerCase();
       const kec = (item.kecamatan || '').toLowerCase();
-      return nama.includes(q) || nik.includes(q) || desa.includes(q) || kec.includes(q);
+      const jlr = (item.jalur || '').toLowerCase();
+      return nama.includes(q) || nik.includes(q) || desa.includes(q) || kec.includes(q) || jlr.includes(q);
+    });
+  }
+
+  if (AppState.filterJalur) {
+    list = list.filter(item => {
+      const j = (item.jalur || '').toUpperCase();
+      return j === AppState.filterJalur.toUpperCase() || j.includes(AppState.filterJalur.toUpperCase());
     });
   }
 
   if (AppState.filterStatus) {
     list = list.filter(item => {
-      if (AppState.filterStatus === 'valid') return item.status === 'valid' || item.status === 'Terverifikasi';
-      if (AppState.filterStatus === 'pending') return item.status === 'pending' || item.status === 'Belum Verifikasi';
-      return true;
+      const s = (item.status || '').toLowerCase();
+      const fs = AppState.filterStatus.toLowerCase();
+      if (fs === 'final') return s === 'final' || s === 'valid' || s === 'terverifikasi';
+      if (fs === 'diinput') return s === 'diinput' || s === 'pending';
+      return s.includes(fs);
     });
   }
 
   if (AppState.filterKecamatan) {
-    list = list.filter(item => item.kecamatan === AppState.filterKecamatan);
+    list = list.filter(item => (item.kecamatan || '').toLowerCase() === AppState.filterKecamatan.toLowerCase());
   }
 
   const countBadge = document.getElementById('supporterResultsCount');
@@ -2972,18 +3006,53 @@ function renderSupportersList() {
   container.innerHTML = list.map((item, index) => {
     const initials = (item.nama || 'P').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
     const maskedNik = maskNik(item.nik);
-    const phoneRaw = item.no_hp || item.telepon || '081234567890';
+    const phoneRaw = item.hp || item.no_hp || item.telepon || '081234567890';
     const waPhone = formatWaPhone(phoneRaw);
     const waText = encodeURIComponent(`Assalamu'alaikum Bpk/Ibu ${item.nama}, salam silaturahmi dari Tim Relawan Gus Dim.`);
 
+    const st = item.status || 'Diinput';
     let statusClass = 'pending';
-    let statusText = 'Pending';
+    let statusText = 'Diinput';
     let statusIcon = Icons.clock;
 
-    if (item.status === 'valid' || item.status === 'Terverifikasi') {
+    if (st === 'Final' || st === 'valid' || st === 'Terverifikasi') {
       statusClass = 'valid';
-      statusText = 'Valid';
+      statusText = 'Final';
       statusIcon = Icons.checkCircle;
+    } else if (st === 'Divalidasi Kecamatan') {
+      statusClass = 'info';
+      statusText = 'Validasi Kec';
+      statusIcon = Icons.checkCircle;
+    } else if (st === 'Diverifikasi Desa') {
+      statusClass = 'info';
+      statusText = 'Verif Desa';
+      statusIcon = Icons.clock;
+    } else if (st === 'Ditolak') {
+      statusClass = 'danger';
+      statusText = 'Ditolak';
+      statusIcon = Icons.alertTriangle;
+    }
+
+    const jKey = (item.jalur || 'RELAWAN').toUpperCase();
+    let jalurLabel = 'Jalur Relawan';
+    if (jKey === 'DPC') jalurLabel = 'Jalur DPC';
+    else if (jKey === 'DPRT') jalurLabel = 'Jalur DPRT';
+    else if (jKey === 'PIP') jalurLabel = 'Jalur PIP';
+    else if (jKey === 'KIP') jalurLabel = 'Jalur KIP';
+
+    let extraPill = '';
+    if (item.jabatan) {
+      extraPill = `<span class="card-pill">${escapeHtml(item.jabatan)}</span>`;
+    } else if (item.data_khusus) {
+      let dk = item.data_khusus;
+      if (typeof dk === 'string') {
+        try { dk = JSON.parse(dk); } catch (e) {}
+      }
+      if (dk && dk.namaSekolah) {
+        extraPill = `<span class="card-pill">${escapeHtml(dk.namaSekolah)}</span>`;
+      } else if (dk && dk.namaKampus) {
+        extraPill = `<span class="card-pill">${escapeHtml(dk.namaKampus)}</span>`;
+      }
     }
 
     return `
@@ -3005,7 +3074,8 @@ function renderSupportersList() {
             <span>${escapeHtml(item.desa || 'Patokan')}, ${escapeHtml(item.kecamatan || 'Kraksaan')}</span>
           </div>
           <span class="card-pill">TPS ${item.tps || '01'}</span>
-          <span class="card-pill">${escapeHtml(item.jalur || 'Mandiri')}</span>
+          <span class="card-pill" style="font-weight:600;color:#16225e;">${escapeHtml(jalurLabel)}</span>
+          ${extraPill}
         </div>
 
         <div class="card-actions-row" onclick="event.stopPropagation()">
@@ -3458,9 +3528,71 @@ function openSupporterDetail(index) {
   if (!item) return;
 
   const maskedNik = maskNik(item.nik);
-  const phoneRaw = item.no_hp || item.telepon || '081234567890';
+  const phoneRaw = item.hp || item.no_hp || item.telepon || '081234567890';
   const waPhone = formatWaPhone(phoneRaw);
   const waText = encodeURIComponent(`Assalamu'alaikum Bpk/Ibu ${item.nama}, salam silaturahmi dari Tim Relawan Gus Dim.`);
+
+  const jKey = (item.jalur || 'RELAWAN').toUpperCase();
+  let jalurLabel = 'Jalur Relawan & Simpatisan';
+  if (jKey === 'DPC') jalurLabel = 'Jalur 1: DPC Kecamatan';
+  else if (jKey === 'DPRT') jalurLabel = 'Jalur 2: DPRT Desa / Ranting';
+  else if (jKey === 'PIP') jalurLabel = 'Jalur 3: Program PIP Pelajar';
+  else if (jKey === 'KIP') jalurLabel = 'Jalur 4: Program KIP Kuliah';
+
+  let pathRows = '';
+  if (item.jabatan) {
+    pathRows += `
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#64748b;">Jabatan Struktural</span>
+        <span style="font-weight:600;color:#0f172a;">${escapeHtml(item.jabatan)}</span>
+      </div>
+    `;
+  }
+  if (item.koordinator) {
+    pathRows += `
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#64748b;">Koordinator Lapangan</span>
+        <span style="font-weight:600;color:#0f172a;">${escapeHtml(item.koordinator)}</span>
+      </div>
+    `;
+  }
+
+  let dk = item.data_khusus;
+  if (typeof dk === 'string') {
+    try { dk = JSON.parse(dk); } catch (e) {}
+  }
+  if (dk) {
+    if (dk.namaSekolah) {
+      pathRows += `
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:#64748b;">Nama Sekolah</span>
+          <span style="font-weight:600;color:#0f172a;">${escapeHtml(dk.namaSekolah)} (${escapeHtml(dk.tingkatSekolah || 'SD/MI')})</span>
+        </div>
+      `;
+    }
+    if (dk.namaKampus) {
+      pathRows += `
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:#64748b;">Kampus / Prodi</span>
+          <span style="font-weight:600;color:#0f172a;">${escapeHtml(dk.namaKampus)} &bull; ${escapeHtml(dk.fakultas || '')}</span>
+        </div>
+      `;
+    }
+    if (dk.namaAyah) {
+      pathRows += `
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:#64748b;">Orang Tua / Wali</span>
+          <span style="font-weight:600;color:#0f172a;">${escapeHtml(dk.namaAyah)} (${escapeHtml(dk.hpAyah || '-')})</span>
+        </div>
+      `;
+    }
+  }
+
+  const curStatus = item.status || 'Diinput';
+  let statusColor = '#d97706';
+  if (curStatus === 'Final' || curStatus === 'valid' || curStatus === 'Terverifikasi') statusColor = '#16a34a';
+  else if (curStatus === 'Divalidasi Kecamatan' || curStatus === 'Diverifikasi Desa') statusColor = '#2563eb';
+  else if (curStatus === 'Ditolak') statusColor = '#dc2626';
 
   const content = `
     <div style="text-align:center;margin-bottom:18px;">
@@ -3477,16 +3609,21 @@ function openSupporterDetail(index) {
         <span style="font-weight:600;color:#0f172a;">Desa ${escapeHtml(item.desa || 'Patokan')}, Kec. ${escapeHtml(item.kecamatan || 'Kraksaan')}</span>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#64748b;">Alamat RT/RW</span>
+        <span style="font-weight:600;color:#0f172a;">${escapeHtml(item.alamat || '-')}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
         <span style="color:#64748b;">Tempat TPS</span>
         <span style="font-weight:600;color:#0f172a;">TPS ${item.tps || '01'}</span>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:13px;">
         <span style="color:#64748b;">Jalur Penjaringan</span>
-        <span style="font-weight:600;color:#0f172a;">${escapeHtml(item.jalur || 'Formulir Kilat & OCR')}</span>
+        <span style="font-weight:700;color:#16225e;">${escapeHtml(jalurLabel)}</span>
       </div>
+      ${pathRows}
       <div style="display:flex;justify-content:space-between;font-size:13px;">
         <span style="color:#64748b;">Status Verifikasi</span>
-        <span style="font-weight:700;color:${item.status === 'valid' ? '#16a34a' : '#d97706'};">${item.status === 'valid' ? 'Terverifikasi (Valid)' : 'Menunggu Verifikasi'}</span>
+        <span style="font-weight:700;color:${statusColor};">${escapeHtml(curStatus)}</span>
       </div>
     </div>
 
@@ -3497,9 +3634,26 @@ function openSupporterDetail(index) {
       <a href="tel:${phoneRaw}" class="btn-outline-touch" style="width:100%;height:44px;">
         ${Icons.phone} Panggilan Seluler
       </a>
-      <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="verifySupporter(${index})">
-        ${Icons.checkCircle} Tandai Terverifikasi
-      </button>
+
+      <!-- Status Progression Workflow -->
+      <div style="background:#f1f5f9;padding:10px;border-radius:10px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;">Alur Validasi Berjenjang:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
+            Verif Desa
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
+            Validasi Kec
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="updateSupporterStatus(${index}, 'Final')">
+            Tandai Final
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+            Tolak Data
+          </button>
+        </div>
+      </div>
+
       <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#dc2626;border-color:#fecaca;" onclick="deleteSupporter(${index})">
         ${Icons.trash} Hapus Data
       </button>
@@ -3509,31 +3663,148 @@ function openSupporterDetail(index) {
   openBottomSheet('Detail Pendukung Konstituen', content);
 }
 
-function verifySupporter(index) {
-  if (AppState.supporters[index]) {
-    AppState.supporters[index].status = 'valid';
-    calculateStats();
-    renderDashboardStats();
-    renderSupportersList();
-    closeBottomSheet();
-    showToast('Status pendukung telah diverifikasi!', 'success');
+async function updateSupporterStatus(index, newStatus) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  item.status = newStatus;
+  calculateStats();
+  renderDashboardStats();
+  renderSupportersList();
+  closeBottomSheet();
+  showToast(`Status berhasil diperbarui menjadi ${newStatus}!`, 'success');
+
+  if (item.id) {
+    try {
+      await mobileApiCall('verifikasi.php?action=update-status', 'POST', {
+        rowNumber: item.id,
+        newStatus: newStatus
+      });
+    } catch (e) {
+      console.warn('Gagal sinkron status verifikasi:', e);
+    }
   }
 }
 
 function deleteSupporter(index) {
-  if (confirm('Yakin ingin menghapus data pendukung ini?')) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  if (confirm(`Yakin ingin menghapus data pendukung ${item.nama}?`)) {
     AppState.supporters.splice(index, 1);
     calculateStats();
     renderDashboardStats();
     renderSupportersList();
     closeBottomSheet();
-    showToast('Data pendukung dihapus.', 'info');
+    showToast('Data pendukung berhasil dihapus.', 'info');
   }
 }
 
 // Buka Formulir Entri 5 Jalur
 function openEntryForm(jalurKey, jalurTitle) {
   AppState.activeJalur = jalurKey;
+
+  let specificFieldsHtml = '';
+  if (jalurKey === 'DPC') {
+    specificFieldsHtml = `
+      <div class="form-group">
+        <label class="form-label">Jabatan Struktural DPC <span class="required-mark">*</span></label>
+        <select id="formJabatan" class="form-select-touch" required>
+          <option value="Ketua DPC">Ketua DPC</option>
+          <option value="Sekretaris DPC">Sekretaris DPC</option>
+          <option value="Bendahara DPC">Bendahara DPC</option>
+          <option value="Wakil Ketua">Wakil Ketua</option>
+          <option value="Pengurus Harian">Pengurus Harian</option>
+          <option value="Pengurus Pleno" selected>Pengurus Pleno</option>
+          <option value="Anggota DPC">Anggota DPC</option>
+        </select>
+      </div>
+    `;
+  } else if (jalurKey === 'DPRT') {
+    specificFieldsHtml = `
+      <div class="form-group">
+        <label class="form-label">Jabatan Struktural DPRT Desa <span class="required-mark">*</span></label>
+        <select id="formJabatan" class="form-select-touch" required>
+          <option value="Ketua Ranting">Ketua Ranting (DPRT)</option>
+          <option value="Sekretaris Ranting">Sekretaris Ranting</option>
+          <option value="Bendahara Ranting">Bendahara Ranting</option>
+          <option value="Koordinator Dusun">Koordinator Dusun</option>
+          <option value="Pengurus Ranting" selected>Pengurus Ranting</option>
+          <option value="Anggota Ranting">Anggota Ranting</option>
+        </select>
+      </div>
+    `;
+  } else if (jalurKey === 'PIP') {
+    specificFieldsHtml = `
+      <div class="form-group">
+        <label class="form-label">Nama Sekolah <span class="required-mark">*</span></label>
+        <input type="text" id="formSekolah" class="form-input-touch" placeholder="Contoh: SDN Patokan 1 / SMPN 1 Kraksaan" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Jenjang Pendidikan <span class="required-mark">*</span></label>
+        <select id="formTingkat" class="form-select-touch" required>
+          <option value="SD/MI" selected>SD / MI</option>
+          <option value="SMP/MTs">SMP / MTs</option>
+          <option value="SMA/SMK/MA">SMA / SMK / MA</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Nama Orang Tua (Ayah) <span class="required-mark">*</span></label>
+          <input type="text" id="formNamaOrtu" class="form-input-touch" placeholder="Nama ayah / wali" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">No. WhatsApp Orang Tua</label>
+          <input type="tel" id="formHpOrtu" class="form-input-touch" placeholder="08xxxxxxxxxx">
+        </div>
+      </div>
+    `;
+  } else if (jalurKey === 'KIP') {
+    specificFieldsHtml = `
+      <div class="form-group">
+        <label class="form-label">Nama Perguruan Tinggi / Kampus <span class="required-mark">*</span></label>
+        <input type="text" id="formKampus" class="form-input-touch" placeholder="Contoh: Universitas Nurul Jadid / Unej" required>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Fakultas / Program Studi <span class="required-mark">*</span></label>
+          <input type="text" id="formFakultas" class="form-input-touch" placeholder="Teknik Informatika" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Semester / Angkatan</label>
+          <input type="text" id="formSemester" class="form-input-touch" placeholder="Semester 1 (2025)">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Nama Orang Tua / Wali <span class="required-mark">*</span></label>
+          <input type="text" id="formNamaOrtu" class="form-input-touch" placeholder="Nama orang tua" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">No. WhatsApp Orang Tua</label>
+          <input type="tel" id="formHpOrtu" class="form-input-touch" placeholder="08xxxxxxxxxx">
+        </div>
+      </div>
+    `;
+  } else {
+    // RELAWAN
+    specificFieldsHtml = `
+      <div class="form-group">
+        <label class="form-label">Kategori Penugasan Relawan <span class="required-mark">*</span></label>
+        <select id="formKategoriRelawan" class="form-select-touch" required>
+          <option value="Relawan TPS" selected>Relawan TPS</option>
+          <option value="Saksi TPS">Saksi TPS Mandat</option>
+          <option value="Koordinator Desa">Koordinator Desa (Kordes)</option>
+          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam)</option>
+          <option value="Simpatisan Warga">Simpatisan Warga Setia</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nama Koordinator / Komunitas</label>
+        <input type="text" id="formKoordinator" class="form-input-touch" placeholder="Contoh: Korcam Kraksaan / Sahabat Santri">
+      </div>
+    `;
+  }
 
   const content = `
     <form onsubmit="handleFormSubmit(event)">
@@ -3591,14 +3862,24 @@ function openEntryForm(jalurKey, jalurTitle) {
         <div class="form-group">
           <label class="form-label">Desa <span class="required-mark">*</span></label>
           <select id="formDesa" class="form-select-touch" required>
-            <option value="Patokan">Patokan</option>
             <option value="Kraksaan Wetan">Kraksaan Wetan</option>
+            <option value="Kandangjati Kulon">Kandangjati Kulon</option>
+            <option value="Kandangjati Wetan">Kandangjati Wetan</option>
+            <option value="Patokan" selected>Patokan</option>
             <option value="Semampir">Semampir</option>
             <option value="Sidomukti">Sidomukti</option>
-            <option value="Kandangjati Kulon">Kandangjati Kulon</option>
+            <option value="Kebonagung">Kebonagung</option>
+            <option value="Rondokuning">Rondokuning</option>
+            <option value="Asembagus">Asembagus</option>
+            <option value="Bulubrangsi">Bulubrangsi</option>
+            <option value="Kalisalam">Kalisalam</option>
+            <option value="Kregenan">Kregenan</option>
+            <option value="Tamansari">Tamansari</option>
           </select>
         </div>
       </div>
+
+      ${specificFieldsHtml}
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-group">
@@ -3608,8 +3889,10 @@ function openEntryForm(jalurKey, jalurTitle) {
         <div class="form-group">
           <label class="form-label">Status Verifikasi</label>
           <select id="formStatus" class="form-select-touch">
-            <option value="valid">Valid (KTP Lengkap)</option>
-            <option value="pending">Pending Verifikasi</option>
+            <option value="Diinput" selected>Diinput (Awal)</option>
+            <option value="Diverifikasi Desa">Diverifikasi Desa</option>
+            <option value="Divalidasi Kecamatan">Divalidasi Kecamatan</option>
+            <option value="Final">Final (Sah)</option>
           </select>
         </div>
       </div>
@@ -3621,7 +3904,7 @@ function openEntryForm(jalurKey, jalurTitle) {
 
       <input type="hidden" id="formLat" value="">
       <input type="hidden" id="formLng" value="">
-      <input type="hidden" id="formJalur" value="${escapeHtml(jalurTitle)}">
+      <input type="hidden" id="formJalur" value="${escapeHtml(jalurKey)}">
 
       <div class="sticky-form-cta">
         <button type="submit" class="btn-primary-touch">
@@ -3737,27 +4020,95 @@ function updateDesaDropdown(kecamatan) {
 async function handleFormSubmit(event) {
   event.preventDefault();
 
-  const nik = document.getElementById('formNik').value.trim();
-  const nama = document.getElementById('formNama').value.trim();
-  const no_hp = document.getElementById('formHp').value.trim();
-  const kecamatan = document.getElementById('formKecamatan').value;
-  const desa = document.getElementById('formDesa').value;
-  const tps = document.getElementById('formTps').value;
-  const status = document.getElementById('formStatus').value;
-  const alamat = document.getElementById('formAlamat').value.trim();
-  const lat = document.getElementById('formLat').value;
-  const lng = document.getElementById('formLng').value;
-  const jalur = document.getElementById('formJalur').value;
+  const nik = document.getElementById('formNik')?.value.trim() || '';
+  const nama = document.getElementById('formNama')?.value.trim() || '';
+  const hp = document.getElementById('formHp')?.value.trim() || '';
+  const kecamatan = document.getElementById('formKecamatan')?.value || 'Kraksaan';
+  const desa = document.getElementById('formDesa')?.value || 'Patokan';
+  const tps = document.getElementById('formTps')?.value.trim() || '01';
+  const status = document.getElementById('formStatus')?.value || 'Diinput';
+  const alamat = document.getElementById('formAlamat')?.value.trim() || '';
+  const lat = document.getElementById('formLat')?.value || '';
+  const lng = document.getElementById('formLng')?.value || '';
+  const jalur = (AppState.activeJalur || document.getElementById('formJalur')?.value || 'RELAWAN').toUpperCase();
 
   if (nik.length < 16) {
     showToast('NIK harus terdiri dari 16 digit angka.', 'danger');
     return;
   }
 
+  let jabatan = '';
+  let koordinator = '';
+  let dataKhusus = null;
+  const payload = {
+    jalur,
+    nama,
+    nik,
+    hp,
+    kecamatan,
+    desa,
+    tps,
+    alamat,
+    status,
+    lat,
+    lng
+  };
+
+  if (jalur === 'DPC' || jalur === 'DPRT') {
+    jabatan = document.getElementById('formJabatan')?.value || (jalur === 'DPC' ? 'Pengurus DPC' : 'Pengurus DPRT');
+    payload.jabatan = jabatan;
+  } else if (jalur === 'PIP') {
+    const namaSekolah = document.getElementById('formSekolah')?.value.trim() || '';
+    const tingkatSekolah = document.getElementById('formTingkat')?.value || 'SD/MI';
+    const namaAyah = document.getElementById('formNamaOrtu')?.value.trim() || '';
+    const hpAyah = document.getElementById('formHpOrtu')?.value.trim() || '';
+
+    payload.namaAnak = nama;
+    payload.nikAnak = nik;
+    payload.hpAnak = hp;
+    payload.alamatKeluarga = alamat;
+    payload.namaSekolah = namaSekolah;
+    payload.tingkatSekolah = tingkatSekolah;
+    payload.namaAyah = namaAyah;
+    payload.hpAyah = hpAyah;
+    dataKhusus = { namaSekolah, tingkatSekolah, namaAyah, hpAyah };
+  } else if (jalur === 'KIP') {
+    const namaKampus = document.getElementById('formKampus')?.value.trim() || '';
+    const fakultas = document.getElementById('formFakultas')?.value.trim() || '';
+    const jurusan = document.getElementById('formSemester')?.value.trim() || '';
+    const namaAyah = document.getElementById('formNamaOrtu')?.value.trim() || '';
+    const hpAyah = document.getElementById('formHpOrtu')?.value.trim() || '';
+
+    payload.namaAnak = nama;
+    payload.nikAnak = nik;
+    payload.hpAnak = hp;
+    payload.alamatKeluarga = alamat;
+    payload.namaKampus = namaKampus;
+    payload.fakultas = fakultas;
+    payload.jurusan = jurusan;
+    payload.namaAyah = namaAyah;
+    payload.hpAyah = hpAyah;
+    dataKhusus = { namaKampus, fakultas, jurusan, namaAyah, hpAyah };
+  } else {
+    // RELAWAN
+    jabatan = document.getElementById('formKategoriRelawan')?.value || 'Relawan TPS';
+    koordinator = document.getElementById('formKoordinator')?.value.trim() || '';
+    payload.jabatan = jabatan;
+    payload.namaKoordinator = koordinator;
+    payload.koordinator = koordinator;
+    payload.namaAnggota = nama;
+    payload.nikAnggota = nik;
+    payload.hpAnggota = hp;
+    payload.alamatAnggota = alamat;
+  }
+
   const newSupporter = {
+    id: Date.now(),
+    jalur,
     nik,
     nama,
-    no_hp,
+    hp,
+    no_hp: hp,
     kecamatan,
     desa,
     tps,
@@ -3765,40 +4116,36 @@ async function handleFormSubmit(event) {
     alamat,
     lat,
     lng,
-    jalur: jalur || 'Formulir Kilat & OCR',
+    jabatan,
+    koordinator,
+    data_khusus: dataKhusus,
     created_at: new Date().toISOString()
   };
 
-  try {
-    const payload = {
-      jalur: 'RELAWAN',
-      nama: nama,
-      nik: nik,
-      hp: noHp,
-      alamat: alamat,
-      kecamatan: kecamatan,
-      desa: desa,
-      lat: lat,
-      lng: lng
-    };
-    mobileApiCall('pendukung.php?action=submit', 'POST', payload).then(res => {
-      if (res.ok && res.data && res.data.success) {
-        showToast('Data pendukung berhasil tersimpan ke database server!', 'success');
-        loadAllData();
-      } else {
-        const msg = (res.data && res.data.message) ? res.data.message : 'Tersimpan lokal di perangkat.';
-        showToast(msg, res.ok ? 'success' : 'warning');
-      }
-    }).catch(() => {});
-  } catch (e) {}
+  showToast('Menyimpan data pendukung...', 'info');
 
-  AppState.supporters.unshift(newSupporter);
-  calculateStats();
-  renderDashboardStats();
-  renderSupportersList();
+  try {
+    const res = await mobileApiCall('pendukung.php?action=submit', 'POST', payload);
+    if (res.ok && res.data && res.data.success) {
+      showToast(res.data.message || 'Data pendukung berhasil tersimpan ke database server!', 'success');
+      loadAllData();
+    } else {
+      const msg = (res.data && res.data.message) ? res.data.message : 'Tersimpan lokal di perangkat.';
+      showToast(msg, res.ok ? 'success' : 'warning');
+      AppState.supporters.unshift(newSupporter);
+      calculateStats();
+      renderDashboardStats();
+      renderSupportersList();
+    }
+  } catch (e) {
+    AppState.supporters.unshift(newSupporter);
+    calculateStats();
+    renderDashboardStats();
+    renderSupportersList();
+    showToast('Data tersimpan di perangkat lokal.', 'info');
+  }
 
   closeBottomSheet();
-  showToast('Data pendukung berhasil disimpan!', 'success');
   navigatePage('pendukung');
 }
 
@@ -3873,16 +4220,14 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-// Data Dummy Representatif
+// Data Dummy Representatif (Fallback Cadangan)
 function generateDefaultSupporters() {
   return [
-    { nik: '3513241203850001', nama: 'H. Abdul Kholiq', no_hp: '081234567801', kecamatan: 'Kraksaan', desa: 'Patokan', tps: '02', status: 'valid', jalur: 'Jalur Tokoh Masyarakat & Kyai', alamat: 'Jl. Rengganis No. 14 RT 01 RW 02' },
-    { nik: '3513244508920002', nama: 'Nurul Hidayati', no_hp: '081234567802', kecamatan: 'Kraksaan', desa: 'Kraksaan Wetan', tps: '04', status: 'valid', jalur: 'Formulir Kilat & AI OCR', alamat: 'Jl. Diponegoro RT 03 RW 01' },
-    { nik: '3513192211880003', nama: 'Ahmad Mubarok', no_hp: '081234567803', kecamatan: 'Besuk', desa: 'Besuk Agung', tps: '01', status: 'valid', jalur: 'Jalur Struktur Kordes / Korcam', alamat: 'Dusun Krajan RT 02 RW 01' },
-    { nik: '3513196704950004', nama: 'Fathur Rozi', no_hp: '081234567804', kecamatan: 'Besuk', desa: 'Randu Jalak', tps: '03', status: 'pending', jalur: 'Jalur Saksi TPS', alamat: 'RT 04 RW 02 Desa Randu Jalak' },
-    { nik: '3513211506900005', nama: 'Siti Maryam', no_hp: '081234567805', kecamatan: 'Gading', desa: 'Condong', tps: '01', status: 'valid', jalur: 'Formulir Kilat & AI OCR', alamat: 'RT 01 RW 01 Condong Gading' },
-    { nik: '3513212809830006', nama: 'Bambang Sugiono', no_hp: '081234567806', kecamatan: 'Gading', desa: 'Wangkal', tps: '02', status: 'pending', jalur: 'Jalur Relawan Mandiri & Simpatisan', alamat: 'Dusun Timur RT 03 RW 02' },
-    { nik: '3513245001990007', nama: 'Dewi Lestari', no_hp: '081234567807', kecamatan: 'Kraksaan', desa: 'Semampir', tps: '05', status: 'valid', jalur: 'Formulir Kilat & AI OCR', alamat: 'Jl. KH Abdurrahman Wahid No 8' }
+    { nik: '3513241203850001', nama: 'H. Abdul Kholiq', hp: '081234567801', kecamatan: 'Kraksaan', desa: 'Patokan', tps: '02', status: 'Final', jalur: 'DPC', jabatan: 'Ketua DPC', alamat: 'Jl. Rengganis No. 14 RT 01 RW 02' },
+    { nik: '3513244508920002', nama: 'Nurul Hidayati', hp: '081234567802', kecamatan: 'Kraksaan', desa: 'Kraksaan Wetan', tps: '04', status: 'Divalidasi Kecamatan', jalur: 'DPRT', jabatan: 'Sekretaris Ranting', alamat: 'Jl. Diponegoro RT 03 RW 01' },
+    { nik: '3513192211880003', nama: 'Ahmad Mubarok', hp: '081234567803', kecamatan: 'Besuk', desa: 'Besuk Agung', tps: '01', status: 'Diverifikasi Desa', jalur: 'PIP', data_khusus: { namaSekolah: 'SMKN 1 Kraksaan', tingkatSekolah: 'SMA/SMK/MA' }, alamat: 'Dusun Krajan RT 02 RW 01' },
+    { nik: '3513196704950004', nama: 'Fathur Rozi', hp: '081234567804', kecamatan: 'Besuk', desa: 'Randu Jalak', tps: '03', status: 'Diinput', jalur: 'KIP', data_khusus: { namaKampus: 'Universitas Nurul Jadid' }, alamat: 'RT 04 RW 02 Desa Randu Jalak' },
+    { nik: '3513211506900005', nama: 'Siti Maryam', hp: '081234567805', kecamatan: 'Gading', desa: 'Condong', tps: '01', status: 'Final', jalur: 'RELAWAN', jabatan: 'Relawan TPS', alamat: 'RT 01 RW 01 Condong Gading' }
   ];
 }
 
