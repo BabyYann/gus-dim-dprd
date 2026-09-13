@@ -14,77 +14,83 @@ Seluruh paket rilis produksi terbaru untuk domain **gusdim.com** telah disiapkan
 2. `gusdim-cpanel-public.zip` (Ukuran: ~0.6 MB)
    Berisi berkas antarmuka publik siap pakai: antarmuka desktop, aplikasi mobile PWA lengkap, manifest, service worker, pustaka aset terkompilasi, serta skrip router cerdas yang otomatis mendeteksi direktori inti. Berkas ini diekstrak langsung di dalam folder `public_html`.
 
-3. `production_schema_and_seeds.sql` / `production_clean_schema.sql`
+3. `production_clean_schema.sql` (dan `production_schema_and_seeds.sql`)
    Skrip database MySQL produksi bersih:
    - Hanya memiliki 1 akun Superadmin (`superadmin`).
    - Menyimpan master referensi wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading, dsb) agar pilihan wilayah dan titik peta berfungsi otomatis.
    - Tabel pendukung konstituen, aspirasi, dan log riwayat dalam kondisi 100% bersih (0 data) siap untuk input data asli di lapangan.
 
----
-
-## 2. Panduan Langkah Demi Langkah: Deployment ke cPanel (gusdim.com)
-
-Metode ini merupakan standar paling aman dan teruji untuk menjalankan Laravel pada cPanel hosting.
-
-### Langkah 1: Pembuatan Database MySQL di cPanel
-1. Masuk ke halaman dasbor cPanel hosting domain **gusdim.com** Anda.
-2. Cari dan buka menu **MySQL Database Wizard**.
-3. Buat nama database baru, misalnya: `cpaneluser_gusdim` (sesuaikan awalan username cPanel Anda). Catat nama lengkap database ini.
-4. Buat pengguna database baru (misal: `cpaneluser_admin`) dan buat kata sandi yang kuat. Catat nama pengguna dan kata sandi ini.
-5. Pada langkah berikutnya, beri tanda centang pada kotak **ALL PRIVILEGES** (Semua Hak Akses), lalu klik tombol **Next Step** / Simpan.
-
-### Langkah 2: Impor Struktur Database Bersih via phpMyAdmin
-1. Kembali ke dasbor utama cPanel, lalu buka menu **phpMyAdmin**.
-2. Pada panel sebelah kiri, klik nama database yang baru saja dibuat.
-3. Klik tab menu **Import** pada bagian atas layar.
-4. Klik tombol **Choose File** (Pilih Berkas) dan pilih berkas:
-   `dist/production_schema_and_seeds.sql` (atau `production_clean_schema.sql`)
-5. Gulir ke bagian bawah halaman dan klik tombol **Import**. Database kini terisi dengan tabel terindeks, 1 akun Superadmin, dan master referensi wilayah. Seluruh data pendukung dan aspirasi siap dimulai dari nol.
-
-### Langkah 3: Unggah Berkas Inti Sistem (gusdim-cpanel-core.zip)
-1. Buka menu **File Manager** di cPanel.
-2. Pastikan Anda berada di direktori beranda (root) akun hosting Anda, yaitu satu tingkat di luar `public_html` (misalnya di `/home/cpaneluser/`).
-3. Klik tombol **+ Folder** di sudut kiri atas, lalu buat folder baru bernama:
-   `gusdim_core`
-4. Masuk ke dalam folder `gusdim_core` tersebut, lalu klik tombol **Upload** di bilah menu atas.
-5. Unggah berkas `dist/gusdim-cpanel-core.zip`.
-6. Setelah proses unggah selesai (indikator hijau 100%), kembali ke File Manager, klik kanan pada berkas zip tersebut, lalu pilih opsi **Extract**. Pastikan direktori tujuan ekstraksi adalah folder `gusdim_core`.
-7. Setelah selesai diekstrak, Anda dapat menghapus berkas zip untuk menghemat ruang penyimpanan.
-
-### Langkah 4: Unggah Berkas Publik (gusdim-cpanel-public.zip)
-1. Pada File Manager cPanel, masuk ke dalam folder:
-   `public_html`
-2. Jika ada berkas bawaan lama dari hosting (seperti `default.html`, `index.html` kosong, atau sejenisnya), hapus berkas tersebut.
-3. Klik tombol **Upload** pada menu atas, lalu unggah berkas `dist/gusdim-cpanel-public.zip`.
-4. Setelah proses unggah selesai, klik kanan pada berkas zip tersebut, lalu pilih **Extract** langsung ke dalam direktori `public_html`.
-5. Berkas publik kini telah terpasang dengan rapi, termasuk `.htaccess`, `index.php`, `sw.js`, `manifest.json`, serta folder `assets`, `build`, dan `mobile`.
-
-### Langkah 5: Penyesuaian Konfigurasi Lingkungan (.env)
-1. Buka kembali folder `gusdim_core` pada File Manager cPanel.
-2. Pastikan opsi **Show Hidden Files (dotfiles)** aktif di menu pengaturan (ikon gerigi di sudut kanan atas File Manager) agar berkas `.env` terlihat.
-3. Klik kanan pada berkas `.env`, lalu pilih **Edit**.
-4. Periksa dan sesuaikan baris konfigurasi berikut:
-   - `APP_URL=https://gusdim.com`
-   - `APP_ENV=production`
-   - `APP_DEBUG=false`
-   - `DB_DATABASE=nama_database_yang_anda_buat_di_langkah_1`
-   - `DB_USERNAME=nama_user_database_yang_anda_buat_di_langkah_1`
-   - `DB_PASSWORD=password_database_yang_anda_buat_di_langkah_1`
-5. Klik **Save Changes** (Simpan Perubahan).
-
-### Langkah 6: Pemeriksaan Versi PHP dan Ekstensi
-1. Di dasbor utama cPanel, buka menu **Select PHP Version** atau **MultiPHP Manager**.
-2. Pastikan domain **gusdim.com** menggunakan versi PHP 8.2 atau PHP 8.3.
-3. Pastikan ekstensi umum Laravel berikut aktif: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `fileinfo`, dan `curl`.
-
-### Langkah 7: Pengaktifan Sertifikat Keamanan SSL (Wajib untuk PWA)
-1. Agar aplikasi mobile PWA dapat diinstal di ponsel relawan dan berjalan offline, domain wajib menggunakan koneksi aman HTTPS.
-2. Di dasbor cPanel, buka menu **SSL/TLS Status** atau **Let's Encrypt SSL**.
-3. Jalankan fitur **Run AutoSSL** atau pasang sertifikat gratis untuk domain `gusdim.com` dan `www.gusdim.com` hingga indikator berstatus gembok hijau aktif.
+4. `cpanel_quick_deploy.sh`
+   Skrip otomatisasi untuk deployment kilat via terminal server.
 
 ---
 
-## 3. Akun Tunggal Superadmin untuk Peluncuran Perdana
+## 2. Cara Paling Cepat & Direkomendasikan: Menggunakan Terminal Server & Git
+
+Karena Anda memiliki akses ke Terminal server cPanel, proses instalasi dan pembaruan sistem dapat dilakukan jauh lebih cepat tanpa perlu mengunggah berkas zip secara manual satu per satu.
+
+### Langkah 1: Klon Repositori di Terminal cPanel
+1. Buka fitur **Terminal** pada dasbor cPanel Anda.
+2. Pastikan Anda berada di direktori beranda utama (misal `/home/cpaneluser/`).
+3. Jalankan perintah klon dari repositori resmi GitHub:
+   ```bash
+   git clone https://github.com/BabyYann/gus-dim-dprd.git gusdim_project
+   ```
+
+### Langkah 2: Jalankan Skrip Otomatisasi Deployment
+1. Masuk ke direktori hasil klon:
+   ```bash
+   cd gusdim_project
+   ```
+2. Jalankan skrip pembantu otomatis:
+   ```bash
+   bash cpanel_quick_deploy.sh
+   ```
+   Skrip ini secara otomatis akan:
+   - Menyiapkan berkas konfigurasi produksi `.env`.
+   - Mengoptimasi autoloader Composer.
+   - Membuat tautan penyimpanan `storage:link`.
+   - Mengompilasi cache konfigurasi, rute, dan tampilan Laravel.
+   - Menyinkronkan seluruh aset antarmuka publik langsung ke folder `public_html`.
+
+### Langkah 3: Setup Database MySQL di cPanel
+1. Pada menu dasbor cPanel, buka **MySQL Database Wizard**.
+2. Buat database baru (misal: `cpaneluser_gusdim`) dan pengguna database baru, beri centang **ALL PRIVILEGES**.
+3. Buka **phpMyAdmin**, klik database tersebut, klik tab **Import**, lalu pilih berkas:
+   `gusdim_project/dist/production_clean_schema.sql`
+   (atau impor langsung melalui terminal: `mysql -u nama_user -p nama_db < dist/production_clean_schema.sql`).
+
+### Langkah 4: Sesuaikan Berkas .env
+1. Buka berkas `.env` pada folder `gusdim_project/backend/`:
+   ```bash
+   nano backend/.env
+   ```
+2. Masukkan nama database, pengguna, dan kata sandi database yang telah Anda buat pada baris `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD`.
+3. Simpan berkas (tekan tombol Ctrl + O lalu Enter, kemudian Ctrl + X).
+4. Jalankan penyegaran cache:
+   ```bash
+   cd backend && php artisan config:cache
+   ```
+
+### Langkah 5: Aktifkan HTTPS / SSL di cPanel
+1. Buka menu **SSL/TLS Status** di dasbor cPanel.
+2. Klik tombol **Run AutoSSL** hingga domain `gusdim.com` berstatus gembok hijau aktif.
+
+---
+
+## 3. Cara Melakukan Pembaruan di Masa Depan (Hanya 1 Baris Perintah)
+
+Jika di kemudian hari ada fitur baru atau perbaikan kode yang didorong ke repositori GitHub, Anda tidak perlu mengulang proses instalasi. Cukup buka Terminal cPanel dan jalankan:
+
+```bash
+cd ~/gusdim_project && git pull origin main && bash cpanel_quick_deploy.sh
+```
+
+Seluruh kode terbaru dan aset antarmuka akan terbarukan secara otomatis dalam hitungan detik.
+
+---
+
+## 4. Akun Tunggal Superadmin untuk Peluncuran Perdana
 
 Database produksi telah dipersiapkan dengan 1 akun administrator utama untuk mengendalikan seluruh sistem:
 
@@ -92,15 +98,15 @@ Database produksi telah dipersiapkan dengan 1 akun administrator utama untuk men
 - **Username**: `superadmin`
 - **Password**: `admin123`
 
-Setelah masuk pertama kali, Superadmin dapat:
-1. Mengubah password akun superadmin melalui menu Profil.
+Setelah masuk pertama kali di `https://gusdim.com`, Anda dapat:
+1. Mengubah kata sandi akun superadmin melalui menu Profil.
 2. Menambahkan akun baru untuk Koordinator Kecamatan (Korcam), Koordinator Desa (Kordes), dan Admin Ranting sesuai nama relawan asli yang bertugas melalui menu **Manajemen User**.
 
 Seluruh modul entri pendukung dan aspirasi siap diisi dengan data ril dari lapangan.
 
 ---
 
-## 4. Cara Memasang Aplikasi di Ponsel Relawan (Mobile PWA)
+## 5. Cara Memasang Aplikasi di Ponsel Relawan (Mobile PWA)
 
 Aplikasi Gus Dim Mobile PWA dirancang agar dapat dipasang langsung tanpa melalui toko aplikasi:
 
