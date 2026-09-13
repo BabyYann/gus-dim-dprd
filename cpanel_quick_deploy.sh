@@ -6,13 +6,21 @@ set -e
 
 echo "=== MEMULAI DEPLOYMENT OTOMATIS GUS DIM ==="
 
-# 1. Deteksi direktori kerja
+# 1. Deteksi direktori kerja & public_html yang tepat
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$REPO_DIR/backend"
-HOME_DIR="$(dirname "$REPO_DIR")"
-PUBLIC_HTML_DIR="$HOME_DIR/public_html"
+
+if [[ "$REPO_DIR" == *"/public_html/"* ]] || [[ "$REPO_DIR" == *"/public_html" ]]; then
+    # Jika repositori diklon di dalam folder public_html
+    PUBLIC_HTML_DIR="$(echo "$REPO_DIR" | sed 's|\(/public_html\).*|\1|')"
+else
+    # Jika repositori diklon di folder root ~/gusdim_project
+    HOME_DIR="$(dirname "$REPO_DIR")"
+    PUBLIC_HTML_DIR="$HOME_DIR/public_html"
+fi
 
 echo "Direktori Proyek: $REPO_DIR"
+echo "Direktori Web Publik: $PUBLIC_HTML_DIR"
 
 # 2. Setup berkas .env
 if [ ! -f "$BACKEND_DIR/.env" ]; then
@@ -24,13 +32,9 @@ fi
 # 3. Siapkan pustaka dependensi vendor
 if [ ! -d "$BACKEND_DIR/vendor" ] || [ ! -f "$BACKEND_DIR/vendor/autoload.php" ]; then
     if [ -f "$BACKEND_DIR/vendor.zip" ]; then
-        echo "Mengekstrak paket vendor siap pakai (tanpa butuh Composer)..."
+        echo "Mengekstrak paket vendor siap pakai..."
         unzip -q -o "$BACKEND_DIR/vendor.zip" -d "$BACKEND_DIR/"
         echo "Pustaka vendor berhasil diekstrak."
-    elif command -v composer &>/dev/null; then
-        echo "Menginstal dependensi Composer..."
-        cd "$BACKEND_DIR"
-        composer install --no-dev --optimize-autoloader --ignore-platform-reqs || true
     fi
 fi
 
@@ -41,14 +45,17 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
-# 5. Hubungkan ke public_html
-echo "Menyinkronkan aset publik ke public_html..."
+# 5. Bersihkan folder bersarang jika pernah terbentuk sebelumnya
+if [ -d "$PUBLIC_HTML_DIR/public_html" ]; then
+    echo "Membersihkan folder bersarang public_html/public_html..."
+    cp -ru "$PUBLIC_HTML_DIR/public_html/." "$PUBLIC_HTML_DIR/"
+    rm -rf "$PUBLIC_HTML_DIR/public_html"
+fi
+
+# 6. Hubungkan aset publik ke public_html
+echo "Menyinkronkan aset publik langsung ke $PUBLIC_HTML_DIR..."
 mkdir -p "$PUBLIC_HTML_DIR"
 cp -ru "$BACKEND_DIR/public/." "$PUBLIC_HTML_DIR/"
 
 echo "=== DEPLOYMENT SELESAI DENGAN SUKSES ==="
-echo "Langkah berikutnya:"
-echo "1. Buat database MySQL di cPanel (MySQL Database Wizard)."
-echo "2. Impor database dari berkas dist/production_clean_schema.sql di phpMyAdmin."
-echo "3. Edit backend/.env untuk mencocokkan nama database dan password cPanel Anda."
-echo "4. Buka https://gusdim.com pada peramban Anda."
+echo "Semua berkas publik telah terpasang rapi di $PUBLIC_HTML_DIR."
