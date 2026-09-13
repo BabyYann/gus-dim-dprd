@@ -1186,13 +1186,119 @@ function kirimUcapanWa(hp, nama, jalur) {
       });
   }
 
+    // Jembatan Eskalasi Aspirasi ke Pokir DPRD
+  window.currentEskalasiAspirasiId = null;
+
+  function eskalasiAspirasiKePokir(aspirasiId) {
+    const asp = (ASPIRASI_DATA || []).find(a => String(a.id) === String(aspirasiId));
+    if (!asp) {
+      alert('Data aspirasi tidak ditemukan');
+      return;
+    }
+
+    window.currentEskalasiAspirasiId = aspirasiId;
+
+    const shortTitle = (asp.aspirasi || 'Aspirasi Warga').substring(0, 50).trim();
+    const judulEl = document.getElementById('pkJudul');
+    if (judulEl) judulEl.value = 'Advokasi: ' + shortTitle + (asp.aspirasi && asp.aspirasi.length > 50 ? '...' : '');
+    
+    const estEl = document.getElementById('pkEstimasi');
+    if (estEl) estEl.value = '50000000';
+    
+    // Pemetaan kategori cerdas ke Pokir
+    const catMap = {
+      'Infrastruktur': 'Infrastruktur',
+      'Pertanian': 'Pertanian',
+      'Pendidikan': 'Pendidikan/Keagamaan',
+      'Keagamaan': 'Pendidikan/Keagamaan',
+      'Bansos': 'Sosial',
+      'Sosial': 'Sosial',
+      'UMKM': 'UMKM',
+      'Kesehatan': 'Sosial'
+    };
+    const mappedCat = catMap[asp.kategori] || 'Infrastruktur';
+    const selKat = document.getElementById('pkKategori');
+    if (selKat) {
+      for (let i = 0; i < selKat.options.length; i++) {
+        if (selKat.options[i].value === mappedCat) {
+          selKat.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (asp.kecamatan) document.getElementById('pkKecamatan').value = asp.kecamatan;
+    if (asp.desa) document.getElementById('pkDesa').value = asp.desa;
+    document.getElementById('pkDusun').value = '';
+    document.getElementById('pkPengusulNama').value = asp.nama || '';
+    document.getElementById('pkPengusulHp').value = asp.hp || '';
+    document.getElementById('pkDeskripsi').value = 'Eskalasi dari aspirasi konstituen: ' + (asp.aspirasi || '') + ' (Kanal Aspirasi Warga Dapil Kraksaan Raya)';
+    
+    const err = document.getElementById('modalPokirError');
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    
+    openModal('modalTambahPokir');
+  }
+
+  // Notifikasi & Kabar Perkembangan Aspirasi ke WhatsApp Warga
+  function kirimWaUpdateAspirasi(id, customStatus) {
+    const asp = (ASPIRASI_DATA || []).find(a => String(a.id) === String(id));
+    if (!asp) {
+      alert('Data aspirasi tidak ditemukan');
+      return;
+    }
+
+    const rawHp = asp.hp || '';
+    let cleanHp = rawHp.replace(/[^0-9]/g, '');
+    if (cleanHp.startsWith('0')) {
+      cleanHp = '62' + cleanHp.substring(1);
+    }
+
+    const status = customStatus || asp.status || 'Ditindaklanjuti';
+    const nama = asp.nama || 'Warga';
+    const keluhan = asp.aspirasi || '-';
+    const desa = asp.desa || '-';
+    const kec = asp.kecamatan || '-';
+
+    let kalimatStatus = '';
+    if (status === 'Selesai') {
+      kalimatStatus = 'Alhamdulillah, aspirasi panjenengan telah *SELESAI DIREALISASIKAN* melalui program advokasi dewan Gus Dim di lapangan.';
+    } else if (status === 'Ditindaklanjuti') {
+      kalimatStatus = 'Aspirasi panjenengan telah *DISETUJUI & SEDANG DITINDAKLANJUTI* oleh tim fraksi untuk diperjuangkan ke instansi terkait serta naskah usulan Pokir DPRD.';
+    } else {
+      kalimatStatus = 'Aspirasi panjenengan telah kami terima dan saat ini berstatus *' + status + '* dalam pengawalan fraksi.';
+    }
+
+    const pesan = "Assalamu'alaikum Wr. Wb. Bpk/Ibu *" + nama + "*,\n\n" +
+      "Kami dari Tim Sahabat Gus Dim (Fraksi NasDem DPRD Kab. Probolinggo) menyampaikan kabar perkembangan aspirasi panjenengan:\n\n" +
+      "Aspirasi: *\"" + keluhan + "\"*\n" +
+      "Wilayah: Desa " + desa + ", Kec. " + kec + "\n" +
+      "Status Terkini: *" + status + "*\n\n" +
+      kalimatStatus + "\n\n" +
+      "Terima kasih atas partisipasi dan aspirasi panjenengan demi kemaslahatan bersama di Dapil Kraksaan Raya.\n\n" +
+      "Salam Hormat,\n" +
+      "*Gus Dim & Tim Fraksi NasDem*";
+
+    const waUrl = cleanHp ? 
+      "https://api.whatsapp.com/send?phone=" + cleanHp + "&text=" + encodeURIComponent(pesan) :
+      "https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan);
+
+    window.open(waUrl, '_blank');
+  }
+
   function tindakLanjutiAspirasi(id, statusBaru) {
     fetchApi('aspirasi.php?action=update-status', 'POST', { id: id, status: statusBaru })
       .then(function (res) {
         if (res && res.success) {
           loadAspirasi();
+          const asp = (ASPIRASI_DATA || []).find(a => String(a.id) === String(id));
+          if (asp && asp.hp) {
+            if (confirm('Status aspirasi berhasil diubah menjadi "' + statusBaru + '". Kirim notifikasi kabar perkembangan ke WhatsApp warga (' + asp.hp + ') sekarang?')) {
+              kirimWaUpdateAspirasi(id, statusBaru);
+            }
+          }
         } else {
-          alert(res.message || 'Gagal memperbarui status aspirasi.');
+          alert(res ? res.message : 'Gagal memperbarui status aspirasi.');
         }
       })
       .catch(function (err) { alert('Error: ' + err.message); });
@@ -1251,11 +1357,12 @@ function kirimUcapanWa(hp, nama, jalur) {
 
       const card = document.createElement('div');
       card.className = 'aspirasi-card-modern';
-      const waBtn = r.hp
-        ? '<a class="btn-wa-pill" href="https://wa.me/' + r.hp.replace(/^0/, '62') + '" target="_blank" title="Hubungi Warga">WhatsApp</a>'
+            const waBtn = r.hp
+        ? '<button class="btn-toolbar-filter" style="padding:4px 8px; font-size:11px; background:#f0fdf4; color:#15803d; border-color:#bbf7d0; font-weight:600; display:inline-flex; align-items:center; gap:4px; cursor:pointer;" onclick="kirimWaUpdateAspirasi(' + r.id + ')" title="Kirim Kabar Perkembangan via WhatsApp"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.1-.476-.15-.677.15-.2.301-.776.978-.952 1.179-.176.2-.351.226-.652.075-.3-.15-1.267-.467-2.414-1.49-1.049-.935-1.758-2.09-2.034-2.566-.276-.476-.03-.733.12-.883.136-.135.301-.351.452-.527.15-.175.2-.301.301-.501.1-.2.05-.376-.025-.526-.075-.15-.677-1.63-1.003-2.233-.318-.583-.64-.503-.878-.515-.226-.012-.485-.015-.744-.015-.26 0-.677.098-1.031.476-.355.378-1.355 1.324-1.355 3.229 0 1.905 1.386 3.744 1.58 4.004.195.26 2.727 4.164 6.608 5.836.924.398 1.645.636 2.207.814.929.294 1.774.252 2.443.153.746-.11 2.296-.938 2.622-1.845.326-.906.326-1.682.226-1.844-.1-.163-.3-.263-.6-.414z"/></svg> <span>Kabar WA</span></button>'
         : '';
+      const eskalasiBtn = '<button class="btn-toolbar-filter" style="padding:4px 8px; font-size:11px; background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-weight:600; display:inline-flex; align-items:center; gap:4px; cursor:pointer;" onclick="eskalasiAspirasiKePokir(' + r.id + ')" title="Eskalasi ke Usulan Pokir DPRD"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg> <span>Eskalasi ke Pokir</span></button>';
       const actionBtn = !isSelesai
-        ? '<button class="btn-toolbar-filter" style="padding:3px 8px; font-size:11px;" onclick="tindakLanjutiAspirasi(' + r.id + ',\'' + (isProses ? 'Selesai' : 'Ditindaklanjuti') + '\')">' + (isProses ? 'Tandai Selesai' : 'Tindak Lanjuti') + '</button>'
+        ? '<button class="btn-toolbar-filter" style="padding:4px 8px; font-size:11px; cursor:pointer;" onclick="tindakLanjutiAspirasi(' + r.id + ',\'' + (isProses ? 'Selesai' : 'Ditindaklanjuti') + '\')">' + (isProses ? 'Tandai Selesai' : 'Tindak Lanjuti') + '</button>'
         : '';
 
       card.innerHTML =
@@ -1273,7 +1380,7 @@ function kirimUcapanWa(hp, nama, jalur) {
               '<span class="aspirasi-author-loc">' + (r.desa || '-') + ', ' + (r.kecamatan || '-') + ' &bull; ' + (r.tanggal || '-') + '</span>' +
             '</div>' +
             '<div style="display:flex; gap:6px; align-items:center;">' +
-              waBtn + actionBtn +
+              waBtn + eskalasiBtn + actionBtn +
             '</div>' +
           '</div>' +
         '</div>';
@@ -2334,6 +2441,16 @@ function kirimUcapanWa(hp, nama, jalur) {
 
       if (res && res.success) {
         closeModal('modalTambahPokir');
+        if (window.currentEskalasiAspirasiId) {
+          fetchApi('aspirasi.php?action=update-status', 'POST', {
+            id: window.currentEskalasiAspirasiId,
+            status: 'Ditindaklanjuti'
+          }).then(function () {
+            if (typeof loadAspirasi === 'function') loadAspirasi();
+          });
+          window.currentEskalasiAspirasiId = null;
+        }
+        if (typeof showPage === 'function') showPage('reses');
         switchResesTab('pokir', document.getElementById('tabPillPokir'));
         loadReses();
       } else {
