@@ -392,7 +392,7 @@
             </div>
           </div>
 
-                    <!-- ================= PAGE: MASA RESES & POKIR ================= -->
+                              <!-- ================= PAGE: MASA RESES & POKIR ================= -->
           <div class="page" id="page-reses">
             <div class="saas-card-header" style="margin-bottom:18px;">
               <div class="saas-card-header-left">
@@ -405,81 +405,107 @@
                 </div>
               </div>
               <div class="saas-card-header-right">
-                <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()">
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  <span>+ Jadwalkan Titik Reses</span>
-                </button>
+                <div class="reses-header-actions">
+                  <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Jadwalkan Titik Reses</span>
+                  </button>
+                  <button class="btn-secondary-outline" onclick="openModalTambahPokir()">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                    <span>Catat Usulan Pokir</span>
+                  </button>
+                </div>
               </div>
             </div>
 
             <!-- 4 RESES KPI CARDS -->
-            <div class="stat-cards" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:20px;">
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon" style="background:#eff6ff; color:#2563eb;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div class="reses-kpi-grid">
+              <div class="reses-kpi-card theme-blue">
+                <div class="reses-kpi-top">
+                  <div class="reses-kpi-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   </div>
-                  <span class="stat-card-badge">Agenda</span>
+                  <span class="reses-kpi-badge">Agenda</span>
                 </div>
-                <div class="label">Total Titik Reses</div>
-                <div class="value" id="kpiTitikReses">0</div>
+                <div class="reses-kpi-body">
+                  <div class="reses-kpi-label">Total Titik Reses</div>
+                  <div class="reses-kpi-value" id="kpiTitikReses">0</div>
+                </div>
+                <div class="reses-kpi-sub">Titik temu konstituen dapil</div>
               </div>
 
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon" style="background:#f0fdf4; color:#16a34a;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <div class="reses-kpi-card theme-green">
+                <div class="reses-kpi-top">
+                  <div class="reses-kpi-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   </div>
-                  <span class="stat-card-badge">Konstituen</span>
+                  <span class="reses-kpi-badge">Konstituen</span>
                 </div>
-                <div class="label">Total Warga Hadir</div>
-                <div class="value" id="kpiWargaHadir">0</div>
+                <div class="reses-kpi-body">
+                  <div class="reses-kpi-label">Total Warga Hadir</div>
+                  <div class="reses-kpi-value" id="kpiWargaHadir">0</div>
+                </div>
+                <div class="reses-kpi-sub">Warga terverifikasi hadir</div>
               </div>
 
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon" style="background:#fffbeb; color:#d97706;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <div class="reses-kpi-card theme-amber">
+                <div class="reses-kpi-top">
+                  <div class="reses-kpi-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                   </div>
-                  <span class="stat-card-badge">Aspirasi</span>
+                  <span class="reses-kpi-badge">Aspirasi</span>
                 </div>
-                <div class="label">Proposal Pokir Masuk</div>
-                <div class="value" id="kpiUsulanPokir">0</div>
+                <div class="reses-kpi-body">
+                  <div class="reses-kpi-label">Proposal Pokir Masuk</div>
+                  <div class="reses-kpi-value" id="kpiUsulanPokir">0</div>
+                </div>
+                <div class="reses-kpi-sub">Usulan program terserap</div>
               </div>
 
-              <div class="stat-card stat-total">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="20"/><line x1="12" y1="4" x2="12" y2="6"/></svg>
+              <div class="reses-kpi-card theme-navy">
+                <div class="reses-kpi-top">
+                  <div class="reses-kpi-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="20"/><line x1="12" y1="4" x2="12" y2="6"/></svg>
                   </div>
-                  <span class="stat-card-badge">APBD</span>
+                  <span class="reses-kpi-badge">Kawal APBD</span>
                 </div>
-                <div class="label">Pagu Tembus APBD</div>
-                <div class="value" id="kpiPaguRealisasi" style="font-size:20px;">Rp 0</div>
+                <div class="reses-kpi-body">
+                  <div class="reses-kpi-label">Pagu Tembus APBD</div>
+                  <div class="reses-kpi-value" id="kpiPaguRealisasi" style="font-size:22px;">Rp 0</div>
+                </div>
+                <div class="reses-kpi-sub">Estimasi pagu APBD Pemkab</div>
               </div>
             </div>
 
-            <!-- RESES TABS BAR -->
-            <div class="saas-tabs-bar" style="margin-bottom:18px;">
-              <div class="saas-tab-pill active" onclick="switchResesTab('events', this)" id="tabPillEvents">Titik &amp; Agenda Kunjungan Reses</div>
-              <div class="saas-tab-pill" onclick="switchResesTab('pokir', this)" id="tabPillPokir">Bank Usulan &amp; Siklus Pokir DPRD</div>
+            <!-- UNIFIED SEGMENTED NAV BAR -->
+            <div class="reses-nav-bar">
+              <div class="reses-tabs-segmented">
+                <button type="button" class="reses-tab-btn active" id="tabPillEvents" onclick="switchResesTab('events', this)">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>Titik &amp; Agenda Kunjungan</span>
+                  <span class="reses-tab-badge" id="badgeTabEvents">0</span>
+                </button>
+                <button type="button" class="reses-tab-btn" id="tabPillPokir" onclick="switchResesTab('pokir', this)">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <span>Bank Usulan &amp; Siklus Pokir</span>
+                  <span class="reses-tab-badge" id="badgeTabPokir">0</span>
+                </button>
+              </div>
             </div>
 
             <!-- SECTION TAB 1: EVENTS -->
             <div id="resesSectionEvents" class="reses-subtab-section">
-              <div class="card card-compact" style="margin-bottom:16px;">
-                <div class="filter-row filter-row-nowrap">
-                  <input type="text" id="resesEventSearch" placeholder="Cari desa, kecamatan, atau nama tuan rumah..." oninput="filterResesEvents()">
-                  <select id="resesKecamatanFilter" onchange="filterResesEvents()">
-                    <option value="">Semua Kecamatan</option>
-                    <option value="Kraksaan">Kraksaan</option>
-                    <option value="Besuk">Besuk</option>
-                    <option value="Gading">Gading</option>
-                  </select>
-                  <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()" style="white-space:nowrap; padding:0 16px;">
-                    + Tambah Titik
-                  </button>
+              <div class="reses-filter-toolbar">
+                <div class="reses-search-input-wrap">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="resesEventSearch" placeholder="Cari desa, kecamatan, atau nama agenda reses..." oninput="filterResesEvents()">
                 </div>
+                <select id="resesKecamatanFilter" class="reses-select-filter" onchange="filterResesEvents()">
+                  <option value="">Semua Kecamatan</option>
+                  <option value="Kraksaan">Kecamatan Kraksaan</option>
+                  <option value="Besuk">Kecamatan Besuk</option>
+                  <option value="Gading">Kecamatan Gading</option>
+                </select>
               </div>
 
               <!-- Grid Events Container -->
@@ -488,30 +514,28 @@
 
             <!-- SECTION TAB 2: POKIR PIPELINE -->
             <div id="resesSectionPokir" class="reses-subtab-section" style="display:none;">
-              <div class="card card-compact" style="margin-bottom:16px;">
-                <div class="filter-row filter-row-nowrap">
-                  <input type="text" id="pokirSearch" placeholder="Cari judul proyek, pengusul, atau desa..." oninput="filterPokirList()">
-                  <select id="pokirKategoriFilter" onchange="filterPokirList()">
-                    <option value="">Semua Bidang</option>
-                    <option value="Infrastruktur">Infrastruktur &amp; Jalan</option>
-                    <option value="Pertanian">Pertanian &amp; Irigasi</option>
-                    <option value="Pendidikan/Keagamaan">Sarana Keagamaan / Pendidikan</option>
-                    <option value="Sosial">Bansos &amp; Sarana Warga</option>
-                    <option value="UMKM">Pemberdayaan Ekonomi UMKM</option>
-                  </select>
-                  <select id="pokirTahapFilter" onchange="filterPokirList()">
-                    <option value="">Semua Tahap Siklus</option>
-                    <option value="Aspirasi Reses">1. Aspirasi Reses</option>
-                    <option value="Disetujui Gus Dim">2. Disetujui Gus Dim</option>
-                    <option value="Input SIPD">3. Terinput di SIPD</option>
-                    <option value="Verifikasi OPD / Dinas">4. Verifikasi Dinas</option>
-                    <option value="Masuk APBD Resmi">5. Masuk APBD Resmi</option>
-                    <option value="Realisasi Lapangan">6. Realisasi Lapangan</option>
-                  </select>
-                  <button class="btn-primary-nasdem" onclick="openModalTambahPokir()" style="white-space:nowrap; padding:0 16px;">
-                    + Catat Usulan Pokir
-                  </button>
+              <div class="reses-filter-toolbar">
+                <div class="reses-search-input-wrap">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="pokirSearch" placeholder="Cari judul usulan, kelompok pengusul, atau desa..." oninput="filterPokirList()">
                 </div>
+                <select id="pokirKategoriFilter" class="reses-select-filter" onchange="filterPokirList()">
+                  <option value="">Semua Bidang Program</option>
+                  <option value="Infrastruktur">Infrastruktur &amp; Jalan</option>
+                  <option value="Pertanian">Pertanian &amp; Irigasi</option>
+                  <option value="Pendidikan/Keagamaan">Sarana Keagamaan / Pendidikan</option>
+                  <option value="Sosial">Bansos &amp; Sarana Warga</option>
+                  <option value="UMKM">Pemberdayaan Ekonomi UMKM</option>
+                </select>
+                <select id="pokirTahapFilter" class="reses-select-filter" onchange="filterPokirList()">
+                  <option value="">Semua Tahapan Siklus</option>
+                  <option value="Aspirasi Reses">1. Aspirasi Reses</option>
+                  <option value="Disetujui Gus Dim">2. Disetujui Gus Dim</option>
+                  <option value="Input SIPD">3. Terinput di SIPD</option>
+                  <option value="Verifikasi OPD / Dinas">4. Verifikasi Dinas</option>
+                  <option value="Masuk APBD Resmi">5. Masuk APBD Resmi</option>
+                  <option value="Realisasi Lapangan">6. Realisasi Lapangan</option>
+                </select>
               </div>
 
               <!-- Pokir Table Card -->

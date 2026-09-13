@@ -2236,3 +2236,407 @@ input[type= checkbox] {
   color: var(--text-main);
   font-weight: 700;
 }
+
+
+/* ================================================================
+   PAGE RESES & POKIR REDESIGN STYLES
+   ================================================================ */
+.reses-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-secondary-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: var(--nasdem-navy, #16225e);
+  border: 1.5px solid #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-secondary-outline:hover {
+  background: #f8fafc;
+  border-color: var(--nasdem-navy, #16225e);
+  color: var(--nasdem-navy, #16225e);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Reses KPI Grid & Cards */
+.reses-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 1024px) {
+  .reses-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 580px) {
+  .reses-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reses-kpi-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.reses-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 34, 94, 0.08);
+  border-color: #cbd5e1;
+}
+
+.reses-kpi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reses-kpi-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reses-kpi-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.reses-kpi-body {
+  margin-bottom: 8px;
+}
+
+.reses-kpi-label {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  margin-bottom: 6px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.35 !important;
+}
+
+.reses-kpi-value {
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.reses-kpi-sub {
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Card Themes */
+.reses-kpi-card.theme-blue {
+  border-top: 3px solid #2563eb;
+}
+.reses-kpi-card.theme-blue .reses-kpi-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.reses-kpi-card.theme-blue .reses-kpi-badge {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.reses-kpi-card.theme-green {
+  border-top: 3px solid #16a34a;
+}
+.reses-kpi-card.theme-green .reses-kpi-icon {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.reses-kpi-card.theme-green .reses-kpi-badge {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.reses-kpi-card.theme-amber {
+  border-top: 3px solid #f59e0b;
+}
+.reses-kpi-card.theme-amber .reses-kpi-icon {
+  background: #fffbeb;
+  color: #d97706;
+}
+.reses-kpi-card.theme-amber .reses-kpi-badge {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.reses-kpi-card.theme-navy {
+  border-top: 3px solid #16225e;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+.reses-kpi-card.theme-navy .reses-kpi-icon {
+  background: #eef2ff;
+  color: #4338ca;
+}
+.reses-kpi-card.theme-navy .reses-kpi-badge {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+.reses-kpi-card.theme-navy .reses-kpi-value {
+  color: #16225e;
+}
+
+/* Unified Segmented Nav Bar */
+.reses-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  flex-wrap: wrap;
+}
+
+.reses-tabs-segmented {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.reses-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.reses-tab-btn:hover {
+  color: #1e293b;
+  background: rgba(255,255,255,0.6);
+}
+.reses-tab-btn.active {
+  background: #ffffff;
+  color: #16225e;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.reses-tab-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: #e2e8f0;
+  color: #475569;
+}
+.reses-tab-btn.active .reses-tab-badge {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+/* Toolbar Filter Compact & Clean */
+.reses-filter-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.reses-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+.reses-search-input-wrap svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+.reses-search-input-wrap input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 36px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.reses-search-input-wrap input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.reses-select-filter {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.reses-select-filter:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+}
+
+/* Empty State 3-Step Legislative Workflow Guide */
+.reses-empty-guide {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 36px 24px;
+  text-align: center;
+  grid-column: 1 / -1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.reses-empty-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+}
+
+.reses-empty-header h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.reses-empty-header p {
+  font-size: 13px;
+  color: #64748b;
+  max-width: 580px;
+  margin: 0 auto 24px;
+  line-height: 1.5;
+}
+
+.reses-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 840px;
+  margin: 0 auto 28px;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .reses-workflow-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reses-step-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+.reses-step-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.reses-step-num {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+
+.reses-step-card h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
+}
+
+.reses-step-card p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.reses-empty-cta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}

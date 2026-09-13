@@ -2040,11 +2040,19 @@ function kirimUcapanWa(hp, nama, jalur) {
   let RESES_DATA = { events: [], pokir: [], stats: {} };
 
   function switchResesTab(tab, el) {
-    document.querySelectorAll('.saas-tabs-bar .saas-tab-pill').forEach(p => p.classList.remove('active'));
-    if (el) el.classList.add('active');
+    document.querySelectorAll('.saas-tabs-bar .saas-tab-pill, .reses-tabs-segmented .reses-tab-btn').forEach(p => p.classList.remove('active'));
+    if (el) {
+      el.classList.add('active');
+    } else {
+      const targetId = tab === 'events' ? 'tabPillEvents' : 'tabPillPokir';
+      const btn = document.getElementById(targetId);
+      if (btn) btn.classList.add('active');
+    }
     
-    document.getElementById('resesSectionEvents').style.display = tab === 'events' ? 'block' : 'none';
-    document.getElementById('resesSectionPokir').style.display = tab === 'pokir' ? 'block' : 'none';
+    const secEvents = document.getElementById('resesSectionEvents');
+    const secPokir = document.getElementById('resesSectionPokir');
+    if (secEvents) secEvents.style.display = tab === 'events' ? 'block' : 'none';
+    if (secPokir) secPokir.style.display = tab === 'pokir' ? 'block' : 'none';
   }
 
   function formatRupiah(val) {
@@ -2087,6 +2095,13 @@ function kirimUcapanWa(hp, nama, jalur) {
         const elPagu = document.getElementById('kpiPaguRealisasi');
         if (elPagu) elPagu.textContent = formatRupiah(s.total_anggaran_apbd || 0);
 
+        // Tab count badges
+        const badgeEvents = document.getElementById('badgeTabEvents');
+        if (badgeEvents) badgeEvents.textContent = (RESES_DATA.events || []).length;
+
+        const badgePokir = document.getElementById('badgeTabPokir');
+        if (badgePokir) badgePokir.textContent = (RESES_DATA.pokir || []).length;
+
         // 2. Render Events & Pokir
         renderResesEvents(RESES_DATA.events || []);
         renderPokirList(RESES_DATA.pokir || []);
@@ -2104,13 +2119,37 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     if (!events || events.length === 0) {
       grid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align:center; padding:48px 20px; background:#fff; border-radius:12px; border:1px dashed #cbd5e1;">
-          <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; color:#2563eb;">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="reses-empty-guide">
+          <div class="reses-empty-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
-          <h4 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Belum Ada Titik Reses Terjadwal</h4>
-          <p style="font-size:13px; color:#64748b; margin:0 0 16px;">Silakan jadwalkan titik kunjungan reses baru untuk memulai penyerapan aspirasi.</p>
-          <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()" style="margin:0 auto;">+ Jadwalkan Titik Reses</button>
+          <div class="reses-empty-header">
+            <h3>Belum Ada Titik Kunjungan Reses Terjadwal</h3>
+            <p>Masa Reses adalah instrumen resmi Gus Dim untuk turun langsung menjaring aspirasi konstituen Dapil Kraksaan Raya dan mengawalnya menjadi program APBD Kabupaten Probolinggo.</p>
+          </div>
+          <div class="reses-workflow-steps">
+            <div class="reses-step-card">
+              <div class="reses-step-num">01</div>
+              <h4>Penjadwalan Titik Reses</h4>
+              <p>Tentukan desa, dusun, dan kelompok sasaran konstituen (petani, pedagang pasar, nelayan, atau tokoh pemuda) beserta waktu pertemuan.</p>
+            </div>
+            <div class="reses-step-card">
+              <div class="reses-step-num">02</div>
+              <h4>Presensi Digital &amp; Aspirasi</h4>
+              <p>Catat kehadiran warga secara akurat dan rekam usulan kebutuhan lingkungan langsung saat pertemuan berlangsung.</p>
+            </div>
+            <div class="reses-step-card">
+              <div class="reses-step-num">03</div>
+              <h4>Eskalasi ke Bank Pokir</h4>
+              <p>Konversikan aspirasi menjadi usulan Pokir resmi fraksi untuk diinput ke SIPD dan diperjuangkan dalam penganggaran APBD.</p>
+            </div>
+          </div>
+          <div class="reses-empty-cta">
+            <button class="btn-primary-nasdem" onclick="openModalTambahTitikReses()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Jadwalkan Titik Reses Perdana</span>
+            </button>
+          </div>
         </div>
       `;
       return;
@@ -2218,7 +2257,23 @@ function kirimUcapanWa(hp, nama, jalur) {
     if (!tbody) return;
 
     if (!pokirs || pokirs.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:36px; color:#94a3b8; font-weight:500;">Belum ada proposal usulan Pokir yang dicatat.</td></tr>';
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; padding:48px 20px;">
+            <div style="max-width:500px; margin:0 auto;">
+              <div style="width:48px; height:48px; border-radius:12px; background:#fffbeb; color:#d97706; display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <h4 style="font-family:'Poppins',sans-serif; font-size:15px; font-weight:700; color:#1e293b; margin:0 0 6px;">Bank Usulan Pokir Belum Memiliki Data</h4>
+              <p style="font-size:12.5px; color:#64748b; margin:0 0 16px; line-height:1.5;">Catat usulan Pokir baru hasil pertemuan reses atau eskalasikan aspirasi konstituen untuk dikawal ke SIPD dan APBD Probolinggo.</p>
+              <button class="btn-primary-nasdem" onclick="openModalTambahPokir()" style="margin:0 auto; font-size:12.5px; padding:8px 16px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Catat Usulan Pokir Baru</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
       return;
     }
 
