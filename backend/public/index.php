@@ -5,16 +5,25 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Auto-detect core directory (cPanel gusdim_core or standard)
+if (file_exists(__DIR__.'/../gusdim_core/bootstrap/app.php')) {
+    $coreDir = __DIR__.'/../gusdim_core';
+} else {
+    $coreDir = __DIR__.'/..';
+}
+
 // Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+if (file_exists($maintenance = $coreDir.'/storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
 // Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
+require $coreDir.'/vendor/autoload.php';
 
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$app = require_once $coreDir.'/bootstrap/app.php';
+
+$app->usePublicPath(__DIR__);
 
 $app->handleRequest(Request::capture());
