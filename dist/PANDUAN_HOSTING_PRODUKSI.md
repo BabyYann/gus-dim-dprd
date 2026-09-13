@@ -14,11 +14,11 @@ Seluruh paket rilis produksi terbaru untuk domain **gusdim.com** telah disiapkan
 2. `gusdim-cpanel-public.zip` (Ukuran: ~0.6 MB)
    Berisi berkas antarmuka publik siap pakai: antarmuka desktop, aplikasi mobile PWA lengkap, manifest, service worker, pustaka aset terkompilasi, serta skrip router cerdas yang otomatis mendeteksi direktori inti. Berkas ini diekstrak langsung di dalam folder `public_html`.
 
-3. `gusdim-full-production.zip` (Ukuran: ~35 MB)
-   Berisi keseluruhan proyek secara utuh sebagai cadangan arsip lengkap sistem.
-
-4. `production_schema_and_seeds.sql`
-   Skrip cadangan database MySQL lengkap yang memuat struktur tabel terindeks, data master referensi wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading, dan sekitarnya), data akun awal untuk 4 tingkatan peran, serta contoh data awal.
+3. `production_schema_and_seeds.sql` / `production_clean_schema.sql`
+   Skrip database MySQL produksi bersih:
+   - Hanya memiliki 1 akun Superadmin (`superadmin`).
+   - Menyimpan master referensi wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading, dsb) agar pilihan wilayah dan titik peta berfungsi otomatis.
+   - Tabel pendukung konstituen, aspirasi, dan log riwayat dalam kondisi 100% bersih (0 data) siap untuk input data asli di lapangan.
 
 ---
 
@@ -33,13 +33,13 @@ Metode ini merupakan standar paling aman dan teruji untuk menjalankan Laravel pa
 4. Buat pengguna database baru (misal: `cpaneluser_admin`) dan buat kata sandi yang kuat. Catat nama pengguna dan kata sandi ini.
 5. Pada langkah berikutnya, beri tanda centang pada kotak **ALL PRIVILEGES** (Semua Hak Akses), lalu klik tombol **Next Step** / Simpan.
 
-### Langkah 2: Impor Struktur dan Data Awal via phpMyAdmin
+### Langkah 2: Impor Struktur Database Bersih via phpMyAdmin
 1. Kembali ke dasbor utama cPanel, lalu buka menu **phpMyAdmin**.
 2. Pada panel sebelah kiri, klik nama database yang baru saja dibuat.
 3. Klik tab menu **Import** pada bagian atas layar.
 4. Klik tombol **Choose File** (Pilih Berkas) dan pilih berkas:
-   `dist/production_schema_and_seeds.sql`
-5. Gulir ke bagian bawah halaman dan klik tombol **Import**. Seluruh tabel, data wilayah, dan akun default akan otomatis terisi dan siap digunakan.
+   `dist/production_schema_and_seeds.sql` (atau `production_clean_schema.sql`)
+5. Gulir ke bagian bawah halaman dan klik tombol **Import**. Database kini terisi dengan tabel terindeks, 1 akun Superadmin, dan master referensi wilayah. Seluruh data pendukung dan aspirasi siap dimulai dari nol.
 
 ### Langkah 3: Unggah Berkas Inti Sistem (gusdim-cpanel-core.zip)
 1. Buka menu **File Manager** di cPanel.
@@ -84,27 +84,19 @@ Metode ini merupakan standar paling aman dan teruji untuk menjalankan Laravel pa
 
 ---
 
-## 3. Informasi Akun Default untuk Masuk ke Sistem
+## 3. Akun Tunggal Superadmin untuk Peluncuran Perdana
 
-Setelah sistem aktif pada domain `https://gusdim.com`, Anda dapat langsung melakukan pengujian masuk menggunakan akun berikut:
+Database produksi telah dipersiapkan dengan 1 akun administrator utama untuk mengendalikan seluruh sistem:
 
-1. **Tingkat Superadmin (Akses Penuh Seluruh Modul)**
-   - Username: `superadmin`
-   - Password: `admin123`
+- **Role**: Superadmin Pusat (Akses Penuh Seluruh Modul & Manajemen Akun)
+- **Username**: `superadmin`
+- **Password**: `admin123`
 
-2. **Tingkat Koordinator Kecamatan (Validasi Wilayah Kecamatan)**
-   - Username: `korcam_kraksaan`
-   - Password: `password123`
+Setelah masuk pertama kali, Superadmin dapat:
+1. Mengubah password akun superadmin melalui menu Profil.
+2. Menambahkan akun baru untuk Koordinator Kecamatan (Korcam), Koordinator Desa (Kordes), dan Admin Ranting sesuai nama relawan asli yang bertugas melalui menu **Manajemen User**.
 
-3. **Tingkat Koordinator Desa (Verifikasi Wilayah Desa)**
-   - Username: `kordes_wetan`
-   - Password: `password123`
-
-4. **Tingkat Admin Ranting (Entri Pendukung & Aspirasi Lapangan)**
-   - Username: `ranting_kraksaan`
-   - Password: `password123`
-
-Catatan: Demi keamanan, silakan ganti kata sandi bawaan ini setelah Anda berhasil masuk melalui menu Manajemen User.
+Seluruh modul entri pendukung dan aspirasi siap diisi dengan data ril dari lapangan.
 
 ---
 
