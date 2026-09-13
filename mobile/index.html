@@ -2348,12 +2348,17 @@ html, body {
           </div>
         </div>
 
+        <div class="card" id="mobileAuthCard">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">Otentikasi &amp; Sinkronisasi Server</div>
+          <div id="mobileAuthStatus"></div>
+        </div>
+
         <div class="card">
           <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Keamanan Kata Sandi</div>
-          <form onsubmit="event.preventDefault(); showToast('Kata sandi berhasil diperbarui.', 'success');">
+          <form onsubmit="event.preventDefault(); showToast('Fitur ini dapat diatur melalui dashboard utama desktop.', 'info');">
             <div class="form-group">
               <label class="form-label">Kata Sandi Baru</label>
-              <input type="password" class="form-input-touch" placeholder="Minimal 6 karakter" required>
+              <input type="password" class="form-input-touch" placeholder="Minimal 6 karakter">
             </div>
             <button type="submit" class="btn-primary-touch" style="height:44px;font-size:14px;">
               Simpan Perubahan Sandi
@@ -2715,43 +2720,69 @@ function setupEventListeners() {
   });
 }
 
-// Load Semua Data dari Backend
+// Helper API Mobile dengan Token Otentikasi
+async function mobileApiCall(endpoint, method = 'GET', data = null) {
+  const token = localStorage.getItem('dprd_token') || sessionStorage.getItem('dprd_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  };
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token;
+  }
+  const options = { method, headers };
+  if (data && (method === 'POST' || method === 'PUT')) {
+    options.body = JSON.stringify(data);
+  }
+  try {
+    const res = await fetch('/api/' + endpoint, options);
+    const json = await res.json().catch(() => null);
+    return { ok: res.ok, status: res.status, data: json };
+  } catch (err) {
+    console.warn('API error /api/' + endpoint, err);
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// Load Semua Data dari Backend (Murni Data Produksi Bersih)
 async function loadAllData() {
   try {
-    // 1. Data Pendukung
-    const resP = await fetch('./api/pendukung.php').catch(() => null);
-    if (resP && resP.ok) {
-      const json = await resP.json();
-      if (json && Array.isArray(json.data)) AppState.supporters = json.data;
-    }
-    if (!AppState.supporters || AppState.supporters.length === 0) {
-      AppState.supporters = generateDefaultSupporters();
+    // 1. Ambil data Dashboard Utama (berisi rekap statistik, map points, dan daftar pendukung)
+    const dashRes = await mobileApiCall('dashboard.php');
+    if (dashRes.ok && dashRes.data && dashRes.data.success) {
+      AppState.supporters = dashRes.data.allRecords || dashRes.data.recent || [];
+      if (dashRes.data.mapPoints) {
+        AppState.mapPoints = dashRes.data.mapPoints;
+      }
+    } else {
+      const resP = await mobileApiCall('pendukung.php?action=list');
+      if (resP.ok && resP.data && (Array.isArray(resP.data.data) || Array.isArray(resP.data.rows))) {
+        AppState.supporters = resP.data.data || resP.data.rows || [];
+      } else {
+        AppState.supporters = [];
+      }
     }
 
     // 2. Data Aspirasi
-    const resA = await fetch('./api/aspirasi.php').catch(() => null);
-    if (resA && resA.ok) {
-      const json = await resA.json();
-      if (json && Array.isArray(json.data)) AppState.aspirasi = json.data;
-    }
-    if (!AppState.aspirasi || AppState.aspirasi.length === 0) {
-      AppState.aspirasi = generateDefaultAspirasi();
+    const resA = await mobileApiCall('aspirasi.php?action=list');
+    if (resA.ok && resA.data && (Array.isArray(resA.data.rows) || Array.isArray(resA.data.data))) {
+      AppState.aspirasi = resA.data.rows || resA.data.data || [];
+    } else {
+      AppState.aspirasi = [];
     }
 
-    // 3. Data Pokir
-    const resR = await fetch('./api/reses.php').catch(() => null);
-    if (resR && resR.ok) {
-      const json = await resR.json();
-      if (json && Array.isArray(json.data)) AppState.pokir = json.data;
-    }
-    if (!AppState.pokir || AppState.pokir.length === 0) {
-      AppState.pokir = generateDefaultPokir();
+    // 3. Data Pokir & Reses
+    const resR = await mobileApiCall('reses.php?action=list_all');
+    if (resR.ok && resR.data && resR.data.data) {
+      AppState.pokir = resR.data.data.pokir || [];
+    } else {
+      AppState.pokir = [];
     }
 
-    // 4. Data Pendukung Lainnya
-    AppState.auditLogs = generateDefaultAuditLogs();
-    AppState.operators = generateDefaultOperators();
-    AppState.leaderboardData = generateDefaultLeaderboard();
+    // 4. Riwayat Audit Logs & Pengaturan (Murni Bersih 0 Data Dummy)
+    AppState.auditLogs = [];
+    AppState.operators = [];
+    AppState.leaderboardData = [];
 
     calculateStats();
     renderDashboardStats();
@@ -2762,19 +2793,71 @@ async function loadAllData() {
     renderLeaderboard();
     renderAuditLogs();
     renderOperators();
+    renderMobileAuth();
 
   } catch (error) {
-    console.warn('Fallback ke dataset lokal:', error);
-    AppState.supporters = generateDefaultSupporters();
-    AppState.aspirasi = generateDefaultAspirasi();
-    AppState.pokir = generateDefaultPokir();
-    AppState.auditLogs = generateDefaultAuditLogs();
-    AppState.operators = generateDefaultOperators();
-    AppState.leaderboardData = generateDefaultLeaderboard();
-
+    console.warn('Gagal memuat data dari server:', error);
     calculateStats();
     renderDashboardStats();
+    renderMobileAuth();
   }
+}
+
+function renderMobileAuth() {
+  const container = document.getElementById('mobileAuthStatus');
+  if (!container) return;
+  const token = localStorage.getItem('dprd_token');
+  if (token) {
+    container.innerHTML = `
+      <div style="font-size:12px;color:#16a34a;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;"></span>
+        Akun aktif tersinkronisasi ke server pusat.
+      </div>
+      <button type="button" class="btn-outline-touch" style="width:100%;color:#dc2626;border-color:#fecaca;" onclick="handleMobileLogout()">
+        Keluar (Logout)
+      </button>
+    `;
+  } else {
+    container.innerHTML = `
+      <p style="font-size:12px;color:#64748b;margin-bottom:10px;">Masuk dengan akun Superadmin atau Petugas Lapangan untuk sinkronisasi database online.</p>
+      <div class="form-group" style="margin-bottom:8px;">
+        <input type="text" id="mobileLoginUser" class="form-input-touch" placeholder="Username (misal: superadmin)">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <input type="password" id="mobileLoginPass" class="form-input-touch" placeholder="Password">
+      </div>
+      <button type="button" class="btn-primary-touch" style="width:100%;height:40px;font-size:13px;" onclick="handleMobileLogin()">
+        Masuk Akun Sekarang
+      </button>
+    `;
+  }
+}
+
+async function handleMobileLogin() {
+  const u = document.getElementById('mobileLoginUser')?.value?.trim();
+  const p = document.getElementById('mobileLoginPass')?.value;
+  if (!u || !p) {
+    showToast('Username dan password wajib diisi.', 'warning');
+    return;
+  }
+  showToast('Memverifikasi akun...', 'info');
+  const res = await mobileApiCall('auth.php?action=login', 'POST', { username: u, password: p });
+  if (res.ok && res.data && res.data.success) {
+    localStorage.setItem('dprd_token', res.data.token);
+    showToast('Berhasil masuk! Menyinkronkan data...', 'success');
+    renderMobileAuth();
+    loadAllData();
+  } else {
+    const msg = (res.data && res.data.message) ? res.data.message : 'Username atau password salah.';
+    showToast(msg, 'warning');
+  }
+}
+
+function handleMobileLogout() {
+  localStorage.removeItem('dprd_token');
+  showToast('Anda telah keluar.', 'info');
+  renderMobileAuth();
+  loadAllData();
 }
 
 // Kalkulasi Statistik
@@ -3687,10 +3770,25 @@ async function handleFormSubmit(event) {
   };
 
   try {
-    fetch('./api/pendukung.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSupporter)
+    const payload = {
+      jalur: 'RELAWAN',
+      nama: nama,
+      nik: nik,
+      hp: noHp,
+      alamat: alamat,
+      kecamatan: kecamatan,
+      desa: desa,
+      lat: lat,
+      lng: lng
+    };
+    mobileApiCall('pendukung.php?action=submit', 'POST', payload).then(res => {
+      if (res.ok && res.data && res.data.success) {
+        showToast('Data pendukung berhasil tersimpan ke database server!', 'success');
+        loadAllData();
+      } else {
+        const msg = (res.data && res.data.message) ? res.data.message : 'Tersimpan lokal di perangkat.';
+        showToast(msg, res.ok ? 'success' : 'warning');
+      }
     }).catch(() => {});
   } catch (e) {}
 

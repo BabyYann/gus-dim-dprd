@@ -21,6 +21,7 @@ class Database {
                 ];
                 self::$pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
                 self::$isMysql = true;
+                self::ensureTables();
             } catch (PDOException $e) {
                 // Jika koneksi MySQL belum aktif (misal mode development lokal),
                 // aktifkan mode penyimpanan JSON lokal otomatis agar web tetap berfungsi 100%!
@@ -28,6 +29,85 @@ class Database {
                 self::$pdo = null;
                 self::ensureJsonStore();
             }
+        }
+    }
+
+    private static function ensureTables(): void {
+        if (!self::$pdo) return;
+        try {
+            self::$pdo->exec("
+                CREATE TABLE IF NOT EXISTS `user_tokens` (
+                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                  `user_id` bigint unsigned NOT NULL,
+                  `token` varchar(128) NOT NULL,
+                  `expires_at` datetime NOT NULL,
+                  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `user_tokens_token_unique` (`token`),
+                  KEY `user_tokens_user_id_index` (`user_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+                CREATE TABLE IF NOT EXISTS `reses_titik` (
+                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                  `nama` varchar(150) NOT NULL,
+                  `masa_sidang` varchar(50) DEFAULT 'Masa Sidang I 2026',
+                  `kecamatan` varchar(50) NOT NULL,
+                  `desa` varchar(50) NOT NULL,
+                  `dusun` varchar(100) DEFAULT NULL,
+                  `lokasi_tuan_rumah` varchar(255) DEFAULT NULL,
+                  `tanggal` date DEFAULT NULL,
+                  `waktu` varchar(20) DEFAULT '13:30',
+                  `target_peserta` varchar(100) DEFAULT 'Masyarakat Umum',
+                  `catatan` text,
+                  `created_by` bigint unsigned DEFAULT NULL,
+                  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+                CREATE TABLE IF NOT EXISTS `reses_kehadiran` (
+                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                  `reses_id` bigint unsigned NOT NULL,
+                  `nama` varchar(150) NOT NULL,
+                  `nik` varchar(20) DEFAULT NULL,
+                  `no_hp` varchar(25) DEFAULT NULL,
+                  `kecamatan` varchar(50) DEFAULT NULL,
+                  `desa` varchar(50) DEFAULT NULL,
+                  `dusun` varchar(100) DEFAULT NULL,
+                  `kategori_peserta` varchar(100) DEFAULT 'Konstituen Reses',
+                  `created_by` bigint unsigned DEFAULT NULL,
+                  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`),
+                  KEY `reses_kehadiran_reses_id_index` (`reses_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+                CREATE TABLE IF NOT EXISTS `pokir_usulan` (
+                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                  `reses_id` bigint unsigned DEFAULT NULL,
+                  `judul` varchar(255) NOT NULL,
+                  `kategori` varchar(50) DEFAULT 'Infrastruktur',
+                  `kecamatan` varchar(50) NOT NULL,
+                  `desa` varchar(50) NOT NULL,
+                  `dusun` varchar(100) DEFAULT NULL,
+                  `estimasi_anggaran` decimal(15,2) DEFAULT '0.00',
+                  `nama_pengusul` varchar(150) DEFAULT NULL,
+                  `kontak_pengusul` varchar(25) DEFAULT NULL,
+                  `deskripsi` text,
+                  `status_tahap` varchar(50) DEFAULT 'Aspirasi Reses',
+                  `catatan_progres` text,
+                  `created_by` bigint unsigned DEFAULT NULL,
+                  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ");
+
+            $cols = self::$pdo->query("SHOW COLUMNS FROM `users` LIKE 'password_hash'")->fetchAll();
+            if (empty($cols)) {
+                self::$pdo->exec("ALTER TABLE `users` ADD COLUMN `password_hash` varchar(255) DEFAULT NULL AFTER `password`");
+                self::$pdo->exec("UPDATE `users` SET `password_hash` = `password` WHERE `password_hash` IS NULL");
+            }
+        } catch (\Throwable $ex) {
+            // Self-healing fallback silently ignores existing structures
         }
     }
 

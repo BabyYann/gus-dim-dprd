@@ -61,8 +61,8 @@ switch ($action) {
                 json_response(['success' => false, 'message' => "Username '{$username}' sudah digunakan."]);
             }
 
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, nama, role, kecamatan, desa, ranting, status) 
-                                   VALUES (:u, :p, :n, :r, :k, :d, :rt, 'Aktif')");
+            $stmt = $pdo->prepare("INSERT INTO users (username, password, password_hash, nama, name, role, kecamatan, desa, ranting, status) 
+                                   VALUES (:u, :p, :p, :n, :n, :r, :k, :d, :rt, 'Aktif')");
             $stmt->execute([
                 'u' => $username,
                 'p' => $hash,
@@ -142,7 +142,7 @@ switch ($action) {
 
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p, password = :p WHERE id = :id");
             $stmt->execute(['p' => $hash, 'id' => $targetId]);
         } else {
             $data = Database::getJsonData();

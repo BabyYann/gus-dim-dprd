@@ -45,7 +45,8 @@ switch ($action) {
 
         $isValidPass = false;
         if ($user) {
-            if (password_verify($password, $user['password_hash'])) {
+            $hash = !empty($user['password_hash']) ? $user['password_hash'] : ($user['password'] ?? '');
+            if ($hash && password_verify($password, $hash)) {
                 $isValidPass = true;
             } elseif ($user['role'] === 'Superadmin' && in_array($password, ['admin', 'admin123', 'gusdim', 'gusdim123', 'password123', '123456', 'superadmin'])) {
                 $isValidPass = true;

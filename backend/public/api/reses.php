@@ -267,20 +267,20 @@ switch ($action) {
             if (Database::isMysql()) {
                 $pdo = Database::getPdo();
                 try {
-                    $check = $pdo->prepare("SELECT id FROM pendukung WHERE (nik = :nik AND nik != '') OR (no_hp = :hp AND no_hp != '') LIMIT 1");
+                    $check = $pdo->prepare("SELECT id FROM pendukung WHERE (nik = :nik AND nik != '') OR (hp = :hp AND hp != '') LIMIT 1");
                     $check->execute(['nik' => $nik, 'hp' => $hp]);
                     if (!$check->fetch()) {
                         $ins = $pdo->prepare("INSERT INTO pendukung 
-                            (jalur, nama, nik, no_hp, kecamatan, desa, dusun, status_verifikasi, input_by, created_at)
-                            VALUES ('RELAWAN', :nama, :nik, :hp, :kec, :desa, :dusun, 'Terverifikasi', :uid, :cat)");
+                            (jalur, nama, nik, hp, kecamatan, desa, status, input_by_user_id, input_by_user_name, created_at)
+                            VALUES ('RELAWAN', :nama, :nik, :hp, :kec, :desa, 'Diverifikasi Desa', :uid, :unama, :cat)");
                         $ins->execute([
                             'nama' => $nama,
                             'nik' => $nik,
                             'hp' => $hp,
                             'kec' => $kecamatan,
                             'desa' => $desa,
-                            'dusun' => $dusun,
                             'uid' => $user['id'],
+                            'unama' => $user['nama'],
                             'cat' => $now
                         ]);
                     }

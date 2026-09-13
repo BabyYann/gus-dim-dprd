@@ -205,6 +205,25 @@ switch ($action) {
         ]);
         break;
 
+    case 'list':
+        $rows = [];
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            $stmt = $pdo->query("SELECT id, jalur, nik, nama, hp, umur, jabatan, koordinator, alamat, kecamatan, desa, latitude as lat, longitude as lng, foto_wajah as foto, foto_ktp, status, catatan, input_by_user_name, created_at FROM pendukung ORDER BY id DESC");
+            $rows = $stmt->fetchAll();
+        } else {
+            $data = Database::getJsonData();
+            $rows = $data['pendukung'] ?? [];
+            usort($rows, fn($a, $b) => ($b['id'] ?? 0) - ($a['id'] ?? 0));
+        }
+        json_response([
+            'success' => true,
+            'data' => $rows,
+            'rows' => $rows,
+            'total' => count($rows)
+        ]);
+        break;
+
     case 'check-nik':
         $nik = trim($_GET['nik'] ?? '');
         if (!$nik) {
