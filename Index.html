@@ -5,8 +5,7 @@
     (function() {
       var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       var isMobileWidth = window.innerWidth <= 768;
-      var isForcedDesktop = window.location.search.indexOf('desktop=1') !== -1 || sessionStorage.getItem('view_desktop') === '1';
-      if ((isMobileDevice || isMobileWidth) && !isForcedDesktop) {
+      if (isMobileDevice || isMobileWidth) {
         window.location.replace('./mobile/index.html');
       }
     })();
@@ -1330,22 +1329,7 @@
 
     </div></div></div> <!-- /app-window -->
 
-    <!-- BOTTOM NAV MOBILE -->
-    <div class="mobile-bottom-nav">
-      <button class="mobile-nav-btn" onclick="showPage('input')">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        <span class="mobile-nav-label">Input</span>
-      </button>
-      <button class="mobile-nav-btn mobile-nav-center" onclick="showPage('dashboard')" aria-label="Dashboard">
-        <span class="mobile-nav-center-inner">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        </span>
-      </button>
-      <button class="mobile-nav-btn" onclick="showPage('riwayat')">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span class="mobile-nav-label">Riwayat</span>
-      </button>
-    </div>
+    
   </div>
 
   <!-- ================= MODALS ================= -->

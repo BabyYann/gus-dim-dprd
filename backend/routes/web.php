@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 Route::get('/', function (Request $request) {
     $ua = $request->header('User-Agent', '');
     $isMobile = preg_match('/(android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini)/i', $ua);
-    if ($isMobile && !$request->has('desktop') && $request->cookie('view_desktop') !== '1') {
+    if ($isMobile) {
         return redirect('/mobile');
     }
     return view('dashboard');
