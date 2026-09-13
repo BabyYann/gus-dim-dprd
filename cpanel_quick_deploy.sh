@@ -14,32 +14,6 @@ PUBLIC_HTML_DIR="$HOME_DIR/public_html"
 
 echo "Direktori Proyek: $REPO_DIR"
 
-# Deteksi binary PHP terbaik di cPanel (prioritas 8.4 / 8.3)
-PHP_BIN="php"
-for candidate in \
-    "/opt/cpanel/ea-php84/root/usr/bin/php" \
-    "/usr/local/bin/ea-php84" \
-    "/opt/alt/php84/usr/bin/php" \
-    "/opt/cpanel/ea-php83/root/usr/bin/php" \
-    "/usr/local/bin/ea-php83" \
-    "/opt/alt/php83/usr/bin/php" \
-    "$(which ea-php84 2>/dev/null)" \
-    "$(which ea-php83 2>/dev/null)" \
-    "$(which php 2>/dev/null)"; do
-    if [ -x "$candidate" ]; then
-        VER=$($candidate -r "echo PHP_VERSION;" 2>/dev/null || true)
-        if [[ "$VER" =~ ^8\.[34] ]]; then
-            PHP_BIN="$candidate"
-            echo "Menggunakan PHP kompatibel: $candidate (versi $VER)"
-            break
-        fi
-    fi
-done
-
-if [ "$PHP_BIN" = "php" ]; then
-    echo "Menggunakan PHP default server: $(php -r 'echo PHP_VERSION;' 2>/dev/null || echo 'unknown')"
-fi
-
 # 2. Setup berkas .env
 if [ ! -f "$BACKEND_DIR/.env" ]; then
     echo "Menyiapkan berkas konfigurasi .env..."
@@ -47,19 +21,25 @@ if [ ! -f "$BACKEND_DIR/.env" ]; then
     echo "Catatan: Pastikan nama database, user, dan password disesuaikan di berkas backend/.env"
 fi
 
-# 3. Instal dependensi Composer jika vendor belum ada
-if [ ! -d "$BACKEND_DIR/vendor" ]; then
-    echo "Menginstal dependensi Composer..."
-    cd "$BACKEND_DIR"
-    $PHP_BIN $(which composer) install --no-dev --optimize-autoloader --ignore-platform-reqs
+# 3. Siapkan pustaka dependensi vendor
+if [ ! -d "$BACKEND_DIR/vendor" ] || [ ! -f "$BACKEND_DIR/vendor/autoload.php" ]; then
+    if [ -f "$BACKEND_DIR/vendor.zip" ]; then
+        echo "Mengekstrak paket vendor siap pakai (tanpa butuh Composer)..."
+        unzip -q -o "$BACKEND_DIR/vendor.zip" -d "$BACKEND_DIR/"
+        echo "Pustaka vendor berhasil diekstrak."
+    elif command -v composer &>/dev/null; then
+        echo "Menginstal dependensi Composer..."
+        cd "$BACKEND_DIR"
+        composer install --no-dev --optimize-autoloader --ignore-platform-reqs || true
+    fi
 fi
 
 # 4. Optimasi Laravel Storage dan Cache
 cd "$BACKEND_DIR"
-$PHP_BIN artisan storage:link || true
-$PHP_BIN artisan config:cache || true
-$PHP_BIN artisan route:cache || true
-$PHP_BIN artisan view:cache || true
+php artisan storage:link || true
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
 # 5. Hubungkan ke public_html
 echo "Menyinkronkan aset publik ke public_html..."

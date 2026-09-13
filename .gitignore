@@ -23,6 +23,7 @@ backend/storage/logs/*.log
 
 # Large Archives & Binaries
 *.zip
+!backend/vendor.zip
 *.tar.gz
 *.rar
 
