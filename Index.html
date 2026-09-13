@@ -3,12 +3,29 @@
 <head>
   <script>
     (function() {
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('view') === 'desktop') return;
       var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       var isMobileWidth = window.innerWidth <= 768;
       if (isMobileDevice || isMobileWidth) {
         window.location.replace('./mobile/index.html');
       }
     })();
+    window.addEventListener('resize', function() {
+      clearTimeout(window.__switchMobileTimer);
+      window.__switchMobileTimer = setTimeout(function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === 'desktop') return;
+        var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var isMobileWidth = window.innerWidth <= 768;
+        if (isMobileDevice || isMobileWidth) {
+          window.location.replace('./mobile/index.html');
+        }
+      }, 300);
+    });
+    function switchToMobileView() {
+      window.location.href = './mobile/index.html?view=mobile';
+    }
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -130,6 +147,10 @@
             <span class="nasdem-dot"></span>
             <span>Partai NasDem &bull; Dapil 3</span>
           </div>
+          <button type="button" onclick="switchToMobileView()" style="margin-top:8px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:6px 10px; background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-size:11.5px; font-weight:600; cursor:pointer; transition:all 0.15s;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span>Buka Versi Mobile</span>
+          </button>
         </div>
       </div>
 
@@ -160,6 +181,11 @@
             <button class="btn-topbar-add" onclick="showPage('input')">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>Input Baru</span>
+            </button>
+
+            <button type="button" class="btn-topbar-mobile-switch" onclick="switchToMobileView()" title="Beralih ke Tampilan Mobile" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer; transition:all 0.2s;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              <span>Versi Mobile</span>
             </button>
 
             <div class="topbar-bell-btn" title="Notifikasi Sistem">

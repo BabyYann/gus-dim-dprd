@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script>
+    (function() {
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('view') === 'mobile' || urlParams.get('mode') === 'preview') return;
+      var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      var isDesktopWidth = window.innerWidth > 768;
+      if ((!isMobileDevice && isDesktopWidth) || window.innerWidth > 1024) {
+        var isHtmlFile = window.location.pathname.endsWith('.html') || window.location.protocol === 'file:';
+        var dest = isHtmlFile ? '../Index.html' : '/';
+        window.location.replace(dest);
+      }
+    })();
+    window.addEventListener('resize', function() {
+      clearTimeout(window.__switchDesktopTimer);
+      window.__switchDesktopTimer = setTimeout(function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === 'mobile' || urlParams.get('mode') === 'preview') return;
+        var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var isDesktopWidth = window.innerWidth > 768;
+        if ((!isMobileDevice && isDesktopWidth) || window.innerWidth > 1024) {
+          var isHtmlFile = window.location.pathname.endsWith('.html') || window.location.protocol === 'file:';
+          var dest = isHtmlFile ? '../Index.html' : '/';
+          window.location.replace(dest);
+        }
+      }, 300);
+    });
+    function switchToDesktopView() {
+      var isHtmlFile = window.location.pathname.endsWith('.html') || window.location.protocol === 'file:';
+      var dest = isHtmlFile ? '../Index.html?view=desktop' : '/?view=desktop';
+      window.location.href = dest;
+    }
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#16225e">
@@ -1744,6 +1776,9 @@ html, body {
         </div>
 
         <div class="header-actions">
+          <button type="button" id="btnSwitchDesktopHeader" class="header-btn" title="Buka Versi Web Desktop" onclick="switchToDesktopView()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </button>
           <button type="button" id="btnRefresh" class="header-btn" title="Sinkronisasi Data">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
           </button>
@@ -1848,6 +1883,13 @@ html, body {
       </div>
 
       <div class="drawer-footer">
+        <div class="drawer-menu-item" style="color:#2563eb; background:#eff6ff; border-radius:8px; margin-bottom:8px; padding:10px 12px; cursor:pointer;" onclick="switchToDesktopView()">
+          <div class="drawer-menu-item-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;max-width:20px;max-height:20px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span style="font-weight:700;">Versi Web Desktop</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
         <div class="drawer-menu-item" style="color:#dc2626;" onclick="showToast('Sesi akun tetap aman di perangkat lokal.', 'info')">
           <div class="drawer-menu-item-left">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;max-width:20px;max-height:20px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -2328,6 +2370,15 @@ html, body {
           <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Data form dan cache antarmuka disimpan di penyimpanan lokal perangkat smartphone untuk keandalan di lapangan.</p>
           <button type="button" class="btn-outline-touch" style="width:100%;" onclick="clearPwaCache()">
             Perbarui Cache Aplikasi &amp; Muat Ulang
+          </button>
+        </div>
+
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">Beralih Tampilan Antarmuka</div>
+          <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Buka dashboard web versi desktop lengkap dengan peta GIS dan tabel data komprehensif.</p>
+          <button type="button" class="btn-primary-touch" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="switchToDesktopView()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Buka Versi Web Desktop</span>
           </button>
         </div>
       </section>
