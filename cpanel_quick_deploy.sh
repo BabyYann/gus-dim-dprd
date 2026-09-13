@@ -38,6 +38,11 @@ if [ ! -d "$BACKEND_DIR/vendor" ] || [ ! -f "$BACKEND_DIR/vendor/autoload.php" ]
     fi
 fi
 
+# Bypass Composer platform check untuk kompatibilitas PHP server
+if [ -f "$BACKEND_DIR/vendor/composer/platform_check.php" ]; then
+    echo "<?php return;" > "$BACKEND_DIR/vendor/composer/platform_check.php"
+fi
+
 # 4. Optimasi Laravel Storage dan Cache
 cd "$BACKEND_DIR"
 php artisan storage:link || true
