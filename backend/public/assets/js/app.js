@@ -77,29 +77,46 @@ function makeApiRunner(handlers) {
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     },
 
-    // Pendukung Form Submissions
-    submitDPC(formData) {
-      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'DPC' }, formData))
+    // Pendukung Form Submissions (Mendukung pemanggilan 1 argumen maupun 2 argumen: token, data)
+    submitDPC(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'DPC' }, data))
         .then(res => handlers.success && handlers.success(res))
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     },
-    submitDPRT(formData) {
-      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'DPRT' }, formData))
+    submitDPRT(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'DPRT' }, data))
         .then(res => handlers.success && handlers.success(res))
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     },
-    submitPIP(formData) {
-      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'PIP' }, formData))
+    submitPIP(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'PIP' }, data))
         .then(res => handlers.success && handlers.success(res))
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     },
-    submitKIP(formData) {
-      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'KIP' }, formData))
+    submitKIP(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'KIP' }, data))
         .then(res => handlers.success && handlers.success(res))
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     },
-    submitRelawan(formData) {
-      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'RELAWAN' }, formData))
+    submitRelawan(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('pendukung.php?action=submit', 'POST', Object.assign({ jalur: 'RELAWAN' }, data))
+        .then(res => handlers.success && handlers.success(res))
+        .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
+    },
+    createOperatorFromPendukung(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('users.php?action=create-from-pendukung', 'POST', data)
+        .then(res => handlers.success && handlers.success(res))
+        .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
+    },
+    resetOperatorPassword(tokenOrData, maybeData) {
+      const data = (maybeData && typeof maybeData === 'object') ? maybeData : ((tokenOrData && typeof tokenOrData === 'object') ? tokenOrData : {});
+      fetchApi('users.php?action=reset-password-operator', 'POST', data)
         .then(res => handlers.success && handlers.success(res))
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     },
@@ -2270,27 +2287,82 @@ function kirimUcapanWa(hp, nama, jalur) {
     if (hasil.alamat) document.getElementById(f.alamat).value = hasil.alamat;
   }
 
-  function prosesPindaiKtp(file, jalur) {
+  /** Kompresi gambar client-side untuk mempercepat upload & menghindari limit post_max_size */
+  function compressImageFile(file, maxWidth, maxHeight, quality) {
+    maxWidth = maxWidth || 1280;
+    maxHeight = maxHeight || 1280;
+    quality = quality || 0.82;
+    return new Promise(function (resolve) {
+      if (!file || !file.type || !file.type.startsWith('image/')) {
+        resolve(null);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          let w = img.width;
+          let h = img.height;
+          if (w > maxWidth || h > maxHeight) {
+            if (w > h) {
+              h = Math.round((h * maxWidth) / w);
+              w = maxWidth;
+            } else {
+              w = Math.round((w * maxHeight) / h);
+              h = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          const base64 = compressedDataUrl.split(',')[1];
+          resolve({ dataUrl: compressedDataUrl, base64: base64, mime: 'image/jpeg' });
+        };
+        img.onerror = function () {
+          const rawDataUrl = e.target.result;
+          resolve({ dataUrl: rawDataUrl, base64: rawDataUrl.split(',')[1], mime: file.type || 'image/jpeg' });
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = function () { resolve(null); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function prosesPindaiKtp(file, jalur) {
     if (!file) return;
     const statusEl = document.getElementById('ocrStatus-' + jalur);
     statusEl.style.display = 'block';
     statusEl.className = 'ocr-status ocr-status-proses';
-    statusEl.innerHTML = '<span class="spinner"></span> Memindai KTP, mohon tunggu (bisa 10-30 detik, tergantung koneksi)...';
+    statusEl.innerHTML = '<span class="spinner"></span> Mengoptimalkan gambar & memindai KTP...';
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const dataUrl = e.target.result;
-      const base64 = dataUrl.split(',')[1];
+    try {
+      const compressed = await compressImageFile(file, 1280, 1280, 0.82);
+      if (!compressed) {
+        statusEl.className = 'ocr-status ocr-status-gagal';
+        statusEl.textContent = 'File gambar tidak dapat dibaca. Silakan pilih foto lain.';
+        bukaFormManual(jalur);
+        return;
+      }
+
+      const dataUrl = compressed.dataUrl;
+      const base64 = compressed.base64;
+      const mime = compressed.mime;
 
       // Foto hasil pindai otomatis dipakai sebagai Foto KTP, dan Foto Penerima jika belum ada foto lain
-      ktpBase64Data = base64; ktpMimeType = file.type;
+      ktpBase64Data = base64;
+      ktpMimeType = mime;
       document.getElementById('previewKtp').src = dataUrl;
       document.getElementById('previewKtp').style.display = 'block';
       document.getElementById('dropKtp').classList.add('has-file');
       document.getElementById('dropKtp').innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai KTP</span></div>';
 
       if (!fotoBase64Data) {
-        fotoBase64Data = base64; fotoMimeType = file.type;
+        fotoBase64Data = base64;
+        fotoMimeType = mime;
         document.getElementById('previewFoto').src = dataUrl;
         document.getElementById('previewFoto').style.display = 'block';
         document.getElementById('dropFoto').classList.add('has-file');
@@ -2314,32 +2386,45 @@ function kirimUcapanWa(hp, nama, jalur) {
         })
         .catch(function () {
           statusEl.className = 'ocr-status ocr-status-gagal';
-          statusEl.textContent = 'Gagal memindai otomatis. Foto KTP tetap tersimpan — silakan lengkapi data di bawah secara manual.';
+          statusEl.textContent = 'Gagal memindai otomatis. Foto KTP tetap tersimpan - silakan lengkapi data di bawah secara manual.';
           bukaFormManual(jalur);
         });
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      statusEl.className = 'ocr-status ocr-status-gagal';
+      statusEl.textContent = 'Terjadi kesalahan saat memproses gambar KTP.';
+      bukaFormManual(jalur);
+    }
   }
 
-  function previewFile(input, previewId, dropId) {
+  async function previewFile(input, previewId, dropId) {
     const file = input.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const base64 = e.target.result.split(',')[1];
-      if (previewId === 'previewFoto') { fotoBase64Data = base64; fotoMimeType = file.type; }
-      else { ktpBase64Data = base64; ktpMimeType = file.type; }
+    try {
+      const compressed = await compressImageFile(file, 1280, 1280, 0.82);
+      if (!compressed) return;
+
+      if (previewId === 'previewFoto') {
+        fotoBase64Data = compressed.base64;
+        fotoMimeType = compressed.mime;
+      } else {
+        ktpBase64Data = compressed.base64;
+        ktpMimeType = compressed.mime;
+      }
       const img = document.getElementById(previewId);
-      img.src = e.target.result;
+      img.src = compressed.dataUrl;
       img.style.display = 'block';
       document.getElementById(dropId).classList.add('has-file');
       document.getElementById(dropId).innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>' + file.name + '</span></div>';
-    };
-    reader.readAsDataURL(file);
+    } catch (e) {
+      console.error('Gagal memproses file:', e);
+    }
   }
 
-  function v(id) { return document.getElementById(id).value.trim(); }
+  function v(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
 
   function submitData() {
     const jalur = document.getElementById('fJalur').value;
@@ -2361,10 +2446,25 @@ function kirimUcapanWa(hp, nama, jalur) {
     let fungsi = '';
 
     if (jalur === 'DPC') {
-      formData = Object.assign(formData, { nama: v('dpcNama'), nik: v('dpcNik'), hp: v('dpcHp'), jabatan: v('dpcJabatan'), kecamatan: v('dpcKecamatan'), alamat: v('dpcAlamat') });
+      formData = Object.assign(formData, { 
+        nama: v('dpcNama'), 
+        nik: v('dpcNik'), 
+        hp: v('dpcHp'), 
+        jabatan: v('dpcJabatan'), 
+        kecamatan: v('dpcKecamatan'), 
+        alamat: v('dpcAlamat') 
+      });
       fungsi = 'submitDPC';
     } else if (jalur === 'DPRT') {
-      formData = Object.assign(formData, { nama: v('dprtNama'), nik: v('dprtNik'), hp: v('dprtHp'), jabatan: v('dprtJabatan'), desa: v('dprtDesa'), kecamatan: v('dprtKecamatan'), alamat: v('dprtAlamat') });
+      formData = Object.assign(formData, { 
+        nama: v('dprtNama'), 
+        nik: v('dprtNik'), 
+        hp: v('dprtHp'), 
+        jabatan: v('dprtJabatan'), 
+        desa: v('dprtDesa'), 
+        kecamatan: v('dprtKecamatan'), 
+        alamat: v('dprtAlamat') 
+      });
       fungsi = 'submitDPRT';
     } else if (jalur === 'PIP') {
       formData = Object.assign(formData, {
@@ -2394,6 +2494,39 @@ function kirimUcapanWa(hp, nama, jalur) {
         namaAnggota: v('rlwNamaAnggota'), nikAnggota: v('rlwNikAnggota'), hpAnggota: v('rlwHpAnggota'), alamatAnggota: v('rlwAlamatAnggota')
       });
       fungsi = 'submitRelawan';
+    }
+
+    // Ekstraksi fallback jika nama atau nik belum terisi pada variabel utama
+    let namaFinal = (formData.nama || formData.namaAnak || formData.namaAnggota || '').trim();
+    let nikFinal = (formData.nik || formData.nikAnak || formData.nikAnggota || '').trim();
+
+    if (!namaFinal) {
+      namaFinal = v('dpcNama') || v('dprtNama') || v('pipNamaAnak') || v('kipNamaAnak') || v('rlwNamaAnggota');
+      if (namaFinal) {
+        if (jalur === 'PIP' || jalur === 'KIP') formData.namaAnak = namaFinal;
+        else if (jalur === 'RELAWAN') formData.namaAnggota = namaFinal;
+        else formData.nama = namaFinal;
+      }
+    }
+    if (!nikFinal) {
+      nikFinal = v('dpcNik') || v('dprtNik') || v('pipNikAnak') || v('kipNikAnak') || v('rlwNikAnggota');
+      if (nikFinal) {
+        if (jalur === 'PIP' || jalur === 'KIP') formData.nikAnak = nikFinal;
+        else if (jalur === 'RELAWAN') formData.nikAnggota = nikFinal;
+        else formData.nik = nikFinal;
+      }
+    }
+
+    // Validasi client-side yang jelas sebelum request dikirim
+    if (!namaFinal || !nikFinal) {
+      errBox.textContent = 'Nama dan NIK wajib diisi. Silakan periksa kembali formulir input.';
+      errBox.style.display = 'block';
+      const targetInput = !namaFinal ? (document.getElementById(jalur === 'DPC' ? 'dpcNama' : (jalur === 'DPRT' ? 'dprtNama' : (jalur === 'RELAWAN' ? 'rlwNamaAnggota' : 'pipNamaAnak')))) : (document.getElementById(jalur === 'DPC' ? 'dpcNik' : (jalur === 'DPRT' ? 'dprtNik' : (jalur === 'RELAWAN' ? 'rlwNikAnggota' : 'pipNikAnak'))));
+      if (targetInput) {
+        targetInput.focus();
+        targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
     }
 
     const btn = document.getElementById('btnSubmit');

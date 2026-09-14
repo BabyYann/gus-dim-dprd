@@ -143,8 +143,28 @@ class PendukungController extends Controller
             $alamat = trim($request->input('alamatAnggota', ''));
         }
 
+        // Fallback menyeluruh jika field nama / nik dikirim dengan penamaan alternatif
+        if (!$nama) {
+            $nama = trim($request->input('nama') ?? $request->input('namaAnggota') ?? $request->input('namaAnak') ?? $request->input('dpcNama') ?? $request->input('dprtNama') ?? '');
+        }
+        if (!$nik) {
+            $nik = trim($request->input('nik') ?? $request->input('nikAnggota') ?? $request->input('nikAnak') ?? $request->input('dpcNik') ?? $request->input('dprtNik') ?? '');
+        }
+        if (!$hp) {
+            $hp = trim($request->input('hp') ?? $request->input('hpAnggota') ?? $request->input('hpAnak') ?? $request->input('dpcHp') ?? $request->input('dprtHp') ?? '');
+        }
+        if (!$kecamatan) {
+            $kecamatan = trim($request->input('kecamatan') ?? $request->input('dpcKecamatan') ?? $request->input('dprtKecamatan') ?? '');
+        }
+        if (!$desa) {
+            $desa = trim($request->input('desa') ?? $request->input('dprtDesa') ?? '');
+        }
+        if (!$alamat) {
+            $alamat = trim($request->input('alamat') ?? $request->input('dpcAlamat') ?? $request->input('dprtAlamat') ?? $request->input('alamatKeluarga') ?? '');
+        }
+
         if (!$nama || !$nik) {
-            return response()->json(['success' => false, 'message' => 'Nama dan NIK wajib diisi.']);
+            return response()->json(['success' => false, 'message' => 'Nama dan NIK wajib diisi. Silakan periksa kembali kelengkapan formulir.']);
         }
 
         // Anti-Duplikasi NIK

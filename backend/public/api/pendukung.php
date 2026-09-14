@@ -7,6 +7,9 @@ $body = get_request_body();
 
 switch ($action) {
     case 'submit':
+        if (empty($body) && isset($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
+            json_response(['success' => false, 'message' => 'Ukuran data foto melebihi kapasitas server. Sistem telah mengoptimalkan kompresi, silakan ulangi simpan data.']);
+        }
         $jalur = strtoupper(trim($body['jalur'] ?? ''));
         $allowedJalur = ['DPC', 'DPRT', 'PIP', 'KIP', 'RELAWAN'];
         if (!in_array($jalur, $allowedJalur)) {
@@ -94,8 +97,28 @@ switch ($action) {
             $alamat = trim($body['alamatAnggota'] ?? $body['alamat'] ?? '');
         }
 
+        // Fallback menyeluruh jika field nama / nik dikirim dengan penamaan alternatif
+        if (!$nama) {
+            $nama = trim($body['nama'] ?? $body['namaAnggota'] ?? $body['namaAnak'] ?? $body['dpcNama'] ?? $body['dprtNama'] ?? $body['pipNamaAnak'] ?? $body['kipNamaAnak'] ?? $body['rlwNamaAnggota'] ?? '');
+        }
+        if (!$nik) {
+            $nik = trim($body['nik'] ?? $body['nikAnggota'] ?? $body['nikAnak'] ?? $body['dpcNik'] ?? $body['dprtNik'] ?? $body['pipNikAnak'] ?? $body['kipNikAnak'] ?? $body['rlwNikAnggota'] ?? '');
+        }
+        if (!$hp) {
+            $hp = trim($body['hp'] ?? $body['hpAnggota'] ?? $body['hpAnak'] ?? $body['dpcHp'] ?? $body['dprtHp'] ?? $body['pipHpAnak'] ?? $body['kipHpAnak'] ?? $body['rlwHpAnggota'] ?? '');
+        }
+        if (!$kecamatan) {
+            $kecamatan = trim($body['kecamatan'] ?? $body['dpcKecamatan'] ?? $body['dprtKecamatan'] ?? $body['pipKecamatan'] ?? $body['kipKecamatan'] ?? $body['rlwKecamatan'] ?? '');
+        }
+        if (!$desa) {
+            $desa = trim($body['desa'] ?? $body['dprtDesa'] ?? $body['pipDesa'] ?? $body['kipDesa'] ?? $body['rlwDesa'] ?? '');
+        }
+        if (!$alamat) {
+            $alamat = trim($body['alamat'] ?? $body['dpcAlamat'] ?? $body['dprtAlamat'] ?? $body['pipAlamatKeluarga'] ?? $body['kipAlamatKeluarga'] ?? $body['rlwAlamatAnggota'] ?? '');
+        }
+
         if (!$nama || !$nik) {
-            json_response(['success' => false, 'message' => 'Nama dan NIK wajib diisi.']);
+            json_response(['success' => false, 'message' => 'Nama dan NIK wajib diisi. Silakan periksa kembali kelengkapan formulir.']);
         }
 
         // Kunci wilayah input jika user adalah Koordinator Desa / Admin Ranting / Koordinator Kecamatan

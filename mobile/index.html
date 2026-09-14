@@ -2550,6 +2550,12 @@ html, body {
            HALAMAN 10: PROFIL SAYA
            ========================================== -->
       <section id="page-profil" class="tab-pane">
+        <div class="page-title-banner">
+          <div>
+            <div class="page-title-text">Profil Saya</div>
+            <div class="page-subtitle-text">Identitas akun & status penugasan lapangan</div>
+          </div>
+        </div>
         <div id="profileContainer"></div>
       </section>
 
@@ -3030,11 +3036,12 @@ async function mobileApiCall(endpoint, method = 'GET', data = null) {
     options.body = JSON.stringify(data);
   }
   try {
-    const res = await fetch('/api/' + endpoint, options);
+    const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
+    const res = await fetch(apiBase + '/' + endpoint, options);
     const json = await res.json().catch(() => null);
     return { ok: res.ok, status: res.status, data: json };
   } catch (err) {
-    console.warn('API error /api/' + endpoint, err);
+    console.warn('API error (' + endpoint + '):', err);
     return { ok: false, status: 0, data: null };
   }
 }
@@ -3187,9 +3194,17 @@ function renderMobileAuth() {
   }
 }
 
-async function handleMobileLogin() {
-  const u = document.getElementById('mobileLoginUser')?.value?.trim();
-  const p = document.getElementById('mobileLoginPass')?.value;
+async function handleMobileLogin(isFromProfile = false) {
+  let u = '';
+  let p = '';
+  if (isFromProfile) {
+    u = document.getElementById('profileLoginUser')?.value?.trim() || '';
+    p = document.getElementById('profileLoginPass')?.value || '';
+  } else {
+    u = document.getElementById('mobileLoginUser')?.value?.trim() || document.getElementById('profileLoginUser')?.value?.trim() || '';
+    p = document.getElementById('mobileLoginPass')?.value || document.getElementById('profileLoginPass')?.value || '';
+  }
+
   if (!u || !p) {
     showToast('Username dan password wajib diisi.', 'warning');
     return;
@@ -5046,7 +5061,7 @@ function renderProfile() {
     const initials = (u.nama || u.username || 'PL').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const wilayahText = [u.kecamatan, u.desa, u.ranting].filter(Boolean).join(' · ') || 'Seluruh Dapil Kraksaan Raya';
 
-    // Hitung data input real
+    // Hitung data input aktual
     const myInputs = (AppState.supporters || []).filter(s => {
       const inputter = (s.userInput || s.input_by_user_name || '').toLowerCase();
       const myName = (u.nama || '').toLowerCase();
@@ -5074,7 +5089,7 @@ function renderProfile() {
         </div>
         <div style="margin-top:10px;font-size:11px;color:#16a34a;display:flex;align-items:center;justify-content:center;gap:5px;">
           <span style="width:7px;height:7px;border-radius:50%;background:#16a34a;"></span>
-          Sesi Aktif &bull; Tersinkronisasi ke Server Pusat
+          Sesi Aktif &bull; Sinkronisasi Server Pusat
         </div>
       </div>
 
@@ -5167,14 +5182,14 @@ function renderProfile() {
         <p style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.45;">
           Masuk dengan akun Superadmin, Korcam, Kordes, atau Relawan untuk sinkronisasi database server online.
         </p>
-        <form onsubmit="handleMobileLoginForm(event)">
+        <form onsubmit="handleProfileLoginForm(event)">
           <div class="form-group" style="margin-bottom:10px;">
             <label class="form-label" style="font-size:12px;">Username</label>
-            <input type="text" id="mobileLoginUser" class="form-input-touch" placeholder="Contoh: superadmin" required>
+            <input type="text" id="profileLoginUser" class="form-input-touch" placeholder="Contoh: superadmin" required>
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label" style="font-size:12px;">Password</label>
-            <input type="password" id="mobileLoginPass" class="form-input-touch" placeholder="Masukkan kata sandi" required>
+            <input type="password" id="profileLoginPass" class="form-input-touch" placeholder="Masukkan kata sandi" required>
           </div>
           <button type="submit" class="btn-primary-touch" style="width:100%;height:44px;font-size:13.5px;">
             Masuk Akun Sekarang
@@ -5193,9 +5208,14 @@ function renderProfile() {
 }
 
 // Form Handler untuk Login Profil
+function handleProfileLoginForm(e) {
+  e.preventDefault();
+  handleMobileLogin(true);
+}
+
 function handleMobileLoginForm(e) {
   e.preventDefault();
-  handleMobileLogin();
+  handleMobileLogin(false);
 }
 
 // Form Handler untuk Ubah Password
