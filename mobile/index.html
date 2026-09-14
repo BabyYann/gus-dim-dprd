@@ -2127,11 +2127,7 @@ html, body {
       <section id="page-dashboard" class="tab-pane active">
 
         
-          <div class="progress-footer">
-            <span id="progressTargetSub">0 / 25.000 Suara</span>
-            <span>Target: 25.000 Suara</span>
-          </div>
-        </div>
+          
 
         <!-- Quick Shortcut Grid (6 Akses Cepat Modul Utama 3x2) -->
         <div class="shortcut-grid">
