@@ -83,7 +83,9 @@ const Icons = {
   building: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>',
   trash: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
   edit: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
-  award: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>'
+  award: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>',
+  info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  calendar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
 };
 
 // Inisialisasi Saat Dokumen Siap
@@ -93,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
   setupEventListeners();
   loadAllData();
+  initHorizontalSwipeFilters();
 });
 
 // PWA Service Worker Registration
@@ -232,6 +235,8 @@ function navigatePage(pageId) {
   else if (pageId === 'leaderboard') renderLeaderboard();
   else if (pageId === 'riwayat') renderAuditLogs();
   else if (pageId === 'pengaturan') renderOperators();
+
+  setTimeout(initHorizontalSwipeFilters, 60);
 }
 
 // Setup Event Listeners
@@ -1094,27 +1099,50 @@ async function handleAspirasiSubmit(e) {
 // HALAMAN 5: RESES & POKIR APBD
 // ==========================================================================
 
+// Helper Badge 6 Tahapan Siklus Pokir APBD Mobile
+function getPokirStageBadgeMobile(status) {
+  const s = String(status || '').toLowerCase();
+  if (s.includes('realisasi') || s.includes('selesai') || s.includes('6')) {
+    return '<span class="badge-stage stage-6">6. Realisasi Lapangan</span>';
+  } else if (s.includes('apbd') || s.includes('dpa') || s.includes('5')) {
+    return '<span class="badge-stage stage-5">5. Masuk APBD Resmi</span>';
+  } else if (s.includes('verifikasi') || s.includes('dinas') || s.includes('opd') || s.includes('4')) {
+    return '<span class="badge-stage stage-4">4. Verifikasi Dinas</span>';
+  } else if (s.includes('sipd') || s.includes('3')) {
+    return '<span class="badge-stage stage-3">3. Terinput SIPD</span>';
+  } else if (s.includes('disetujui') || s.includes('gus dim') || s.includes('fraksi') || s.includes('2')) {
+    return '<span class="badge-stage stage-2">2. Disetujui Gus Dim</span>';
+  } else {
+    return '<span class="badge-stage stage-1">1. Aspirasi Reses</span>';
+  }
+}
+
 function renderPokirDedicated() {
   const container = document.getElementById('pokirDedicatedList');
   if (!container) return;
 
   if (AppState.activeResesTab === 'pokir') {
-    const list = AppState.pokir;
+    const list = AppState.pokir || [];
     if (list.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
           ${Icons.building}
           <div class="empty-state-title">Belum ada usulan Pokir APBD</div>
-          <div class="empty-state-desc">Gunakan tombol "Usul Pokir" untuk mendaftarkan program dewan.</div>
+          <div class="empty-state-desc">Gunakan tombol "Usul Pokir" untuk mendaftarkan program advokasi dewan.</div>
         </div>
       `;
       return;
     }
 
     container.innerHTML = list.map(p => {
-      const budget = p.anggaran ? `Rp ${Number(p.anggaran).toLocaleString('id-ID')}` : 'Rp 150.000.000';
+      const budgetNum = Number(p.anggaran || p.pagu || p.anggaran_disetujui || 0);
+      const budget = budgetNum > 0 ? `Rp ${budgetNum.toLocaleString('id-ID')}` : 'Rp 150.000.000';
+      const stageBadge = getPokirStageBadgeMobile(p.status_tahap || p.status || 'Aspirasi Reses');
+      const hp = p.kontak_pengusul || p.pengusul_hp || p.pengusulHp || '';
+      const pengusulNama = p.nama_pengusul || p.pengusul_nama || p.pengusulNama || 'Konstituen Dapil';
+
       return `
-        <div class="touch-card">
+        <div class="touch-card" style="cursor:pointer;" onclick="openPokirDetail(${p.id})">
           <div class="card-top-row">
             <div class="card-avatar" style="background:#e0f2fe;color:#0284c7;">
               ${Icons.building}
@@ -1123,58 +1151,381 @@ function renderPokirDedicated() {
               <div class="card-name">${escapeHtml(p.kegiatan || p.judul || 'Program Pokir APBD')}</div>
               <div class="card-nik" style="color:#0284c7;font-weight:700;font-family:inherit;">${budget}</div>
             </div>
-            <span class="badge-status valid">APBD 2025</span>
+            <div>${stageBadge}</div>
           </div>
-          <p style="font-size:13px;color:#334155;line-height:1.4;">
+          <p style="font-size:12.5px;color:#334155;line-height:1.45;margin-bottom:8px;">
             ${escapeHtml(p.uraian || p.keterangan || p.deskripsi || 'Program kerja prioritas DPRD untuk kemakmuran masyarakat Dapil.')}
           </p>
-          <div class="card-details-row">
+          <div class="card-details-row" style="margin-bottom:10px;">
             <div class="card-detail-item">
               ${Icons.mapPin}
               <span>${escapeHtml(p.lokasi || p.desa || 'Kecamatan Kraksaan')}</span>
             </div>
             <span class="card-pill">OPD: ${escapeHtml(p.opd || p.kategori || 'Dinas PUPR')}</span>
           </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:8px;font-size:11.5px;color:#64748b;">
+            <div style="display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;">
+              <span>Oleh: <strong>${escapeHtml(pengusulNama)}</strong></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation();">
+              ${hp ? `
+                <button type="button" class="btn-outline-touch" style="height:32px;padding:0 9px;font-size:11.5px;color:#16a34a;border-color:#bbf7d0;" onclick="kirimWaUpdatePokir(${p.id})">
+                  ${Icons.whatsapp} Kabar WA
+                </button>
+              ` : ''}
+              <button type="button" class="btn-outline-touch" style="height:32px;padding:0 9px;font-size:11.5px;color:#2563eb;border-color:#bfdbfe;" onclick="openPokirDetail(${p.id})">
+                Detail &amp; Aksi
+              </button>
+            </div>
+          </div>
         </div>
       `;
     }).join('');
 
   } else {
-    // Laporan Reses Dewan
-    container.innerHTML = `
-      <div class="touch-card">
+    // Laporan Reses Dewan (Agenda Reses Lapangan)
+    const events = AppState.resesEvents || [
+      {
+        id: 1,
+        nama: 'Reses Masa Sidang I Tahun 2025',
+        masa_sidang: 'Masa Sidang I',
+        kecamatan: 'Kraksaan',
+        desa: 'Patokan, Semampir, Sidomukti',
+        lokasi: 'Balai Pertemuan Warga',
+        tanggal: '2025-01-15',
+        total_hadir: 85,
+        catatan: 'Penyerapan aspirasi kelompok petani padi, petambak, dan pedagang pasar tradisional terkait infrastruktur saluran tersier dan jalan usaha tani.'
+      },
+      {
+        id: 2,
+        nama: 'Reses Masa Sidang II Tahun 2025',
+        masa_sidang: 'Masa Sidang II',
+        kecamatan: 'Besuk & Gading',
+        desa: 'Besuk Kidul, Matekan, Wangkal',
+        lokasi: 'Pondok Pesantren & Gapoktan',
+        tanggal: '2025-02-20',
+        total_hadir: 110,
+        catatan: 'Kunjungan kerja ke pesantren dan kelompok tani hutan untuk penyaluran bantuan bibit, alsintan serta peningkatan penerangan jalan umum desa.'
+      }
+    ];
+
+    container.innerHTML = events.map(ev => `
+      <div class="touch-card" style="cursor:pointer;" onclick="openResesEventDetail(${ev.id})">
         <div class="card-top-row">
           <div class="card-avatar" style="background:#fef3c7;color:#b45309;">
             ${Icons.checkCircle}
           </div>
           <div class="card-info">
-            <div class="card-name">Reses Masa Sidang I Tahun 2025</div>
-            <div class="card-nik" style="font-family:inherit;">Kecamatan Kraksaan &bull; 15 Titik Pertemuan</div>
+            <div class="card-name">${escapeHtml(ev.nama || 'Reses Dewan Masa Sidang')}</div>
+            <div class="card-nik" style="font-family:inherit;color:#b45309;font-weight:700;">
+              ${escapeHtml(ev.masa_sidang || 'Masa Sidang 2025')} &bull; ${ev.total_hadir || 50} Warga Hadir
+            </div>
           </div>
-          <span class="badge-status valid">Selesai</span>
+          <span class="badge-status valid">Terlaksana</span>
         </div>
-        <p style="font-size:13px;color:#334155;line-height:1.4;">
-          Penyerapan aspirasi kelompok petani padi, petambak, dan pedagang pasar tradisional terkait pemulihan ekonomi daerah.
+        <p style="font-size:12.5px;color:#334155;line-height:1.45;margin-bottom:8px;">
+          ${escapeHtml(ev.catatan || 'Penyerapan aspirasi konstituen di titik-titik kumpul warga konstituen Dapil.')}
         </p>
+        <div class="card-details-row" style="margin-bottom:10px;">
+          <div class="card-detail-item">
+            ${Icons.mapPin}
+            <span>Kec. ${escapeHtml(ev.kecamatan || 'Kraksaan')} (${escapeHtml(ev.desa || 'Wilayah Dapil')})</span>
+          </div>
+          <span class="card-pill blue">Waktu: ${escapeHtml(ev.tanggal || 'Tercatat')}</span>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;border-top:1px solid #f1f5f9;padding-top:8px;" onclick="event.stopPropagation();">
+          <button type="button" class="btn-outline-touch" style="height:32px;padding:0 10px;font-size:11.5px;color:#475569;" onclick="openResesEventDetail(${ev.id})">
+            Detail Titik
+          </button>
+          <button type="button" class="btn-primary-touch" style="height:32px;padding:0 10px;font-size:11.5px;" onclick="openPokirForm({ lokasi: '${escapeHtml(ev.lokasi || ev.desa || '')}', uraian: 'Diserap dari agenda reses: ${escapeHtml(ev.nama || '')}' })">
+            + Usul Pokir
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// Buka Bottom Sheet Detail & Siklus Usulan Pokir APBD
+function openPokirDetail(id) {
+  const p = (AppState.pokir || []).find(item => String(item.id) === String(id));
+  if (!p) {
+    showToast('Data Pokir tidak ditemukan', 'warning');
+    return;
+  }
+
+  const budgetNum = Number(p.anggaran || p.pagu || p.anggaran_disetujui || 0);
+  const budgetFormatted = budgetNum > 0 ? `Rp ${budgetNum.toLocaleString('id-ID')}` : 'Rp 150.000.000';
+  const stageBadge = getPokirStageBadgeMobile(p.status_tahap || p.status || 'Aspirasi Reses');
+  const pengusulNama = p.nama_pengusul || p.pengusul_nama || p.pengusulNama || 'Konstituen Dapil';
+  const pengusulHp = p.kontak_pengusul || p.pengusul_hp || p.pengusulHp || '';
+  const currentStage = p.status_tahap || 'Aspirasi Reses';
+
+  const stagesList = [
+    'Aspirasi Reses',
+    'Disetujui Gus Dim (Fraksi NasDem)',
+    'Terinput SIPD',
+    'Verifikasi Dinas (OPD Terkait)',
+    'Masuk Dokumen Resmi APBD',
+    'Realisasi Lapangan Selesai'
+  ];
+
+  const content = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="card-pill blue" style="font-size:11px;font-weight:700;">ID Pokir #${p.id}</span>
+        <div>${stageBadge}</div>
       </div>
 
-      <div class="touch-card">
-        <div class="card-top-row">
-          <div class="card-avatar" style="background:#eff6ff;color:#2563eb;">
-            ${Icons.checkCircle}
-          </div>
-          <div class="card-info">
-            <div class="card-name">Reses Masa Sidang II Tahun 2025</div>
-            <div class="card-nik" style="font-family:inherit;">Kecamatan Besuk &amp; Gading &bull; 20 Titik Pertemuan</div>
-          </div>
-          <span class="badge-status valid">Selesai</span>
-        </div>
-        <p style="font-size:13px;color:#334155;line-height:1.4;">
-          Kunjungan kerja ke pondok pesantren dan kelompok tani hutan untuk penyaluran bantuan bibit serta infrastruktur jalan desa.
-        </p>
+      <div style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.35;">
+        ${escapeHtml(p.kegiatan || p.judul || 'Program Usulan Pokir')}
       </div>
-    `;
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px;">
+        <div>
+          <span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;">Alokasi Anggaran</span>
+          <div style="font-weight:800;color:#0284c7;font-size:13px;margin-top:2px;">${budgetFormatted}</div>
+        </div>
+        <div>
+          <span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;">OPD Mitra</span>
+          <div style="font-weight:700;color:#0f172a;margin-top:2px;">${escapeHtml(p.opd || p.kategori || 'Dinas PUPR')}</div>
+        </div>
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;color:#334155;">
+        <div style="font-weight:700;color:#0f172a;margin-bottom:4px;">Lokasi &amp; Wilayah:</div>
+        <div>${escapeHtml(p.lokasi || p.desa || 'Kecamatan Kraksaan Raya')}</div>
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;color:#334155;line-height:1.45;">
+        <div style="font-weight:700;color:#0f172a;margin-bottom:4px;">Uraian Kegiatan:</div>
+        ${escapeHtml(p.uraian || p.keterangan || p.deskripsi || 'Program prioritas advokasi fraksi.')}
+      </div>
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;font-size:12px;color:#1e3a8a;">
+        <div style="font-weight:700;color:#1d4ed8;margin-bottom:4px;">Pengusul / Konstituen:</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <span><strong>${escapeHtml(pengusulNama)}</strong> ${pengusulHp ? `(${escapeHtml(pengusulHp)})` : ''}</span>
+          ${pengusulHp ? `
+            <button type="button" class="btn-wa-touch" style="height:30px;padding:0 10px;font-size:11px;" onclick="kirimWaUpdatePokir(${p.id})">
+              ${Icons.whatsapp} Kabari Pengusul
+            </button>
+          ` : '<span style="font-size:11px;color:#64748b;">Nomor WA tidak ada</span>'}
+        </div>
+      </div>
+
+      <!-- Update Tahapan Siklus Pokir Langsung -->
+      <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:4px;">
+        <label style="font-size:12px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+          Perbarui Tahapan Siklus Pokir:
+        </label>
+        <select id="selectPokirStageModal" class="touch-input" style="height:44px;font-size:13px;margin-bottom:10px;">
+          ${stagesList.map(st => `
+            <option value="${escapeHtml(st)}" ${currentStage.toLowerCase().includes(st.toLowerCase()) ? 'selected' : ''}>
+              ${st}
+            </option>
+          `).join('')}
+        </select>
+
+        <label style="font-size:12px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+          Catatan Progres Lapangan:
+        </label>
+        <input type="text" id="inputPokirCatatanModal" class="touch-input" style="height:44px;font-size:13px;margin-bottom:12px;" placeholder="Contoh: Dokumen diverifikasi Bappelitbangda" value="${escapeHtml(p.catatan_progres || '')}">
+
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn-primary-touch" style="height:42px;font-size:12.5px;font-weight:700;" onclick="savePokirStageUpdate(${p.id})">
+            ${Icons.checkCircle} Simpan Perubahan Tahapan
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  openBottomSheet('Detail &amp; Siklus Usulan Pokir', content);
+}
+
+// Simpan Perubahan Tahapan Pokir ke Server API
+async function savePokirStageUpdate(id) {
+  const select = document.getElementById('selectPokirStageModal');
+  const catatanInput = document.getElementById('inputPokirCatatanModal');
+  if (!select) return;
+
+  const newStage = select.value;
+  const newCatatan = catatanInput ? catatanInput.value.trim() : '';
+
+  showToast('Memperbarui tahapan Pokir...', 'info');
+
+  try {
+    await mobileApiCall('reses.php?action=update_pokir_status', 'POST', {
+      id: id,
+      statusTahap: newStage,
+      catatan: newCatatan || `Tahapan diubah ke ${newStage}`
+    });
+
+    const item = (AppState.pokir || []).find(p => String(p.id) === String(id));
+    if (item) {
+      item.status_tahap = newStage;
+      item.catatan_progres = newCatatan || `Tahapan diubah ke ${newStage}`;
+    }
+
+    renderPokirDedicated();
+    closeBottomSheet();
+    showToast('Tahapan usulan Pokir berhasil diperbarui!', 'success');
+  } catch (err) {
+    const item = (AppState.pokir || []).find(p => String(p.id) === String(id));
+    if (item) {
+      item.status_tahap = newStage;
+      item.catatan_progres = newCatatan || `Tahapan diubah ke ${newStage}`;
+    }
+    renderPokirDedicated();
+    closeBottomSheet();
+    showToast('Tahapan diperbarui di perangkat', 'info');
   }
+}
+
+// Kirim Kabar Perkembangan Pokir via WhatsApp
+function kirimWaUpdatePokir(id) {
+  const p = (AppState.pokir || []).find(item => String(item.id) === String(id));
+  if (!p) {
+    showToast('Data Pokir tidak ditemukan', 'warning');
+    return;
+  }
+
+  const hpRaw = p.kontak_pengusul || p.pengusul_hp || p.pengusulHp || '';
+  let cleanHp = hpRaw.replace(/[^0-9]/g, '');
+  if (!cleanHp) {
+    showToast('Nomor WhatsApp pengusul tidak terdaftar', 'warning');
+    return;
+  }
+  if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.substring(1);
+
+  const nama = p.nama_pengusul || p.pengusul_nama || p.pengusulNama || 'Bapak/Ibu Konstituen';
+  const judul = p.judul_usulan || p.kegiatan || p.judul || 'Program Pokir';
+  const tahap = p.status_tahap || 'Aspirasi Reses';
+  const catatan = p.catatan_progres || 'Sedang dalam pengawalan fraksi.';
+
+  const pesan = `Assalamu'alaikum Wr. Wb. Yth. *${nama}*,\n\nKami dari Tim Advokasi Gus Dim (Fraksi NasDem DPRD Kab. Probolinggo) mengabarkan perkembangan usulan Pokir APBD panjenengan:\n\n*Kegiatan:* ${judul}\n*Status Tahap:* *${tahap}*\n*Keterangan:* ${catatan}\n\nTerima kasih atas masukan dan kepercayaannya. Kami berkomitmen terus memperjuangkan kemaslahatan masyarakat Dapil Kraksaan Raya.\n\nWassalamu'alaikum Wr. Wb.`;
+
+  window.open(`https://wa.me/${cleanHp}?text=${encodeURIComponent(pesan)}`, '_blank');
+}
+
+// Detail Agenda Reses Dewan
+function openResesEventDetail(id) {
+  const events = AppState.resesEvents || [];
+  const ev = events.find(e => String(e.id) === String(id)) || {
+    id: id,
+    nama: 'Reses Masa Sidang Dewan',
+    masa_sidang: 'Masa Sidang 2025',
+    kecamatan: 'Kraksaan',
+    desa: 'Patokan',
+    lokasi: 'Balai Pertemuan Warga',
+    tanggal: '2025-01-15',
+    waktu: '13:30',
+    total_hadir: 85,
+    catatan: 'Penyerapan aspirasi konstituen terkait pertanian, jalan desa, dan pemberdayaan ekonomi.'
+  };
+
+  const content = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="card-pill blue" style="font-size:11px;font-weight:700;">${escapeHtml(ev.masa_sidang || 'Masa Sidang')}</span>
+        <span class="badge-status valid" style="font-size:10.5px;">Selesai Terlaksana</span>
+      </div>
+
+      <div style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.35;">
+        ${escapeHtml(ev.nama || ev.nama_acara || 'Pertemuan Reses')}
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px;">
+        <div>
+          <span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;">Tanggal &amp; Waktu</span>
+          <div style="font-weight:700;color:#0f172a;margin-top:2px;">${escapeHtml(ev.tanggal || '-')} (${escapeHtml(ev.waktu || '13:30')})</div>
+        </div>
+        <div>
+          <span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;">Kehadiran Warga</span>
+          <div style="font-weight:700;color:#16a34a;margin-top:2px;">${ev.total_hadir || 50} Peserta Hadir</div>
+        </div>
+      </div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;color:#334155;">
+        <div style="font-weight:700;color:#0f172a;margin-bottom:4px;">Lokasi Pertemuan:</div>
+        <div>${escapeHtml(ev.lokasi || ev.lokasi_detail || `Desa ${ev.desa}, Kec. ${ev.kecamatan}`)}</div>
+      </div>
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;font-size:12px;color:#1e3a8a;line-height:1.45;">
+        <div style="font-weight:700;color:#1d4ed8;margin-bottom:4px;">Hasil Penyerapan Aspirasi:</div>
+        ${escapeHtml(ev.catatan || 'Aspirasi konstituen dicatat dan ditelaah untuk dimasukkan ke bank usulan Pokir fraksi.')}
+      </div>
+
+      <button type="button" class="btn-primary-touch" style="height:42px;font-size:12.5px;font-weight:700;" onclick="closeBottomSheet(); openPokirForm({ lokasi: '${escapeHtml(ev.lokasi || ev.desa || '')}', uraian: 'Diserap dari agenda reses: ${escapeHtml(ev.nama || '')}' })">
+        ${Icons.checkCircle} + Buat Usulan Pokir dari Reses Ini
+      </button>
+    </div>
+  `;
+
+  openBottomSheet('Detail Agenda Reses', content);
+}
+
+// Pengaktif Geser Horizontal untuk Seluruh Filter Pills (Touch & Mouse Drag)
+function initHorizontalSwipeFilters() {
+  document.querySelectorAll('.filter-pills-scroll').forEach(slider => {
+    if (slider.__swipeInitialized) return;
+    slider.__swipeInitialized = true;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    let hasMoved = false;
+
+    slider.addEventListener('mousedown', (e) => {
+      isDown = true;
+      hasMoved = false;
+      slider.classList.add('dragging');
+      startX = e.pageX - slider.offsetLeft;
+      scrollLeft = slider.scrollLeft;
+    });
+
+    const stopDragging = () => {
+      if (!isDown) return;
+      isDown = false;
+      slider.classList.remove('dragging');
+    };
+
+    slider.addEventListener('mouseleave', stopDragging);
+    slider.addEventListener('mouseup', stopDragging);
+
+    slider.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      if (Math.abs(walk) > 5) hasMoved = true;
+      slider.scrollLeft = scrollLeft - walk;
+    });
+
+    // Touch listeners
+    slider.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].pageX - slider.offsetLeft;
+      scrollLeft = slider.scrollLeft;
+      hasMoved = false;
+    }, { passive: true });
+
+    slider.addEventListener('touchmove', (e) => {
+      const x = e.touches[0].pageX - slider.offsetLeft;
+      const walk = (x - startX);
+      if (Math.abs(walk) > 5) hasMoved = true;
+    }, { passive: true });
+
+    // Cegah klik tombol terpencet jika pengguna sedang menggeser
+    slider.addEventListener('click', (e) => {
+      if (hasMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  });
 }
 
 function switchResesSubTab(tab, btn) {

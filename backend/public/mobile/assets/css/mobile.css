@@ -980,16 +980,22 @@ html, body {
    SEARCH & FILTER BAR
    ========================================================================== */
 .search-filter-wrapper {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .search-input-box {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .search-input-box svg {
@@ -1043,26 +1049,51 @@ html, body {
 
 .filter-pills-scroll {
   display: flex;
+  align-items: center;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 4px 2px 8px 2px;
   scrollbar-width: none;
+  -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+}
+
+.filter-pills-scroll.dragging {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .filter-pills-scroll::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 
 .filter-pill {
-  padding: 6px 14px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -1073,6 +1104,25 @@ html, body {
   border-color: var(--primary);
   font-weight: 600;
 }
+
+/* Badge Tahapan Siklus Pokir APBD Mobile */
+.badge-stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.badge-stage.stage-1 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.badge-stage.stage-2 { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.badge-stage.stage-3 { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+.badge-stage.stage-4 { background: #ecfeff; color: #0891b2; border: 1px solid #a5f3fc; }
+.badge-stage.stage-5 { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-stage.stage-6 { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
 
 /* ==========================================================================
    BOTTOM SHEET DRAWER (MODAL SENTUH)
