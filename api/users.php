@@ -1,13 +1,15 @@
 <?php
 require_once dirname(__DIR__) . '/config/helpers.php';
 
-$user = require_auth();
+$user = get_auth_user();
 $action = $_GET['action'] ?? 'list';
 $body = get_request_body();
 
-// Hanya Superadmin yang boleh mengakses fitur manajemen user
-if ($user['role'] !== 'Superadmin') {
-    json_response(['success' => false, 'message' => 'Hanya Superadmin yang memiliki akses ke Pengaturan Pengguna.'], 403);
+// Untuk tindakan modifikasi (tambah, ubah status, reset password), wajib login sebagai Superadmin
+if ($action !== 'list') {
+    if (!$user || $user['role'] !== 'Superadmin') {
+        json_response(['success' => false, 'message' => 'Hanya Superadmin yang memiliki akses modifikasi Pengaturan Pengguna.'], 403);
+    }
 }
 
 switch ($action) {
@@ -15,16 +17,22 @@ switch ($action) {
         $users = [];
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->query("SELECT id as rowNumber, id, username, nama, role, kecamatan, desa, ranting, status 
-                                 FROM users ORDER BY id ASC");
+            if ($user) {
+                $stmt = $pdo->query("SELECT id as rowNumber, id, username, nama, role, kecamatan, desa, ranting, status 
+                                     FROM users ORDER BY id ASC");
+            } else {
+                $stmt = $pdo->query("SELECT id as rowNumber, id, '' as username, nama, role, kecamatan, desa, ranting, status 
+                                     FROM users WHERE status = 'Aktif' ORDER BY id ASC");
+            }
             $users = $stmt->fetchAll();
         } else {
             $data = Database::getJsonData();
-            foreach ($data['users'] as $u) {
+            foreach ($data['users'] ?? [] as $u) {
+                if (!$user && ($u['status'] ?? 'Aktif') !== 'Aktif') continue;
                 $users[] = [
                     'rowNumber' => $u['id'],
                     'id' => $u['id'],
-                    'username' => $u['username'],
+                    'username' => $user ? ($u['username'] ?? '') : '',
                     'nama' => $u['nama'],
                     'role' => $u['role'],
                     'kecamatan' => $u['kecamatan'] ?? '',

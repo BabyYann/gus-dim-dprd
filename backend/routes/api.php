@@ -22,6 +22,7 @@ Route::get('/auth/check', [AuthController::class, 'check'])->middleware('auth:sa
 Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('/auth/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 Route::post('/auth/avatar', [AuthController::class, 'updateAvatar'])->middleware('auth:sanctum');
+Route::post('/auth/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
 
 // Adapter untuk format auth.php?action=...
 Route::any('/auth.php', function (Request $request) {
@@ -33,6 +34,7 @@ Route::any('/auth.php', function (Request $request) {
         'logout' => $ctrl->logout($request),
         'update-profile' => $ctrl->updateProfile($request),
         'update-avatar' => $ctrl->updateAvatar($request),
+        'change-password' => $ctrl->changePassword($request),
         default => response()->json(['error' => 'Aksi tidak valid'], 400),
     };
 });

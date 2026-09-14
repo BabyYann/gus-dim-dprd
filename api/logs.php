@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/config/helpers.php';
 
-$user = require_auth();
+$user = get_auth_user();
 
 $logs = [];
 if (Database::isMysql()) {

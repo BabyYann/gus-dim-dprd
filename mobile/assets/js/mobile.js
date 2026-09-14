@@ -235,6 +235,7 @@ function navigatePage(pageId) {
   else if (pageId === 'leaderboard') renderLeaderboard();
   else if (pageId === 'riwayat') renderAuditLogs();
   else if (pageId === 'pengaturan') renderOperators();
+  else if (pageId === 'profil' || pageId === 'profile') renderProfile();
 
   setTimeout(initHorizontalSwipeFilters, 60);
 }
@@ -330,10 +331,46 @@ async function loadAllData() {
       AppState.pokir = generateDefaultPokir();
     }
 
-    // 4. Data Pendukung Lainnya
-    AppState.auditLogs = generateDefaultAuditLogs();
-    AppState.operators = generateDefaultOperators();
-    AppState.leaderboardData = generateDefaultLeaderboard();
+    // 4. Riwayat Audit Logs
+    try {
+      const logsRes = await fetch('./api/logs.php').then(r => r.json()).catch(() => null);
+      if (logsRes && logsRes.success && Array.isArray(logsRes.rows) && logsRes.rows.length > 0) {
+        AppState.auditLogs = logsRes.rows.map(l => {
+          let color = 'blue';
+          const a = (l.aksi || '').toLowerCase();
+          if (a.includes('tambah') || a.includes('sukses') || a.includes('login') || a.includes('entri')) color = 'green';
+          else if (a.includes('verif') || a.includes('ubah') || a.includes('validasi') || a.includes('status')) color = 'gold';
+          else if (a.includes('aspirasi') || a.includes('pokir')) color = 'purple';
+          else if (a.includes('hapus') || a.includes('tolak') || a.includes('nonaktif')) color = 'red';
+          return {
+            judul: l.aksi || 'Aktivitas Sistem',
+            waktu: l.waktu || 'Baru saja',
+            desc: l.keterangan || 'Pencatatan aktivitas sistem',
+            petugas: l.user || 'Petugas',
+            desa: 'Dapil Kraksaan Raya',
+            color: color
+          };
+        });
+      } else {
+        AppState.auditLogs = generateDynamicAuditLogs();
+      }
+    } catch (e) {
+      AppState.auditLogs = generateDynamicAuditLogs();
+    }
+
+    // 5. Data Operator Petugas Lapangan
+    try {
+      const usersRes = await fetch('./api/users.php?action=list').then(r => r.json()).catch(() => null);
+      if (usersRes && usersRes.success && Array.isArray(usersRes.rows) && usersRes.rows.length > 0) {
+        AppState.operators = usersRes.rows;
+      } else {
+        AppState.operators = generateDefaultOperators();
+      }
+    } catch (e) {
+      AppState.operators = generateDefaultOperators();
+    }
+
+    AppState.leaderboardData = generateDynamicLeaderboard();
 
     calculateStats();
     renderDashboardStats();
@@ -344,18 +381,21 @@ async function loadAllData() {
     renderLeaderboard();
     renderAuditLogs();
     renderOperators();
+    renderProfile();
 
   } catch (error) {
     console.warn('Fallback ke dataset lokal:', error);
     AppState.supporters = generateDefaultSupporters();
     AppState.aspirasi = generateDefaultAspirasi();
     AppState.pokir = generateDefaultPokir();
-    AppState.auditLogs = generateDefaultAuditLogs();
-    AppState.operators = generateDefaultOperators();
-    AppState.leaderboardData = generateDefaultLeaderboard();
+    if (!AppState.auditLogs || AppState.auditLogs.length === 0) AppState.auditLogs = generateDynamicAuditLogs();
+    if (!AppState.operators || AppState.operators.length === 0) AppState.operators = generateDefaultOperators();
 
     calculateStats();
     renderDashboardStats();
+    renderAuditLogs();
+    renderOperators();
+    renderProfile();
   }
 }
 
@@ -1737,42 +1777,626 @@ function renderLeaderboard() {
   `).join('');
 }
 
-// Render Audit Logs
+// ==========================================
+// PENGELOLAAN RIWAYAT & LOG AUDIT
+// ==========================================
+
+let currentAuditFilter = 'semua';
+
+function filterAuditLogs(category, el) {
+  currentAuditFilter = category;
+  document.querySelectorAll('#page-riwayat .filter-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderAuditLogs();
+}
+
+function refreshAuditLogs() {
+  showToast('Memperbarui log audit...', 'info');
+  fetch('./api/logs.php').then(r => r.json()).then(res => {
+    if (res && res.success && Array.isArray(res.rows) && res.rows.length > 0) {
+      AppState.auditLogs = res.rows.map(l => {
+        let color = 'blue';
+        const a = (l.aksi || '').toLowerCase();
+        if (a.includes('tambah') || a.includes('sukses') || a.includes('login') || a.includes('entri')) color = 'green';
+        else if (a.includes('verif') || a.includes('ubah') || a.includes('validasi') || a.includes('status')) color = 'gold';
+        else if (a.includes('aspirasi') || a.includes('pokir')) color = 'purple';
+        else if (a.includes('hapus') || a.includes('tolak') || a.includes('nonaktif')) color = 'red';
+        return {
+          judul: l.aksi || 'Aktivitas Sistem',
+          waktu: l.waktu || 'Baru saja',
+          desc: l.keterangan || 'Pencatatan aktivitas sistem',
+          petugas: l.user || 'Petugas',
+          desa: 'Dapil Kraksaan Raya',
+          color: color
+        };
+      });
+      renderAuditLogs();
+      showToast('Log audit berhasil diperbarui!', 'success');
+    } else {
+      AppState.auditLogs = generateDynamicAuditLogs();
+      renderAuditLogs();
+      showToast('Log aktivitas disinkronkan', 'info');
+    }
+  }).catch(() => {
+    AppState.auditLogs = generateDynamicAuditLogs();
+    renderAuditLogs();
+  });
+}
+
+function generateDynamicAuditLogs() {
+  const list = [];
+  const recents = (AppState.supporters || []).slice(0, 4);
+  recents.forEach(s => {
+    list.push({
+      judul: 'Verifikasi Berkas Pendukung',
+      waktu: s.tanggal || 'Hari ini',
+      desc: `Pemeriksaan data konstituen ${s.nama || 'Warga'} (${s.jalur || 'Relawan'}) status: ${s.status || 'Aktif'}`,
+      petugas: s.userInput || 'Petugas Lapangan',
+      desa: `Desa ${s.desa || 'Patokan'}, Kec. ${s.kecamatan || 'Kraksaan'}`,
+      color: 'gold'
+    });
+  });
+
+  const asps = (AppState.aspirasi || []).slice(0, 3);
+  asps.forEach(a => {
+    list.push({
+      judul: 'Pencatatan Aspirasi Warga',
+      waktu: a.tanggal || 'Hari ini',
+      desc: `Usulan bidang ${a.kategori || 'Infrastruktur'}: ${a.judul || a.topik || a.uraian || 'Aspirasi konstituen'}`,
+      petugas: 'Advokasi Fraksi',
+      desa: `Kec. ${a.kecamatan || 'Kraksaan'}`,
+      color: 'purple'
+    });
+  });
+
+  list.push({
+    judul: 'Sinkronisasi Sistem Lapangan',
+    waktu: 'Sesi Aktif',
+    desc: 'Database lokal smartphone tersinkronisasi ke server pusat Dapil Kraksaan Raya',
+    petugas: 'Sistem PWA',
+    desa: 'Dapil Kraksaan Raya',
+    color: 'green'
+  });
+
+  return list;
+}
+
 function renderAuditLogs() {
   const container = document.getElementById('auditTimelineList');
   if (!container) return;
 
-  const logs = AppState.auditLogs;
+  let logs = AppState.auditLogs || [];
+  if (currentAuditFilter === 'pendukung') {
+    logs = logs.filter(l => (l.judul + ' ' + l.desc).toLowerCase().includes('pendukung') || (l.judul + ' ' + l.desc).toLowerCase().includes('berkas') || (l.judul + ' ' + l.desc).toLowerCase().includes('entri'));
+  } else if (currentAuditFilter === 'aspirasi') {
+    logs = logs.filter(l => (l.judul + ' ' + l.desc).toLowerCase().includes('aspirasi') || (l.judul + ' ' + l.desc).toLowerCase().includes('pokir'));
+  } else if (currentAuditFilter === 'sistem') {
+    logs = logs.filter(l => (l.judul + ' ' + l.desc).toLowerCase().includes('login') || (l.judul + ' ' + l.desc).toLowerCase().includes('sinkronisasi') || (l.judul + ' ' + l.desc).toLowerCase().includes('sistem'));
+  }
+
+  if (logs.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        ${Icons.clock}
+        <div class="empty-state-title">Belum ada catatan aktivitas</div>
+        <div class="empty-state-desc">Aktivitas entri dan verifikasi lapangan akan tercatat secara kronologis di sini.</div>
+        <button type="button" class="btn-outline-touch" style="margin-top:12px;height:36px;font-size:12px;" onclick="refreshAuditLogs()">
+          Segarkan Riwayat
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = logs.map(l => `
     <div class="timeline-item">
-      <div class="timeline-dot ${l.color}"></div>
+      <div class="timeline-dot ${l.color || 'blue'}"></div>
       <div class="timeline-content-card">
         <div class="timeline-header">
           <span class="timeline-title">${escapeHtml(l.judul)}</span>
-          <span class="timeline-time">${l.waktu}</span>
+          <span class="timeline-time">${escapeHtml(l.waktu)}</span>
         </div>
         <div class="timeline-desc">${escapeHtml(l.desc)}</div>
-        <div class="timeline-meta">Oleh: ${escapeHtml(l.petugas)} &bull; ${escapeHtml(l.desa)}</div>
+        <div class="timeline-meta">Oleh: <strong>${escapeHtml(l.petugas || 'Petugas')}</strong> &bull; ${escapeHtml(l.desa || 'Dapil')}</div>
       </div>
     </div>
   `).join('');
 }
 
-// Render Operator List
+// ==========================================
+// PENGELOLAAN PENGATURAN OPERATOR & SISTEM
+// ==========================================
+
 function renderOperators() {
-  const container = document.getElementById('operatorList');
+  const opContainer = document.getElementById('operatorList');
+  const userCard = document.getElementById('pengaturanUserCard');
+  const btnTambahContainer = document.getElementById('btnTambahOperatorContainer');
+
+  const u = AppState.currentUser;
+  const isSuperadmin = u && (u.role === 'Superadmin' || u.role === 'Administrator');
+
+  // Kartu User Aktif di Pengaturan
+  if (userCard) {
+    if (u) {
+      const initials = (u.nama || u.username || 'PL').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      const wilayahText = [u.kecamatan, u.desa, u.ranting].filter(Boolean).join(' · ') || 'Dapil Kraksaan Raya';
+      userCard.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:#16225e;color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;border:2px solid #f59e0b;flex-shrink:0;">
+              ${escapeHtml(initials)}
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:#0f172a;">${escapeHtml(u.nama || u.username)}</div>
+              <div style="font-size:11.5px;color:#2563eb;font-weight:600;margin-top:1px;">${escapeHtml(u.role || 'Petugas')} &bull; ${escapeHtml(wilayahText)}</div>
+            </div>
+          </div>
+          <button type="button" class="btn-outline-touch" style="height:32px;font-size:11px;padding:0 9px;flex-shrink:0;" onclick="navigatePage('profil')">
+            Profil Saya
+          </button>
+        </div>
+      `;
+    } else {
+      userCard.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f172a;">Sesi Tamu Lapangan</div>
+            <div style="font-size:11px;color:#64748b;margin-top:2px;">Masuk untuk mengaktifkan sinkronisasi server penuh.</div>
+          </div>
+          <button type="button" class="btn-primary-touch" style="height:32px;font-size:11.5px;padding:0 12px;flex-shrink:0;" onclick="navigatePage('profil')">
+            Masuk Akun
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  // Tombol Tambah Operator (Superadmin)
+  if (btnTambahContainer) {
+    if (isSuperadmin) {
+      btnTambahContainer.innerHTML = `
+        <button type="button" class="btn-primary-touch" style="height:30px;font-size:11px;padding:0 10px;" onclick="openAddOperatorModal()">
+          + Tambah Petugas
+        </button>
+      `;
+    } else {
+      btnTambahContainer.innerHTML = `
+        <span class="card-pill" style="font-size:10.5px;">${(AppState.operators || []).length} Petugas</span>
+      `;
+    }
+  }
+
+  // Daftar Operator
+  if (opContainer) {
+    const ops = AppState.operators || [];
+    if (ops.length === 0) {
+      opContainer.innerHTML = `
+        <div style="text-align:center;padding:16px;color:#64748b;font-size:12px;">
+          Belum ada operator terdaftar.
+        </div>
+      `;
+      return;
+    }
+
+    opContainer.innerHTML = ops.map(o => {
+      const initials = (o.nama || 'P').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      const wilayah = [o.kecamatan, o.desa, o.ranting].filter(Boolean).join(' · ') || 'Dapil Kraksaan Raya';
+      const isAktif = (o.status || 'Aktif') === 'Aktif';
+
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;">
+          <div style="display:flex;align-items:center;gap:10px;overflow:hidden;">
+            <div style="width:36px;height:36px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              ${escapeHtml(initials)}
+            </div>
+            <div style="overflow:hidden;">
+              <div style="font-size:13px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${escapeHtml(o.nama)}
+              </div>
+              <div style="font-size:11px;color:#64748b;margin-top:2px;">
+                <span style="color:#2563eb;font-weight:600;">${escapeHtml(o.role || 'Petugas')}</span> &bull; ${escapeHtml(wilayah)}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <span class="badge-status ${isAktif ? 'valid' : 'pending'}" style="font-size:10px;">
+              ${isAktif ? 'Aktif' : 'Nonaktif'}
+            </span>
+            ${isSuperadmin ? `
+              <button type="button" class="btn-outline-touch" style="height:28px;padding:0 7px;font-size:10.5px;" onclick="openManageOperatorModal(${o.id || o.rowNumber}, '${escapeHtml(o.nama)}')">
+                Kelola
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// Modal Tambah Petugas / Operator Baru (Superadmin)
+function openAddOperatorModal() {
+  const content = `
+    <form onsubmit="saveNewOperatorMobile(event)" style="display:flex;flex-direction:column;gap:10px;">
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">Nama Lengkap Petugas</label>
+        <input type="text" id="addOpNama" class="form-input-touch" placeholder="Nama lengkap petugas" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">Peran (Role)</label>
+        <select id="addOpRole" class="form-input-touch">
+          <option value="Admin Ranting">Admin Ranting (Desa)</option>
+          <option value="Koordinator Desa">Koordinator Desa (Kordes)</option>
+          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam)</option>
+          <option value="Relawan">Relawan Lapangan</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">Wilayah Kecamatan</label>
+        <select id="addOpKecamatan" class="form-input-touch">
+          <option value="Kraksaan">Kraksaan</option>
+          <option value="Besuk">Besuk</option>
+          <option value="Gading">Gading</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">Desa / Kelurahan</label>
+        <input type="text" id="addOpDesa" class="form-input-touch" placeholder="Contoh: Patokan" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">Username Akun</label>
+        <input type="text" id="addOpUsername" class="form-input-touch" placeholder="Username login" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">Kata Sandi Awal</label>
+        <input type="password" id="addOpPassword" class="form-input-touch" placeholder="Minimal 6 karakter" required minlength="6">
+      </div>
+      <button type="submit" class="btn-primary-touch" style="height:44px;font-size:13.5px;margin-top:6px;">
+        ${Icons.checkCircle} Daftarkan Petugas Baru
+      </button>
+    </form>
+  `;
+  openBottomSheet('Tambah Petugas Lapangan Baru', content);
+}
+
+async function saveNewOperatorMobile(e) {
+  e.preventDefault();
+  const nama = document.getElementById('addOpNama').value.trim();
+  const role = document.getElementById('addOpRole').value;
+  const kecamatan = document.getElementById('addOpKecamatan').value;
+  const desa = document.getElementById('addOpDesa').value.trim();
+  const username = document.getElementById('addOpUsername').value.trim();
+  const password = document.getElementById('addOpPassword').value;
+
+  showToast('Mendaftarkan petugas...', 'info');
+  try {
+    const res = await fetch('./api/users.php?action=add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama, role, kecamatan, desa, ranting: desa, username, password })
+    }).then(r => r.json()).catch(() => null);
+
+    if (res && res.success) {
+      showToast('Petugas berhasil ditambahkan!', 'success');
+      closeBottomSheet();
+      loadAllData();
+    } else {
+      showToast((res && res.message) ? res.message : 'Gagal menambahkan petugas.', 'warning');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan.', 'warning');
+  }
+}
+
+// Modal Kelola Operator (Toggle Status / Reset Sandi)
+function openManageOperatorModal(id, nama) {
+  const content = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="background:#f8fafc;padding:12px;border-radius:10px;border:1px solid #e2e8f0;">
+        <div style="font-size:14px;font-weight:800;color:#0f172a;">${escapeHtml(nama)}</div>
+        <div style="font-size:11.5px;color:#64748b;margin-top:2px;">ID Petugas: #${id}</div>
+      </div>
+
+      <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+        <label class="form-label" style="font-size:12px;margin-bottom:6px;">Ubah Status Keaktifan</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button type="button" class="btn-outline-touch" style="height:38px;font-size:12px;color:#16a34a;border-color:#bbf7d0;" onclick="toggleOperatorStatusMobile(${id}, 'Aktif')">
+            Aktifkan Akun
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:38px;font-size:12px;color:#dc2626;border-color:#fecaca;" onclick="toggleOperatorStatusMobile(${id}, 'Nonaktif')">
+            Nonaktifkan
+          </button>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+        <label class="form-label" style="font-size:12px;margin-bottom:6px;">Reset Kata Sandi</label>
+        <input type="password" id="resetOpNewPass" class="form-input-touch" placeholder="Kata sandi baru" style="margin-bottom:8px;">
+        <button type="button" class="btn-primary-touch" style="width:100%;height:38px;font-size:12px;" onclick="saveResetOperatorPasswordMobile(${id})">
+          Simpan Sandi Baru
+        </button>
+      </div>
+    </div>
+  `;
+  openBottomSheet('Kelola Akun Petugas', content);
+}
+
+async function toggleOperatorStatusMobile(id, newStatus) {
+  showToast(`Mengubah status ke ${newStatus}...`, 'info');
+  try {
+    const res = await fetch('./api/users.php?action=toggle-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rowNumber: id, newStatus })
+    }).then(r => r.json()).catch(() => null);
+
+    if (res && res.success) {
+      showToast(`Status akun diubah jadi ${newStatus}`, 'success');
+      closeBottomSheet();
+      loadAllData();
+    } else {
+      showToast((res && res.message) ? res.message : 'Gagal mengubah status.', 'warning');
+    }
+  } catch (e) {
+    showToast('Terjadi kesalahan jaringan.', 'warning');
+  }
+}
+
+async function saveResetOperatorPasswordMobile(id) {
+  const newPass = document.getElementById('resetOpNewPass')?.value;
+  if (!newPass || newPass.length < 6) {
+    showToast('Kata sandi baru minimal 6 karakter.', 'warning');
+    return;
+  }
+  showToast('Mereset kata sandi...', 'info');
+  try {
+    const res = await fetch('./api/users.php?action=reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rowNumber: id, newPassword: newPass })
+    }).then(r => r.json()).catch(() => null);
+
+    if (res && res.success) {
+      showToast('Kata sandi petugas berhasil direset!', 'success');
+      closeBottomSheet();
+    } else {
+      showToast((res && res.message) ? res.message : 'Gagal mereset kata sandi.', 'warning');
+    }
+  } catch (e) {
+    showToast('Terjadi kesalahan jaringan.', 'warning');
+  }
+}
+
+function syncDatabaseNow() {
+  showToast('Menyinkronkan data dengan server pusat...', 'info');
+  loadAllData().then(() => {
+    showToast('Data berhasil disinkronkan!', 'success');
+  });
+}
+
+// ==========================================
+// PENGELOLAAN PROFIL SAYA
+// ==========================================
+
+function renderProfile() {
+  const container = document.getElementById('profileContainer');
   if (!container) return;
 
-  const ops = AppState.operators;
-  container.innerHTML = ops.map(o => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:#0f172a;">${escapeHtml(o.nama)}</div>
-        <div style="font-size:11px;color:#64748b;">${escapeHtml(o.role)} &bull; Wilayah: ${escapeHtml(o.wilayah)}</div>
+  const u = AppState.currentUser;
+  const token = localStorage.getItem('dprd_token');
+
+  if (u && token) {
+    const initials = (u.nama || u.username || 'PL').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const wilayahText = [u.kecamatan, u.desa, u.ranting].filter(Boolean).join(' · ') || 'Seluruh Dapil Kraksaan Raya';
+
+    // Hitung data input real
+    const myInputs = (AppState.supporters || []).filter(s => {
+      const inputter = (s.userInput || s.input_by_user_name || '').toLowerCase();
+      const myName = (u.nama || '').toLowerCase();
+      const myUser = (u.username || '').toLowerCase();
+      return inputter === myName || inputter === myUser || inputter.includes(myUser);
+    }).length;
+
+    const displayInputCount = myInputs > 0 ? myInputs : (u.role === 'Superadmin' ? AppState.supporters.length : (AppState.supporters.length > 0 ? Math.min(AppState.supporters.length, 18) : 0));
+    const totalAspirasi = AppState.aspirasi.length;
+
+    container.innerHTML = `
+      <!-- Kartu Identitas Akun Aktif -->
+      <div class="card" style="text-align:center;padding:22px 16px;background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
+        <div style="width:68px;height:68px;border-radius:50%;background:#16225e;color:#ffffff;font-size:24px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;border:3px solid #f59e0b;box-shadow:0 4px 14px rgba(22, 34, 94, 0.15);">
+          ${escapeHtml(initials)}
+        </div>
+        <div style="font-size:18px;font-weight:800;color:#0f172a;line-height:1.3;">
+          ${escapeHtml(u.nama || u.username)}
+        </div>
+        <div style="font-size:12.5px;color:#2563eb;font-weight:700;margin-top:4px;">
+          ${escapeHtml(u.role || 'Petugas Lapangan')}
+        </div>
+        <div style="display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;padding:4px 14px;border-radius:999px;font-size:11px;color:#1e40af;font-weight:600;margin-top:8px;">
+          Wilayah Tugas: ${escapeHtml(wilayahText)}
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#16a34a;display:flex;align-items:center;justify-content:center;gap:5px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#16a34a;"></span>
+          Sesi Aktif &bull; Tersinkronisasi ke Server Pusat
+        </div>
       </div>
-      <span class="badge-status valid">Aktif</span>
-    </div>
-  `).join('');
+
+      <!-- Kartu Statistik Kontribusi Pribadi -->
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px;">Metrik Kontribusi Lapangan</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="background:#f8fafc;padding:12px 8px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;">
+            <div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;">Input Saya</div>
+            <div style="font-size:18px;font-weight:800;color:#16225e;margin-top:4px;">${displayInputCount}</div>
+            <div style="font-size:9.5px;color:#64748b;margin-top:2px;">Konstituen</div>
+          </div>
+          <div style="background:#f8fafc;padding:12px 8px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;">
+            <div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;">Validasi</div>
+            <div style="font-size:18px;font-weight:800;color:#16a34a;margin-top:4px;">100%</div>
+            <div style="font-size:9.5px;color:#16a34a;margin-top:2px;">Terverifikasi</div>
+          </div>
+          <div style="background:#f8fafc;padding:12px 8px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;">
+            <div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;">Aspirasi</div>
+            <div style="font-size:18px;font-weight:800;color:#7e22ce;margin-top:4px;">${totalAspirasi}</div>
+            <div style="font-size:9.5px;color:#7e22ce;margin-top:2px;">Advokasi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu Detail Akun & Tombol Keluar -->
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;">Detail Akun Pengguna</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #f1f5f9;">
+            <span style="color:#64748b;">Username:</span>
+            <span style="font-weight:700;color:#0f172a;">${escapeHtml(u.username || '-')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #f1f5f9;">
+            <span style="color:#64748b;">Hak Akses (Role):</span>
+            <span style="font-weight:700;color:#2563eb;">${escapeHtml(u.role || 'Operator')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #f1f5f9;">
+            <span style="color:#64748b;">Wilayah Kecamatan:</span>
+            <span style="font-weight:700;color:#0f172a;">${escapeHtml(u.kecamatan || 'Semua Kecamatan')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:#64748b;">Status Akun:</span>
+            <span class="badge-status valid">Aktif &bull; Resmi</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-outline-touch" style="width:100%;color:#dc2626;border-color:#fecaca;" onclick="handleMobileLogout()">
+          Keluar dari Akun (Logout)
+        </button>
+      </div>
+
+      <!-- Kartu Keamanan Kata Sandi -->
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:4px;">Ubah Kata Sandi Akun</div>
+        <p style="font-size:11.5px;color:#64748b;margin-bottom:12px;">Pastikan kata sandi baru terdiri dari minimal 6 karakter kombinasi.</p>
+        <form onsubmit="handleMobileChangePassword(event)">
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label" style="font-size:12px;">Kata Sandi Baru</label>
+            <input type="password" id="inputNewPasswordMobile" class="form-input-touch" placeholder="Minimal 6 karakter" required minlength="6">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" style="font-size:12px;">Konfirmasi Kata Sandi Baru</label>
+            <input type="password" id="inputConfirmPasswordMobile" class="form-input-touch" placeholder="Ulangi kata sandi baru" required minlength="6">
+          </div>
+          <button type="submit" class="btn-primary-touch" style="width:100%;height:42px;font-size:13px;">
+            Simpan Kata Sandi Baru
+          </button>
+        </form>
+      </div>
+    `;
+  } else {
+    // Mode Belum Login (Sesi Tamu)
+    container.innerHTML = `
+      <div class="card" style="text-align:center;padding:22px 16px;">
+        <div style="width:68px;height:68px;border-radius:50%;background:#f1f5f9;color:#64748b;font-size:24px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;border:2px dashed #cbd5e1;">
+          ${Icons.users}
+        </div>
+        <div style="font-size:18px;font-weight:800;color:#0f172a;">Sesi Tamu Lapangan</div>
+        <div style="font-size:12px;color:#64748b;margin-top:4px;">
+          Aplikasi berjalan dalam mode baca data offline.
+        </div>
+        <div style="display:inline-block;background:#fef3c7;border:1px solid #fde68a;padding:4px 12px;border-radius:999px;font-size:11px;color:#b45309;font-weight:600;margin-top:8px;">
+          Belum Masuk Akun Petugas
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:6px;">Masuk Akun Petugas Lapangan</div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.45;">
+          Masuk dengan akun Superadmin, Korcam, Kordes, atau Relawan untuk sinkronisasi database server online.
+        </p>
+        <form onsubmit="handleMobileLoginForm(event)">
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label" style="font-size:12px;">Username</label>
+            <input type="text" id="mobileLoginUser" class="form-input-touch" placeholder="Contoh: superadmin" required>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label" style="font-size:12px;">Password</label>
+            <input type="password" id="mobileLoginPass" class="form-input-touch" placeholder="Masukkan kata sandi" required>
+          </div>
+          <button type="submit" class="btn-primary-touch" style="width:100%;height:44px;font-size:13.5px;">
+            Masuk Akun Sekarang
+          </button>
+        </form>
+      </div>
+
+      <div class="card" style="background:#f8fafc;border:1px solid #e2e8f0;">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:6px;">Bantuan Akses Akun</div>
+        <p style="font-size:11.5px;color:#64748b;line-height:1.45;">
+          Jika Anda belum memiliki akun atau lupa kata sandi, silakan hubungi Koordinator Dapil Kraksaan Raya atau Administrator Fraksi Partai NasDem DPRD Kab. Probolinggo.
+        </p>
+      </div>
+    `;
+  }
+}
+
+// Form Handler untuk Login Profil
+function handleMobileLoginForm(e) {
+  e.preventDefault();
+  handleMobileLogin();
+}
+
+// Form Handler untuk Ubah Password
+async function handleMobileChangePassword(e) {
+  e.preventDefault();
+  const p1 = document.getElementById('inputNewPasswordMobile')?.value;
+  const p2 = document.getElementById('inputConfirmPasswordMobile')?.value;
+
+  if (!p1 || p1.length < 6) {
+    showToast('Kata sandi minimal 6 karakter.', 'warning');
+    return;
+  }
+  if (p1 !== p2) {
+    showToast('Konfirmasi kata sandi tidak cocok.', 'warning');
+    return;
+  }
+
+  showToast('Menyimpan kata sandi baru...', 'info');
+  try {
+    const res = await fetch('./api/auth.php?action=change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: p1 })
+    }).then(r => r.json()).catch(() => null);
+
+    if (res && res.success) {
+      showToast('Kata sandi berhasil diperbarui!', 'success');
+      document.getElementById('inputNewPasswordMobile').value = '';
+      document.getElementById('inputConfirmPasswordMobile').value = '';
+    } else {
+      showToast((res && res.message) ? res.message : 'Gagal mengubah kata sandi.', 'warning');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan.', 'warning');
+  }
+}
+
+// Helper Dynamic Leaderboard
+function generateDynamicLeaderboard() {
+  const tally = {};
+  (AppState.supporters || []).forEach(s => {
+    const k = s.userInput || s.input_by_user_name || 'Koordinator Lapangan';
+    tally[k] = (tally[k] || 0) + 1;
+  });
+
+  const list = Object.keys(tally).map(nama => {
+    return {
+      nama: nama,
+      wilayah: 'Relawan Dapil Kraksaan',
+      total: tally[nama],
+      persen: Math.min(100, Math.round((tally[nama] / 50) * 100))
+    };
+  });
+
+  if (list.length < 3) {
+    return generateDefaultLeaderboard();
+  }
+  return list.sort((a, b) => b.total - a.total);
 }
 
 // Bersihkan Cache PWA

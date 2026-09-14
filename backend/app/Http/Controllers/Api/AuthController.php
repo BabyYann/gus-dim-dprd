@@ -191,4 +191,31 @@ class AuthController extends Controller
             ]
         ]);
     }
+    public function changePassword(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Sesi tidak valid.'], 401);
+        }
+
+        $password = $request->input('password', $request->input('newPassword', ''));
+        if (strlen($password) < 6) {
+            return response()->json(['success' => false, 'message' => 'Kata sandi baru minimal 6 karakter.']);
+        }
+
+        $user->password = Hash::make($password);
+        $user->save();
+
+        AuditLog::create([
+            'user_id' => $user->id,
+            'user_nama' => $user->nama,
+            'aksi' => 'Ganti Password',
+            'id_referensi' => (string)$user->id,
+            'keterangan' => 'Memperbarui kata sandi akun sendiri',
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Kata sandi berhasil diperbarui.']);
+    }
 }

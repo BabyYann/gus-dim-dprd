@@ -188,6 +188,33 @@ switch ($action) {
         ]);
         break;
 
+    case 'change-password':
+        $user = require_auth();
+        $newPassword = $body['password'] ?? $body['newPassword'] ?? '';
+        if (strlen($newPassword) < 6) {
+            json_response(['success' => false, 'message' => 'Kata sandi baru minimal 6 karakter.']);
+        }
+
+        $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p WHERE id = :id");
+            $stmt->execute(['p' => $hash, 'id' => $user['id']]);
+        } else {
+            $data = Database::getJsonData();
+            foreach ($data['users'] as &$u) {
+                if ($u['id'] == $user['id']) {
+                    $u['password_hash'] = $hash;
+                    break;
+                }
+            }
+            Database::saveJsonData($data);
+        }
+
+        log_activity($user['id'], $user['nama'], 'Ganti Password', '', 'Memperbarui kata sandi akun');
+        json_response(['success' => true, 'message' => 'Kata sandi berhasil diperbarui.']);
+        break;
+
     default:
         json_response(['error' => 'Aksi tidak valid'], 400);
 }

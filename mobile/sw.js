@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gusdim-mobile-cache-v2';
+const CACHE_NAME = 'gusdim-mobile-cache-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
