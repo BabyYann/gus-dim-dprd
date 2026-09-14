@@ -308,8 +308,10 @@ function kirimUcapanWa(hp, nama, jalur) {
     }).join('');
 
     window.currentDetailRecord = r;
+    window.currentDetailOpsi = opsi;
     const isSuperadmin = CURRENT_USER && CURRENT_USER.role === 'Superadmin';
     const isOperator = !!(r.operator_user_id || r.operator_username);
+    const userRole = CURRENT_USER ? CURRENT_USER.role : '';
 
     const badgeOp = document.getElementById('detailOperatorBadge');
     const btnJadikanOp = document.getElementById('btnJadikanOperatorDariDetail');
@@ -352,15 +354,61 @@ function kirimUcapanWa(hp, nama, jalur) {
       }
     }
 
-    const bisaUbahStatus = opsi.jalurKey && r.rowNumber && STATUS_LANJUTAN[CURRENT_USER.role];
+    // Kotak Tindakan Validasi Berjenjang Sesuai Role
+    const verifBox = document.getElementById('detailVerifActionBox');
+    const verifBadge = document.getElementById('detailVerifStatusBadge');
+    const verifBtns = document.getElementById('detailVerifButtons');
+
+    if (verifBox && verifBadge && verifBtns) {
+      const curStatus = r.status || 'Diinput';
+      verifBadge.textContent = curStatus;
+
+      if (curStatus === 'Diverifikasi Desa') {
+        verifBadge.style.background = '#eff6ff';
+        verifBadge.style.color = '#1d4ed8';
+        verifBadge.style.border = '1px solid #bfdbfe';
+      } else if (curStatus === 'Divalidasi Kecamatan') {
+        verifBadge.style.background = '#e0e7ff';
+        verifBadge.style.color = '#3730a3';
+        verifBadge.style.border = '1px solid #c7d2fe';
+      } else if (curStatus === 'Final') {
+        verifBadge.style.background = '#f0fdf4';
+        verifBadge.style.color = '#15803d';
+        verifBadge.style.border = '1px solid #bbf7d0';
+      } else if (curStatus === 'Ditolak') {
+        verifBadge.style.background = '#fef2f2';
+        verifBadge.style.color = '#dc2626';
+        verifBadge.style.border = '1px solid #fecaca';
+      } else {
+        verifBadge.style.background = '#fef3c7';
+        verifBadge.style.color = '#b45309';
+        verifBadge.style.border = '1px solid #fde68a';
+      }
+
+      let btnsHtml = '';
+      if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
+        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')">Verifikasi Desa</button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')">Tolak Data</button>';
+        verifBox.style.display = 'block';
+      } else if (userRole === 'Koordinator Kecamatan') {
+        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')">Validasi Kecamatan</button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')">Tetapkan Final</button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')">Tolak Data</button>';
+        verifBox.style.display = 'block';
+      } else if (userRole === 'Superadmin') {
+        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')">Verifikasi Desa</button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')">Validasi Kecamatan</button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')">Tetapkan Final</button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')">Tolak Data</button>';
+        verifBox.style.display = 'block';
+      } else {
+        verifBox.style.display = 'none';
+      }
+      verifBtns.innerHTML = btnsHtml;
+    }
+
     const btnUbah = document.getElementById('btnUbahStatusDariDetail');
-    if (bisaUbahStatus) {
-      btnUbah.style.display = 'inline-block';
-      btnUbah.onclick = function () {
-        closeModal('modalDetailOrang');
-        openModalVerifikasi(opsi.jalurKey, r.rowNumber, r.nama, r.status);
-      };
-    } else {
+    if (btnUbah) {
       btnUbah.style.display = 'none';
     }
 
@@ -375,6 +423,66 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     openModal('modalDetailOrang');
   }
+
+  window.updateStatusPendukungDariDesktop = async function (newStatus) {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+    const targetId = r.id || r.rowNumber;
+    if (!targetId) {
+      alert('ID pendukung tidak valid.');
+      return;
+    }
+
+    if (!confirm('Ubah status verifikasi "' + (r.nama || 'pendukung') + '" menjadi: ' + newStatus + '?')) {
+      return;
+    }
+
+    try {
+      const res = await fetchApi('verifikasi.php?action=update-status', 'POST', {
+        id: targetId,
+        rowNumber: targetId,
+        newStatus: newStatus,
+        catatan: 'Diperbarui via Web Desktop'
+      });
+
+      if (res && res.success) {
+        r.status = newStatus;
+        if (window.currentDetailRecord) {
+          window.currentDetailRecord.status = newStatus;
+        }
+
+        bukaDetailOrang(r, window.currentDetailOpsi || {});
+
+        if (window.currentListRows && Array.isArray(window.currentListRows)) {
+          const itemInList = window.currentListRows.find(function (x) {
+            return (x.id || x.rowNumber) == targetId;
+          });
+          if (itemInList) {
+            itemInList.status = newStatus;
+          }
+          if (typeof renderTabelList === 'function') {
+            renderTabelList(window.currentListRows);
+          }
+        }
+
+        if (typeof loadRiwayat === 'function') {
+          try { loadRiwayat(); } catch (e) {}
+        }
+
+        if (typeof loadDashboardData === 'function') {
+          try { loadDashboardData(); } catch (e) {}
+        }
+
+        alert('Status verifikasi berhasil diperbarui menjadi: ' + newStatus);
+      } else {
+        const errMsg = (res && res.message) ? res.message : 'Gagal memperbarui status verifikasi.';
+        alert(errMsg);
+      }
+    } catch (err) {
+      console.error('Gagal update status verifikasi:', err);
+      alert('Terjadi kesalahan jaringan atau server saat memperbarui status.');
+    }
+  };
 
   // ============ INIT ============
   window.onload = function () {
@@ -1182,7 +1290,8 @@ function kirimUcapanWa(hp, nama, jalur) {
 
   window.bukaDetailListRow = function (idx) {
     if (window.currentListRows && window.currentListRows[idx]) {
-      bukaDetailOrang(window.currentListRows[idx], {});
+      const row = window.currentListRows[idx];
+      bukaDetailOrang(row, { jalurKey: row.jalur || '' });
     }
   };
 
@@ -2224,16 +2333,26 @@ function kirimUcapanWa(hp, nama, jalur) {
     const catatan = document.getElementById('modalVerifikasiCatatan').value.trim();
     const errBox = document.getElementById('modalVerifikasiError');
 
-    google.script.run
-      .withSuccessHandler(function (res) {
-        if (res.success) { closeModal('modalVerifikasi'); loadRiwayat(); }
-        else { errBox.textContent = res.message; errBox.style.display = 'block'; }
-      })
-      .withFailureHandler(function (err) {
-        errBox.textContent = 'Terjadi kesalahan: ' + err.message;
+    fetchApi('verifikasi.php?action=update-status', 'POST', {
+      id: verifikasiRowNumber,
+      rowNumber: verifikasiRowNumber,
+      newStatus: newStatus,
+      catatan: catatan
+    })
+    .then(function (res) {
+      if (res && res.success) {
+        closeModal('modalVerifikasi');
+        if (typeof loadRiwayat === 'function') loadRiwayat();
+        if (typeof loadDashboardData === 'function') loadDashboardData();
+      } else {
+        errBox.textContent = (res && res.message) ? res.message : 'Gagal menyimpan status verifikasi.';
         errBox.style.display = 'block';
-      })
-      .updateStatusVerifikasi(SESSION_TOKEN, verifikasiJalur, verifikasiRowNumber, newStatus, catatan);
+      }
+    })
+    .catch(function (err) {
+      errBox.textContent = 'Terjadi kesalahan: ' + (err.message || err);
+      errBox.style.display = 'block';
+    });
   }
 
   // ============ LOG AKTIVITAS ============

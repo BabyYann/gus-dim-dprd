@@ -1467,6 +1467,16 @@
         <div style="color:#475569;margin-top:2px;">Username: <code id="detailOpUserText" style="background:#e2e8f0;padding:1px 5px;border-radius:3px;">-</code></div>
       </div>
       <div class="detail-rows" id="detailRows"></div>
+
+      <!-- KOTAK TINDAKAN VALIDASI BERJENJANG -->
+      <div id="detailVerifActionBox" style="display:none; margin-top:14px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; text-align:left;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">Validasi &amp; Verifikasi Data</span>
+          <span id="detailVerifStatusBadge" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px;">-</span>
+        </div>
+        <div id="detailVerifButtons" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+      </div>
+
       <div class="modal-actions" style="margin-top:16px;">
         <button class="btn-toolbar-filter" onclick="closeModal('modalDetailOrang')">Tutup</button>
         <a class="btn-wa" id="btnChatWa" href="#" target="_blank" style="display:none; text-decoration:none;">
@@ -1480,7 +1490,6 @@
           Reset Password
         </button>
         <button class="btn-primary-nasdem" id="btnJadikanOperatorDariDetail" style="display:none; background:#0d9488; border-color:#0d9488;" onclick="bukaModalJadikanOperator()">Jadikan Operator</button>
-        <button class="btn-primary-nasdem" id="btnUbahStatusDariDetail" style="display:none;">Ubah Status</button>
       </div>
     </div>
   </div>

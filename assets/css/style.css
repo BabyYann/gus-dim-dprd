@@ -1015,6 +1015,60 @@ input[type= checkbox] {
 
 .btn-verifikasi:hover { background: #dbeafe; }
 
+/* Tiered Verification Action Buttons */
+.btn-verif-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+.btn-verif-pill:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+.btn-verif-pill:active {
+  transform: translateY(0);
+}
+.btn-verif-desa {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.btn-verif-desa:hover {
+  background: #dbeafe;
+}
+.btn-verif-kec {
+  background: #e0e7ff;
+  color: #3730a3;
+  border-color: #c7d2fe;
+}
+.btn-verif-kec:hover {
+  background: #c7d2fe;
+}
+.btn-verif-final {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+.btn-verif-final:hover {
+  background: #dcfce7;
+}
+.btn-verif-tolak {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.btn-verif-tolak:hover {
+  background: #fee2e2;
+}
+
 .btn-reset {
   background: var(--nasdem-orange-soft);
   color: var(--nasdem-orange-hover);
