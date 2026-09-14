@@ -35,7 +35,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/img/gus-dim.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260914v3">
   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1451,39 +1451,60 @@
 
   <!-- MODAL: DETAIL PENDUKUNG -->
   <div class="modal-overlay" id="modalDetailOrang">
-    <div class="modal-box" style="max-width:440px;">
-      <div style="text-align:center; margin-bottom:14px;">
-        <img id="detailFoto" src="" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid #16225e;display:none;">
-        <div id="detailFotoPlaceholder" class="avatar" style="width:84px;height:84px;font-size:28px;margin:0 auto;background:#16225e;color:#fff;">-</div>
+    <div class="modal-box" style="max-width:480px; padding:22px; border-radius:16px;">
+      <div style="text-align:center; margin-bottom:12px;">
+        <img id="detailFoto" src="" style="width:68px;height:68px;border-radius:50%;object-fit:cover;border:3px solid #16225e;display:none;margin:0 auto 8px;box-shadow:0 3px 8px rgba(0,0,0,0.12);">
+        <div id="detailFotoPlaceholder" class="avatar" style="width:68px;height:68px;font-size:22px;margin:0 auto 8px;background:linear-gradient(135deg, #16225e 0%, #1e3a8a 100%);color:#fff;font-weight:800;border:3px solid #e2e8f0;box-shadow:0 3px 8px rgba(22,34,94,0.15);">-</div>
+        <h3 id="detailNama" style="text-align:center; margin:0 0 4px; font-size:17px; font-weight:800; color:#0f172a; font-family:'Plus Jakarta Sans', sans-serif;">-</h3>
+        <div style="text-align:center;">
+          <span id="detailSub" style="display:inline-block; padding:2px 10px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:999px; font-size:11.5px; font-weight:600;">-</span>
+        </div>
       </div>
-      <h3 id="detailNama" style="text-align:center; margin:0 0 2px;">-</h3>
-      <p id="detailSub" style="text-align:center; color:#64748b; font-size:12.5px; margin-top:0;">-</p>
+
       <!-- BADGE STATUS OPERATOR AKTIF (JIKA ADA) -->
-      <div id="detailOperatorBadge" style="display:none; margin:10px auto 14px; padding:8px 12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; text-align:center; font-size:12px;">
-        <span style="color:#166534;font-weight:700;">Status: Akun Operator Aktif</span>
-        <div style="color:#475569;margin-top:2px;">Username: <code id="detailOpUserText" style="background:#e2e8f0;padding:1px 5px;border-radius:3px;">-</code></div>
+      <div id="detailOperatorBadge" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:10px;padding:9px 12px;margin:10px 0;font-size:12px;text-align:left;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+          <strong style="font-size:11px;text-transform:uppercase;color:#15803d;letter-spacing:0.3px;">Akun Operator Aktif</strong>
+          <span style="background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;">Terdaftar</span>
+        </div>
+        <div style="font-weight:700;color:#0f172a;" id="detailOpRoleText">Koordinator Desa</div>
+        <div style="color:#475569;margin-top:2px;">Username: <code id="detailOpUserText" style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-weight:600;">-</code></div>
       </div>
+
       <div class="detail-rows" id="detailRows"></div>
 
       <!-- KOTAK TINDAKAN VALIDASI BERJENJANG -->
-      <div id="detailVerifActionBox" style="display:none; margin-top:14px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">Validasi &amp; Verifikasi Data</span>
-          <span id="detailVerifStatusBadge" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px;">-</span>
+      <div id="detailVerifActionBox" style="display:none; margin-top:14px; padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <span style="font-size:11px; font-weight:700; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Wewenang Validasi Data</span>
+          </div>
+          <span id="detailVerifStatusBadge" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:5px;">-</span>
         </div>
-        <div id="detailVerifButtons" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        <div style="font-size:11px; color:#64748b; margin-bottom:8px;">Pilih penetapan status verifikasi berjenjang di bawah:</div>
+        <div id="detailVerifButtons" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;"></div>
       </div>
 
-      <div class="modal-actions" style="margin-top:16px;">
-        <button class="btn-toolbar-filter" onclick="closeModal('modalDetailOrang')">Tutup</button>
-        <a class="btn-wa" id="btnChatWa" href="#" target="_blank" style="display:none; text-decoration:none;">
+      <div class="modal-actions" style="margin-top:16px; padding-top:12px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+        <button class="btn-toolbar-filter" onclick="closeModal('modalDetailOrang')" style="padding:8px 16px; border-radius:8px; font-weight:600; font-size:12.5px;">Tutup</button>
+        <a class="btn-wa" id="btnChatWa" href="#" target="_blank" style="display:none; text-decoration:none; padding:8px 14px; border-radius:8px; font-weight:600; font-size:12.5px;">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.92 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.14c-.24.68-1.4 1.32-1.93 1.36-.53.05-1.02.25-3.43-.72-2.9-1.15-4.76-4.08-4.9-4.28-.14-.19-1.17-1.56-1.17-2.98 0-1.42.75-2.11 1.01-2.4.26-.28.58-.35.77-.35.19 0 .39 0 .55.01.18.01.42-.07.65.5.24.58.81 2 .88 2.14.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.72-.84.92-1.13.19-.29.38-.24.64-.15.26.1 1.67.79 1.95.93.29.15.48.22.55.34.07.13.07.72-.17 1.4z"/></svg>
           Chat WhatsApp
         </a>
-        <button class="btn-outline-danger" id="btnResetPassOperatorDariDetail" style="display:none; border-color:#cbd5e1; color:#475569;" onclick="resetPasswordOperatorDariDetail()">
+        <button class="btn-toolbar-filter" id="btnKirimWaAksesOperator" style="display:none;color:#0d9488;border-color:#99f6e4;background:#f0fdfa;padding:8px 14px;border-radius:8px;font-weight:600;font-size:12.5px;" onclick="kirimUlangAksesWaOperator()">
+          Kirim Akses WA
+        </button>
+        <button class="btn-toolbar-filter" id="btnResetPassOperator" style="display:none;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;padding:8px 14px;border-radius:8px;font-weight:600;font-size:12.5px;" onclick="resetPasswordOperatorDariDetail()">
           Reset Password
         </button>
-        <button class="btn-primary-nasdem" id="btnJadikanOperatorDariDetail" style="display:none; background:#0d9488; border-color:#0d9488;" onclick="bukaModalJadikanOperator()">Jadikan Operator</button>
+        <button class="btn-primary-nasdem" id="btnJadikanOperatorDariDetail" style="display:none; background:#0d9488; border-color:#0d9488; padding:8px 16px; border-radius:8px; font-weight:600; font-size:12.5px; box-shadow:0 2px 6px rgba(13,148,136,0.25);" onclick="bukaModalJadikanOperator()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+          Jadikan Operator
+        </button>
       </div>
     </div>
   </div>

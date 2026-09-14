@@ -279,11 +279,16 @@ function kirimUcapanWa(hp, nama, jalur) {
     opsi = opsi || {};
     const umur = hitungUmurDariNIK(r.nik);
     document.getElementById('detailNama').textContent = r.nama || '-';
-    document.getElementById('detailSub').textContent = [r.jalur, r.jabatan, r.koordinator].filter(Boolean).join(' · ');
+
+    const subText = [r.jalur, r.jabatan, r.koordinator].filter(Boolean).join(' · ');
+    const subEl = document.getElementById('detailSub');
+    if (subEl) {
+      subEl.textContent = subText || 'Konstituen';
+    }
 
     if (r.foto) {
       document.getElementById('detailFoto').src = r.foto;
-      document.getElementById('detailFoto').style.display = 'inline-block';
+      document.getElementById('detailFoto').style.display = 'block';
       document.getElementById('detailFotoPlaceholder').style.display = 'none';
     } else {
       document.getElementById('detailFoto').style.display = 'none';
@@ -292,13 +297,17 @@ function kirimUcapanWa(hp, nama, jalur) {
       ph.textContent = inisial(r.nama);
     }
 
+    const curStatus = r.status || 'Diinput';
+    const statusBadgeClass = curStatus === 'Final' ? 'badge-final' : curStatus === 'Ditolak' ? 'badge-ditolak' : (curStatus === 'Diverifikasi Desa' || curStatus === 'Divalidasi Kecamatan' ? 'badge-diverifikasi' : 'badge-diinput');
+    const statusHtml = '<span class="badge ' + statusBadgeClass + '" style="font-size:11px; padding:2.5px 8px; border-radius:5px; font-weight:700;">' + curStatus + '</span>';
+
     const rowsData = [
-      ['NIK', r.nik],
+      ['NIK', r.nik ? '<code style="font-family:monospace; font-size:12px; font-weight:600; color:#1e293b;">' + r.nik + '</code>' : '-'],
       ['Umur', umur !== null ? umur + ' tahun' : '-'],
       ['No. HP', r.hp || '-'],
       ['Alamat', r.alamat || '-'],
       ['Kecamatan / Desa', [r.kecamatan, r.desa].filter(Boolean).join(' / ') || '-'],
-      ['Status', r.status || '-'],
+      ['Status Verifikasi', statusHtml],
       ['Tanggal Input', r.tanggal || '-'],
       ['Diinput oleh', r.userInput || '-'],
       ['Catatan', r.catatan || '-']
@@ -332,7 +341,7 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     if (btnJadikanOp) {
       if (isSuperadmin && !isOperator) {
-        btnJadikanOp.style.display = 'inline-block';
+        btnJadikanOp.style.display = 'inline-flex';
       } else {
         btnJadikanOp.style.display = 'none';
       }
@@ -340,7 +349,7 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     if (btnKirimWaAkses) {
       if (isSuperadmin && isOperator) {
-        btnKirimWaAkses.style.display = 'inline-block';
+        btnKirimWaAkses.style.display = 'inline-flex';
       } else {
         btnKirimWaAkses.style.display = 'none';
       }
@@ -348,7 +357,7 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     if (btnResetPass) {
       if (isSuperadmin && isOperator) {
-        btnResetPass.style.display = 'inline-block';
+        btnResetPass.style.display = 'inline-flex';
       } else {
         btnResetPass.style.display = 'none';
       }
@@ -360,7 +369,6 @@ function kirimUcapanWa(hp, nama, jalur) {
     const verifBtns = document.getElementById('detailVerifButtons');
 
     if (verifBox && verifBadge && verifBtns) {
-      const curStatus = r.status || 'Diinput';
       verifBadge.textContent = curStatus;
 
       if (curStatus === 'Diverifikasi Desa') {
@@ -385,21 +393,31 @@ function kirimUcapanWa(hp, nama, jalur) {
         verifBadge.style.border = '1px solid #fde68a';
       }
 
+      const btnStyleDesa = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;cursor:pointer;transition:all 0.15s ease;';
+      const btnStyleKec = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;cursor:pointer;transition:all 0.15s ease;';
+      const btnStyleFinal = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;cursor:pointer;transition:all 0.15s ease;';
+      const btnStyleTolak = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;cursor:pointer;transition:all 0.15s ease;';
+
+      const iconCheck = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>';
+      const iconShield = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>';
+      const iconFinal = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>';
+      const iconTolak = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
       let btnsHtml = '';
       if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
-        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')">Verifikasi Desa</button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')">Tolak Data</button>';
+        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Verif Desa</span></button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>';
         verifBox.style.display = 'block';
       } else if (userRole === 'Koordinator Kecamatan') {
-        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')">Validasi Kecamatan</button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')">Tetapkan Final</button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')">Tolak Data</button>';
+        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')" style="' + btnStyleKec + '">' + iconShield + '<span>Validasi Kec</span></button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')" style="' + btnStyleFinal + '">' + iconFinal + '<span>Tandai Final</span></button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + 'grid-column: span 2;">' + iconTolak + '<span>Tolak Data</span></button>';
         verifBox.style.display = 'block';
       } else if (userRole === 'Superadmin') {
-        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')">Verifikasi Desa</button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')">Validasi Kecamatan</button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')">Tetapkan Final</button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')">Tolak Data</button>';
+        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Verif Desa</span></button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')" style="' + btnStyleKec + '">' + iconShield + '<span>Validasi Kec</span></button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')" style="' + btnStyleFinal + '">' + iconFinal + '<span>Tandai Final</span></button>' +
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>';
         verifBox.style.display = 'block';
       } else {
         verifBox.style.display = 'none';

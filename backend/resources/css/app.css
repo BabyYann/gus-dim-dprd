@@ -1334,8 +1334,8 @@ input[type= checkbox] {
 
 .detail-rows { margin: 10px 0; }
 .detail-row {
-  display: flex; justify-content: space-between; gap: 12px;
-  padding: 8px 0; border-bottom: 1px solid var(--panel-border-subtle); font-size: 12.5px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 6.5px 0; border-bottom: 1px solid #f1f5f9; font-size: 12.5px;
 }
 .detail-row .k { color: var(--text-muted); flex-shrink: 0; }
 .detail-row .v { color: var(--text-main); font-weight: 600; text-align: right; }
