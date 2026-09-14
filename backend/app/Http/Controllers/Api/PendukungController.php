@@ -206,6 +206,12 @@ class PendukungController extends Controller
             'created_at' => now(),
         ]);
 
+        try {
+            event(new \App\Events\PendukungCreated($pendukung));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast PendukungCreated gagal: ' . $e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Data {$jalur} berhasil disimpan dan masuk dalam antrean verifikasi.",

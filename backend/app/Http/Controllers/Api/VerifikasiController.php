@@ -104,6 +104,7 @@ class VerifikasiController extends Controller
         }
 
         $targetName = "{$pendukung->nama} ({$pendukung->jalur})";
+        $oldStatus = $pendukung->status;
         $pendukung->status = $newStatus;
         if ($catatan) {
             $pendukung->catatan = $catatan;
@@ -119,6 +120,12 @@ class VerifikasiController extends Controller
             'ip_address' => $request->ip(),
             'created_at' => now(),
         ]);
+
+        try {
+            event(new \App\Events\PendukungStatusUpdated($pendukung, $oldStatus, $newStatus, $user->nama));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast PendukungStatusUpdated gagal: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
