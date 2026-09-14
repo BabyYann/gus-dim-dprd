@@ -779,10 +779,7 @@
                         </select>
                       </div>
                     </div>
-                    <div class="form-row">
-                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="dpcTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
-                      <div class="form-group"><label>Alamat Lengkap</label><input type="text" id="dpcAlamat" placeholder="Nama jalan, RT/RW, Dusun"></div>
-                    </div>
+                    <div class="form-group"><label>Alamat Lengkap</label><textarea id="dpcAlamat" rows="2" placeholder="Nama jalan, RT/RW, Dusun"></textarea></div>
                   </div>
                 </div>
 
@@ -850,10 +847,7 @@
                         </select>
                       </div>
                     </div>
-                    <div class="form-row">
-                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="dprtTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
-                      <div class="form-group"><label>Alamat Domisili</label><input type="text" id="dprtAlamat" placeholder="Nama dusun, RT/RW"></div>
-                    </div>
+                    <div class="form-group"><label>Alamat Domisili</label><textarea id="dprtAlamat" rows="2" placeholder="Nama dusun, RT/RW"></textarea></div>
                   </div>
                 </div>
 
@@ -938,10 +932,7 @@
                         </select>
                       </div>
                     </div>
-                    <div class="form-row">
-                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="pipTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
-                      <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="pipJumlahSaudara" min="0" placeholder="0"></div>
-                    </div>
+                    <div class="form-group"><label>Jumlah Saudara Kandung</label><input type="number" id="pipJumlahSaudara" min="0" placeholder="0"></div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Saudara (Kontak Tambahan)</label><input type="text" id="pipNamaSaudara" placeholder="Nama saudara"></div>
                       <div class="form-group"><label>NIK Saudara</label><input type="text" id="pipNikSaudara" maxlength="16" placeholder="NIK saudara"></div>
@@ -1029,10 +1020,7 @@
                         </select>
                       </div>
                     </div>
-                    <div class="form-row">
-                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="kipTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
-                      <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="kipJumlahSaudara" min="0" placeholder="0"></div>
-                    </div>
+                    <div class="form-group"><label>Jumlah Saudara Kandung</label><input type="number" id="kipJumlahSaudara" min="0" placeholder="0"></div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Saudara</label><input type="text" id="kipNamaSaudara" placeholder="Nama saudara"></div>
                       <div class="form-group"><label>NIK Saudara</label><input type="text" id="kipNikSaudara" maxlength="16" placeholder="NIK saudara"></div>
@@ -1097,8 +1085,6 @@
                         </select>
                       </div>
                     </div>
-                    <div class="form-group"><label>Nomor TPS</label><input type="number" id="rlwTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
-
                     <div class="form-section-header">
                       <div class="step-badge">2</div>
                       <h4 class="form-section-title">Data Anggota / Relawan</h4>

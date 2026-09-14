@@ -5734,20 +5734,14 @@ function openEntryForm(jalurKey, jalurTitle) {
 
       ${specificFieldsHtml}
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group">
-          <label class="form-label">Nomor TPS</label>
-          <input type="number" id="formTps" class="form-input-touch" placeholder="01" min="1" max="99" value="01">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Status Verifikasi</label>
-          <select id="formStatus" class="form-select-touch">
-            <option value="Diinput" selected>Diinput (Awal)</option>
-            <option value="Diverifikasi Desa">Diverifikasi Desa</option>
-            <option value="Divalidasi Kecamatan">Divalidasi Kecamatan</option>
-            <option value="Final">Final (Sah)</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Status Verifikasi</label>
+        <select id="formStatus" class="form-select-touch">
+          <option value="Diinput" selected>Diinput (Awal)</option>
+          <option value="Diverifikasi Desa">Diverifikasi Desa</option>
+          <option value="Divalidasi Kecamatan">Divalidasi Kecamatan</option>
+          <option value="Final">Final (Sah)</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -5878,7 +5872,7 @@ async function handleFormSubmit(event) {
   const hp = document.getElementById('formHp')?.value.trim() || '';
   const kecamatan = document.getElementById('formKecamatan')?.value || 'Kraksaan';
   const desa = document.getElementById('formDesa')?.value || 'Patokan';
-  const tps = document.getElementById('formTps')?.value.trim() || '01';
+  const tps = document.getElementById('formTps')?.value?.trim() || '';
   const status = document.getElementById('formStatus')?.value || 'Diinput';
   const alamat = document.getElementById('formAlamat')?.value.trim() || '';
   const lat = document.getElementById('formLat')?.value || '';

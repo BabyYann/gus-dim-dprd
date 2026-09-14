@@ -2499,7 +2499,6 @@ function kirimUcapanWa(hp, nama, jalur) {
         jabatan: v('dpcJabatan'), 
         kecamatan: v('dpcKecamatan'), 
         desa: v('dpcDesa'),
-        tps: v('dpcTps'),
         alamat: v('dpcAlamat') 
       });
       fungsi = 'submitDPC';
@@ -2511,7 +2510,6 @@ function kirimUcapanWa(hp, nama, jalur) {
         jabatan: v('dprtJabatan'), 
         desa: v('dprtDesa'), 
         kecamatan: v('dprtKecamatan'), 
-        tps: v('dprtTps'),
         alamat: v('dprtAlamat') 
       });
       fungsi = 'submitDPRT';
@@ -2523,7 +2521,7 @@ function kirimUcapanWa(hp, nama, jalur) {
         namaIbu: v('pipNamaIbu'), nikIbu: v('pipNikIbu'), hpIbu: v('pipHpIbu'),
         alamatKeluarga: v('pipAlamatKeluarga'),
         jumlahSaudara: v('pipJumlahSaudara'), namaSaudara: v('pipNamaSaudara'), nikSaudara: v('pipNikSaudara'), hpSaudara: v('pipHpSaudara'), alamatSaudara: v('pipAlamatSaudara'),
-        desa: v('pipDesa'), kecamatan: v('pipKecamatan'), tps: v('pipTps')
+        desa: v('pipDesa'), kecamatan: v('pipKecamatan')
       });
       fungsi = 'submitPIP';
     } else if (jalur === 'KIP') {
@@ -2534,7 +2532,7 @@ function kirimUcapanWa(hp, nama, jalur) {
         namaIbu: v('kipNamaIbu'), nikIbu: v('kipNikIbu'), hpIbu: v('kipHpIbu'),
         alamatKeluarga: v('kipAlamatKeluarga'),
         jumlahSaudara: v('kipJumlahSaudara'), namaSaudara: v('kipNamaSaudara'), nikSaudara: v('kipNikSaudara'), hpSaudara: v('kipHpSaudara'), alamatSaudara: v('kipAlamatSaudara'),
-        desa: v('kipDesa'), kecamatan: v('kipKecamatan'), tps: v('kipTps')
+        desa: v('kipDesa'), kecamatan: v('kipKecamatan')
       });
       fungsi = 'submitKIP';
     } else if (jalur === 'RELAWAN') {
@@ -2545,7 +2543,6 @@ function kirimUcapanWa(hp, nama, jalur) {
         koordinator: v('rlwKoordinator'),
         desa: v('rlwDesa'),
         kecamatan: v('rlwKecamatan'),
-        tps: v('rlwTps'),
         namaAnggota: v('rlwNamaAnggota'),
         nikAnggota: v('rlwNikAnggota'),
         hpAnggota: v('rlwHpAnggota'),
