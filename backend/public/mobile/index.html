@@ -1974,11 +1974,166 @@ html, body {
   font-size: 12px;
   color: var(--text-muted);
 }
-  </style>
+  
+/* ==========================================================================
+   MOBILE LOGIN SCREEN OVERLAY (PRODUKSI)
+   ========================================================================== */
+.mobile-login-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at top right, #1d2d78 0%, #16225e 60%, #0f172a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 14px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.mobile-login-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 350px;
+  padding: 24px 20px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.mobile-login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #16225e, #f59e0b);
+  border-radius: 20px 20px 0 0;
+}
+
+.mobile-login-avatar-wrapper {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 12px;
+}
+
+.mobile-login-avatar-img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fbbf24;
+  box-shadow: 0 4px 12px rgba(22, 34, 94, 0.25);
+  display: block;
+}
+
+.mobile-login-verified-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0d9488;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+.mobile-login-brand {
+  font-size: 20px;
+  font-weight: 800;
+  color: #16225e;
+  margin: 0 0 4px;
+  letter-spacing: 0.3px;
+}
+
+.mobile-login-subbrand {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+</style>
 </head>
 <body>
 
   <div class="mobile-app">
+    <!-- ==========================================
+         LOGIN SCREEN MOBILE (OVERLAY RESMI PRODUKSI)
+         ========================================== -->
+    <div id="mobileLoginScreen" class="mobile-login-overlay" style="display: none;">
+      <div class="mobile-login-card">
+        <!-- Avatar Gus Dim -->
+        <div class="mobile-login-avatar-wrapper">
+          <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="mobile-login-avatar-img">
+          <div class="mobile-login-verified-badge" title="Sistem Resmi Terverifikasi">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#ffffff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+
+        <h1 class="mobile-login-brand">GUS DIM MOBILE</h1>
+        <p class="mobile-login-subbrand">Dapil Kraksaan Raya &bull; Fraksi Partai NasDem DPRD Kab. Probolinggo</p>
+
+        <!-- Pesan Error -->
+        <div id="mobileOverlayLoginError" class="error-msg" style="display:none;margin-bottom:12px;text-align:center;font-size:12px;padding:8px 10px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;"></div>
+
+        <!-- Form Otentikasi -->
+        <form onsubmit="handleOverlayMobileLogin(event)" autocomplete="on" style="width:100%;">
+          <div class="form-group" style="margin-bottom:12px;text-align:left;">
+            <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:5px;display:block;">Nama Pengguna (Username)</label>
+            <div style="position:relative;display:flex;align-items:center;">
+              <div style="position:absolute;left:12px;color:#64748b;display:flex;align-items:center;pointer-events:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <input type="text" id="overlayMobileUsername" class="form-input-touch" placeholder="Masukkan username akun" style="padding-left:38px !important;" autocomplete="username" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;text-align:left;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+              <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:0;">Kata Sandi (Password)</label>
+              <button type="button" onclick="toggleMobilePassword('overlayMobilePassword', 'toggleOverlayPassIcon')" style="background:none;border:none;color:#2563eb;font-size:11.5px;font-weight:600;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                <svg id="toggleOverlayPassIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Lihat</span>
+              </button>
+            </div>
+            <div style="position:relative;display:flex;align-items:center;">
+              <div style="position:absolute;left:12px;color:#64748b;display:flex;align-items:center;pointer-events:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <input type="password" id="overlayMobilePassword" class="form-input-touch" placeholder="Masukkan kata sandi" style="padding-left:38px !important;" autocomplete="current-password" required>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;text-align:left;">
+            <input type="checkbox" id="overlayMobileRemember" checked style="width:16px;height:16px;accent-color:#16225e;border-radius:4px;cursor:pointer;">
+            <label for="overlayMobileRemember" style="font-size:12px;color:#475569;cursor:pointer;">Ingat sesi di smartphone ini</label>
+          </div>
+
+          <button type="submit" id="btnOverlayLogin" class="btn-primary-touch" style="width:100%;height:46px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg, #16225e 0%, #1e3a8a 100%);box-shadow:0 4px 12px rgba(22,34,94,0.25);">
+            <span>Masuk ke Sistem</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </form>
+
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#0f766e;font-weight:600;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Koneksi Aman Terenkripsi SSL 256-Bit</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Offline Banner -->
     <div id="offlineBanner" class="offline-banner">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;min-width:14px;min-height:14px;max-width:14px;max-height:14px;"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
@@ -2109,10 +2264,10 @@ html, body {
       </div>
 
       <div class="drawer-footer">
-        <div class="drawer-menu-item" style="color:#dc2626;" onclick="showToast('Sesi akun tetap aman di perangkat lokal.', 'info')">
+        <div id="drawerAuthBtn" class="drawer-menu-item" style="color:#dc2626;" onclick="handleDrawerAuthAction()">
           <div class="drawer-menu-item-left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;max-width:20px;max-height:20px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>Keluar Sesi</span>
+            <svg id="drawerAuthIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span id="drawerAuthText">Keluar Sesi (Logout)</span>
           </div>
         </div>
       </div>
@@ -3177,12 +3332,22 @@ async function loadAllData() {
   try {
     // 0. Sinkronisasi User & Wilayah Tugas Aktif
     try {
-      const checkRes = await mobileApiCall('auth.php?action=check');
-      if (checkRes.ok && checkRes.data && checkRes.data.valid) {
-        AppState.currentUser = checkRes.data.user;
-      } else {
+      const token = localStorage.getItem('dprd_token') || sessionStorage.getItem('dprd_token');
+      if (!token) {
         AppState.currentUser = null;
-  updateDrawerAuthState();
+        updateDrawerAuthState();
+        showMobileLoginScreen();
+      } else {
+        const checkRes = await mobileApiCall('auth.php?action=check');
+        if (checkRes.ok && checkRes.data && checkRes.data.valid) {
+          AppState.currentUser = checkRes.data.user;
+          hideMobileLoginScreen();
+        } else {
+          AppState.currentUser = null;
+          localStorage.removeItem('dprd_token');
+          showMobileLoginScreen();
+        }
+        updateDrawerAuthState();
       }
     } catch (e) {
       console.warn('Gagal cek session:', e);
@@ -3351,6 +3516,7 @@ async function handleMobileLogin(isFromProfile = false) {
       btnLoginEl.innerHTML = '<span>Masuk ke Sistem</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
     }
     updateDrawerAuthState();
+    hideMobileLoginScreen();
     showToast('Berhasil masuk! Menyinkronkan data...', 'success');
     renderMobileAuth();
     renderProfile();
@@ -3366,14 +3532,97 @@ async function handleMobileLogin(isFromProfile = false) {
   }
 }
 
+
+// ==========================================
+// FUNGSI OTENTIKASI OVERLAY LOGIN MOBILE
+// ==========================================
+function showMobileLoginScreen() {
+  const sc = document.getElementById('mobileLoginScreen');
+  if (sc) {
+    sc.style.display = 'flex';
+    const errBox = document.getElementById('mobileOverlayLoginError');
+    if (errBox) errBox.style.display = 'none';
+    const uInput = document.getElementById('overlayMobileUsername');
+    if (uInput) setTimeout(function() { uInput.focus(); }, 200);
+  }
+}
+
+function hideMobileLoginScreen() {
+  const sc = document.getElementById('mobileLoginScreen');
+  if (sc) sc.style.display = 'none';
+}
+
+async function handleOverlayMobileLogin(e) {
+  if (e) e.preventDefault();
+  const u = document.getElementById('overlayMobileUsername')?.value?.trim() || '';
+  const p = document.getElementById('overlayMobilePassword')?.value || '';
+  const errBox = document.getElementById('mobileOverlayLoginError');
+  const btn = document.getElementById('btnOverlayLogin');
+
+  if (errBox) errBox.style.display = 'none';
+
+  if (!u || !p) {
+    if (errBox) {
+      errBox.textContent = 'Username dan kata sandi wajib diisi.';
+      errBox.style.display = 'block';
+    } else {
+      showToast('Username dan kata sandi wajib diisi.', 'warning');
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border:2px solid #ffffff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.6s linear infinite;margin-right:6px;"></span> Memverifikasi...';
+  }
+
+  try {
+    const res = await mobileApiCall('auth.php?action=login', 'POST', { username: u, password: p });
+    if (res.ok && res.data && res.data.success) {
+      localStorage.setItem('dprd_token', res.data.token);
+      if (res.data.user) AppState.currentUser = res.data.user;
+      hideMobileLoginScreen();
+      showToast('Berhasil masuk! Menyinkronkan data...', 'success');
+      updateDrawerAuthState();
+      renderMobileAuth();
+      renderProfile();
+      renderOperators();
+      loadAllData();
+    } else {
+      const msg = (res.data && res.data.message) ? res.data.message : 'Username atau password salah.';
+      if (errBox) {
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+      } else {
+        showToast(msg, 'warning');
+      }
+    }
+  } catch (err) {
+    if (errBox) {
+      errBox.textContent = 'Terjadi kesalahan koneksi jaringan.';
+      errBox.style.display = 'block';
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>Masuk ke Sistem</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+    }
+  }
+}
+
 function handleMobileLogout() {
+  try {
+    mobileApiCall('auth.php?action=logout', 'POST', { token: localStorage.getItem('dprd_token') });
+  } catch (e) {}
   localStorage.removeItem('dprd_token');
+  sessionStorage.removeItem('dprd_token');
   AppState.currentUser = null;
-  showToast('Anda telah keluar.', 'info');
+  updateDrawerAuthState();
+  showToast('Anda telah keluar dari akun.', 'info');
+  showMobileLoginScreen();
   renderMobileAuth();
   renderProfile();
   renderOperators();
-  loadAllData();
 }
 
 // Kalkulasi Statistik Dinamis (Rekomendasi 3: Berbasis Wilayah Penugasan)

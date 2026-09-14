@@ -2692,12 +2692,91 @@ async function handleMobileLogin(isFromProfile = false) {
       btnLoginEl.innerHTML = '<span>Masuk ke Sistem</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
     }
     updateDrawerAuthState();
+    hideMobileLoginScreen();
     showToast('Berhasil masuk! Menyinkronkan data...', 'success');
     renderMobileAuth();
     renderProfile();
     renderOperators();
   } else {
     showToast((res && res.message) ? res.message : 'Username atau password salah.', 'warning');
+  }
+}
+
+
+// ==========================================
+// FUNGSI OTENTIKASI OVERLAY LOGIN MOBILE
+// ==========================================
+function showMobileLoginScreen() {
+  const sc = document.getElementById('mobileLoginScreen');
+  if (sc) {
+    sc.style.display = 'flex';
+    const errBox = document.getElementById('mobileOverlayLoginError');
+    if (errBox) errBox.style.display = 'none';
+    const uInput = document.getElementById('overlayMobileUsername');
+    if (uInput) setTimeout(function() { uInput.focus(); }, 200);
+  }
+}
+
+function hideMobileLoginScreen() {
+  const sc = document.getElementById('mobileLoginScreen');
+  if (sc) sc.style.display = 'none';
+}
+
+async function handleOverlayMobileLogin(e) {
+  if (e) e.preventDefault();
+  const u = document.getElementById('overlayMobileUsername')?.value?.trim() || '';
+  const p = document.getElementById('overlayMobilePassword')?.value || '';
+  const errBox = document.getElementById('mobileOverlayLoginError');
+  const btn = document.getElementById('btnOverlayLogin');
+
+  if (errBox) errBox.style.display = 'none';
+
+  if (!u || !p) {
+    if (errBox) {
+      errBox.textContent = 'Username dan kata sandi wajib diisi.';
+      errBox.style.display = 'block';
+    } else {
+      showToast('Username dan kata sandi wajib diisi.', 'warning');
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border:2px solid #ffffff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.6s linear infinite;margin-right:6px;"></span> Memverifikasi...';
+  }
+
+  try {
+    const res = await mobileApiCall('auth.php?action=login', 'POST', { username: u, password: p });
+    if (res.ok && res.data && res.data.success) {
+      localStorage.setItem('dprd_token', res.data.token);
+      if (res.data.user) AppState.currentUser = res.data.user;
+      hideMobileLoginScreen();
+      showToast('Berhasil masuk! Menyinkronkan data...', 'success');
+      updateDrawerAuthState();
+      renderMobileAuth();
+      renderProfile();
+      renderOperators();
+      loadAllData();
+    } else {
+      const msg = (res.data && res.data.message) ? res.data.message : 'Username atau password salah.';
+      if (errBox) {
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+      } else {
+        showToast(msg, 'warning');
+      }
+    }
+  } catch (err) {
+    if (errBox) {
+      errBox.textContent = 'Terjadi kesalahan koneksi jaringan.';
+      errBox.style.display = 'block';
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>Masuk ke Sistem</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+    }
   }
 }
 

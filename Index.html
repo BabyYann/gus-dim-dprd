@@ -53,7 +53,6 @@
       </div>
 
       <h1 class="login-title">GUS DIM</h1>
-      <div class="login-badge-sub">Sistem Informasi Pemenangan Terpadu</div>
       <p class="subtitle">Dapil Kraksaan Raya &bull; Fraksi Partai NasDem DPRD Kab. Probolinggo</p>
 
       <div class="error-msg" id="loginError" style="display:none;"></div>
