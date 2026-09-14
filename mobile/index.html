@@ -1871,9 +1871,12 @@ html, body {
           </div>
         </div>
 
-        <div class="header-actions">
+        <div class="header-actions" style="display:flex;align-items:center;gap:6px;">
           <button type="button" id="btnRefresh" class="header-btn" title="Sinkronisasi Data">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          </button>
+          <button type="button" id="btnHeaderProfile" class="header-btn" title="Profil Saya" onclick="navigatePage('profil')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </button>
         </div>
       </div>
@@ -1883,7 +1886,7 @@ html, body {
     <div id="drawerBackdrop" class="drawer-backdrop"></div>
     <aside id="mobileDrawer" class="mobile-drawer">
       <div class="drawer-header">
-        <div class="drawer-user-info">
+        <div class="drawer-user-info" onclick="navigatePage('profil')" style="cursor:pointer;" title="Lihat Profil Saya">
           <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="drawer-avatar" width="44" height="44">
           <div>
             <div class="drawer-user-name">Tim Relawan Gus Dim</div>
@@ -2854,6 +2857,20 @@ function setupNavigation() {
   if (sheetBackdrop) {
     sheetBackdrop.addEventListener('click', closeBottomSheet);
   }
+
+  // Hash Navigation Handler
+  window.addEventListener('hashchange', () => {
+    const rawHash = (window.location.hash || '').replace('#', '').trim();
+    if (rawHash && rawHash !== AppState.currentPage) {
+      navigatePage(rawHash, false);
+    }
+  });
+
+  // Initial Load from URL Hash or Storage
+  const initialHash = (window.location.hash || '').replace('#', '').trim();
+  if (initialHash && ['dashboard', 'pendukung', 'input', 'aspirasi', 'reses', 'peta', 'leaderboard', 'riwayat', 'pengaturan', 'profil'].includes(initialHash)) {
+    navigatePage(initialHash, false);
+  }
 }
 
 // Buka & Tutup Drawer
@@ -2876,8 +2893,10 @@ function navigatePage(pageId, updateHash) {
   if (updateHash === undefined) updateHash = true;
   closeDrawer();
 
-  const validPages = ['dashboard', 'pendukung', 'input', 'aspirasi', 'reses', 'peta', 'leaderboard', 'riwayat', 'pengaturan'];
+  if (pageId === 'profile') pageId = 'profil';
+  const validPages = ['dashboard', 'pendukung', 'input', 'aspirasi', 'reses', 'peta', 'leaderboard', 'riwayat', 'pengaturan', 'profil'];
   if (!validPages.includes(pageId)) pageId = 'dashboard';
+  AppState.currentPage = pageId;
 
   // Switch Tab View
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
