@@ -33,6 +33,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#16225e">
+  <link rel="manifest" href="{{ asset('assets/manifest.json') }}">
+  <link rel="apple-touch-icon" href="{{ asset('assets/img/gus-dim.png') }}">
   <link rel="icon" type="image/png" href="{{ asset('assets/img/gus-dim.png') }}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v={{ time() }}">

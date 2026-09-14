@@ -3,12 +3,20 @@
     "name": "Gus Dim Mobile - Aspirasi & Pendukung DPRD",
     "short_name": "Gus Dim Mobile",
     "description": "Aplikasi Lapangan PWA Mobile Pendukung & Aspirasi Gus Dim Dapil Kraksaan Raya",
+    "lang": "id",
+    "dir": "ltr",
     "start_url": "./index.html",
     "scope": "./",
     "display": "standalone",
     "background_color": "#0f172a",
     "theme_color": "#16225e",
     "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "categories": [
+        "politics",
+        "productivity",
+        "utilities"
+    ],
     "icons": [
         {
             "src": "assets/icons/gus-dim.png",
@@ -21,6 +29,21 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        },
+        {
+            "src": "assets/icons/gus-dim.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "assets/icons/gus-dim.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Gus Dim Mobile App"
         }
     ]
 }

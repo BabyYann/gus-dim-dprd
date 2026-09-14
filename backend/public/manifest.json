@@ -1,18 +1,49 @@
 {
-    "name": "Gus Dim Mobile - Aspirasi & Pendukung DPRD",
-    "short_name": "Gus Dim Mobile",
-    "description": "Aplikasi Lapangan PWA Mobile Pendukung & Aspirasi Gus Dim Dapil Kraksaan Raya",
-    "start_url": "/mobile",
+    "id": "/",
+    "name": "Gus Dim - Sistem Informasi Pemenangan DPRD",
+    "short_name": "Gus Dim",
+    "description": "Sistem Informasi Manajemen Pendukung & Relawan DPRD Dapil Kraksaan Raya",
+    "lang": "id",
+    "dir": "ltr",
+    "start_url": "./index.html",
+    "scope": "./",
     "display": "standalone",
-    "background_color": "#0f172a",
+    "background_color": "#16225e",
     "theme_color": "#16225e",
     "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "categories": [
+        "politics",
+        "productivity",
+        "utilities"
+    ],
     "icons": [
         {
-            "src": "/assets/icons/gus-dim.png",
-            "sizes": "192x192 512x512",
+            "src": "assets/img/gus-dim.png",
+            "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "assets/img/gus-dim.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/img/gus-dim.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "assets/img/gus-dim.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Gus Dim Dashboard"
         }
     ]
 }
