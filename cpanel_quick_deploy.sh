@@ -65,6 +65,7 @@ done
 # 4. Optimasi Laravel Storage dan Cache
 cd "$BACKEND_DIR"
 $PHP_BIN artisan storage:link || true
+$PHP_BIN artisan optimize:clear || true
 $PHP_BIN artisan config:cache || true
 $PHP_BIN artisan route:cache || true
 $PHP_BIN artisan view:cache || true

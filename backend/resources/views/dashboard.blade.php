@@ -36,7 +36,6 @@
   <link rel="icon" type="image/png" href="{{ asset('assets/img/gus-dim.png') }}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-  @vite(['resources/css/app.css'])
   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
