@@ -29,15 +29,15 @@ for candidate in \
     fi
 done
 
-# 1. Jalankan Seeder Produksi Bersih via Artisan
+# 1. Bersihkan cache konfigurasi lama Laravel agar membaca perubahan .env terbaru
 if [ -f "$BACKEND_DIR/artisan" ]; then
-    echo "Menjalankan artisan db:seed untuk membersihkan data operasional..."
+    echo "Membersihkan cache konfigurasi Laravel lama..."
     cd "$BACKEND_DIR"
-    $PHP_BIN artisan db:seed --class=DatabaseSeeder --force || true
+    $PHP_BIN artisan config:clear || true
     $PHP_BIN artisan optimize:clear || true
 fi
 
-# 2. Impor Skrip SQL Bersih Langsung jika kredensial .env tersedia
+# 2. Impor Skrip SQL Bersih ke Database MySQL
 if [ -f "$BACKEND_DIR/.env" ] && command -v mysql &> /dev/null; then
     DB_NAME=$(grep -E '^DB_DATABASE=' "$BACKEND_DIR/.env" | cut -d '=' -f2- | tr -d '"' | tr -d "'")
     DB_USER=$(grep -E '^DB_USERNAME=' "$BACKEND_DIR/.env" | cut -d '=' -f2- | tr -d '"' | tr -d "'")
@@ -46,12 +46,20 @@ if [ -f "$BACKEND_DIR/.env" ] && command -v mysql &> /dev/null; then
     DB_HOST=${DB_HOST:-127.0.0.1}
 
     if [ -n "$DB_NAME" ] && [ -n "$DB_USER" ]; then
-        echo "Mengosongkan tabel transaksi database MySQL: $DB_NAME..."
-        mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$REPO_DIR/database/clean_production_data.sql" || echo "Catatan: Impor otomatis selesai atau jalankan manual via phpMyAdmin."
+        echo "Menginisialisasi struktur & membersihkan tabel database MySQL: $DB_NAME..."
+        mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$REPO_DIR/database/production_clean_schema.sql" || echo "Catatan: Impor via CLI selesai atau jalankan manual via phpMyAdmin."
     fi
 fi
 
-# 3. Jalankan Quick Deploy untuk Memastikan Berkas Terkini
+# 3. Jalankan Seeder Produksi Bersih via Artisan
+if [ -f "$BACKEND_DIR/artisan" ]; then
+    echo "Memverifikasi integritas database via artisan..."
+    cd "$BACKEND_DIR"
+    $PHP_BIN artisan db:seed --class=DatabaseSeeder --force || true
+    $PHP_BIN artisan optimize:clear || true
+fi
+
+# 4. Jalankan Quick Deploy untuk Memastikan Berkas Terkini
 echo "Menyinkronkan pembaruan sistem ke public_html..."
 cd "$REPO_DIR"
 bash cpanel_quick_deploy.sh
