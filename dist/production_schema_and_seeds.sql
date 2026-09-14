@@ -17,6 +17,7 @@ CREATE TABLE `users` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `role` enum('Superadmin','Koordinator Kecamatan','Koordinator Desa','Admin Ranting') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Admin Ranting',
   `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `desa` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -30,7 +31,19 @@ CREATE TABLE `users` (
   UNIQUE KEY `users_username_unique` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. TABEL PERSONAL ACCESS TOKENS (SANCTUM)
+-- 2. TABEL TOKENS SESI (USER TOKENS & SANCTUM)
+DROP TABLE IF EXISTS `user_tokens`;
+CREATE TABLE `user_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `token` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_tokens_token_unique` (`token`),
+  KEY `user_tokens_user_id_index` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 DROP TABLE IF EXISTS `personal_access_tokens`;
 CREATE TABLE `personal_access_tokens` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -129,13 +142,72 @@ CREATE TABLE `aspirasi` (
   INDEX `idx_aspirasi_kategori` (`kategori`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 7. TABEL RESES TITIK
+DROP TABLE IF EXISTS `reses_titik`;
+CREATE TABLE `reses_titik` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nama` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `masa_sidang` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Masa Sidang I 2026',
+  `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `desa` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dusun` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `lokasi_tuan_rumah` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tanggal` date DEFAULT NULL,
+  `waktu` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT '13:30',
+  `target_peserta` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'Masyarakat Umum',
+  `catatan` text COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. TABEL RESES KEHADIRAN
+DROP TABLE IF EXISTS `reses_kehadiran`;
+CREATE TABLE `reses_kehadiran` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `reses_id` bigint unsigned NOT NULL,
+  `nama` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nik` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `no_hp` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `desa` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dusun` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kategori_peserta` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'Konstituen Reses',
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `reses_kehadiran_reses_id_index` (`reses_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. TABEL POKIR USULAN
+DROP TABLE IF EXISTS `pokir_usulan`;
+CREATE TABLE `pokir_usulan` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `reses_id` bigint unsigned DEFAULT NULL,
+  `judul` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kategori` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Infrastruktur',
+  `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `desa` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dusun` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estimasi_anggaran` decimal(15,2) DEFAULT '0.00',
+  `nama_pengusul` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kontak_pengusul` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `deskripsi` text COLLATE utf8mb4_unicode_ci,
+  `status_tahap` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Aspirasi Reses',
+  `catatan_progres` text COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ==========================================================
 -- DATA AWAL BERSIH (HANYA 1 SUPERADMIN & REFERENSI WILAYAH DAPIL)
 -- ==========================================================
 
 -- Akun Tunggal Superadmin (Password: admin123)
-INSERT INTO `users` (`username`, `nama`, `name`, `password`, `role`, `kecamatan`, `desa`, `ranting`, `status`, `created_at`, `updated_at`) VALUES
-('superadmin', 'Superadmin Pusat', 'Superadmin Pusat', '$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u', 'Superadmin', NULL, NULL, NULL, 'Aktif', NOW(), NOW());
+INSERT INTO `users` (`username`, `nama`, `name`, `password`, `password_hash`, `role`, `kecamatan`, `desa`, `ranting`, `status`, `created_at`, `updated_at`) VALUES
+('superadmin', 'Superadmin Pusat', 'Superadmin Pusat', '$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u', '$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u', 'Superadmin', NULL, NULL, NULL, 'Aktif', NOW(), NOW());
 
 -- Master Referensi Wilayah Dapil Kraksaan Raya
 INSERT INTO `wilayah_referensi` (`kecamatan`, `desa`, `lat_default`, `lng_default`) VALUES

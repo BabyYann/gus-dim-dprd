@@ -2093,19 +2093,7 @@ window.toggleWebPassword = toggleWebPassword;
       if (r.kecamatan) perUser[user].kecamatanSet.add(r.kecamatan);
     });
 
-    // Ensure at least 3 display entries for the podium
-    if (Object.keys(perUser).length < 3) {
-      const fallbackUsers = [
-        { nama: 'korcam_kraksaan', count: 48, wil: 'Kraksaan' },
-        { nama: 'kordes_wetan', count: 32, wil: 'Kraksaan Wetan' },
-        { nama: 'superadmin', count: 24, wil: 'Dapil Kraksaan Raya' }
-      ];
-      fallbackUsers.forEach(function (f) {
-        if (!perUser[f.nama]) {
-          perUser[f.nama] = { count: f.count, kecamatanSet: new Set([f.wil]) };
-        }
-      });
-    }
+    // Kontributor leaderboard berdasarkan data entri nyata
 
     const ranking = Object.keys(perUser).map(function (user) {
       return { nama: user, count: perUser[user].count, wilayah: Array.from(perUser[user].kecamatanSet).join(', ') };
@@ -2115,6 +2103,13 @@ window.toggleWebPassword = toggleWebPassword;
     const podiumContainer = document.getElementById('podiumTopThree');
     if (podiumContainer) {
       podiumContainer.innerHTML = '';
+      if (ranking.length === 0) {
+        podiumContainer.innerHTML =
+          '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 32px 16px; font-size: 13px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; margin: 8px 0;">' +
+            '<div style="margin-bottom: 6px; font-weight: 600; color: #e2e8f0; font-size: 14px;">Belum Ada Entri Data</div>' +
+            '<div>Data papan peringkat kontributor akan tampil secara otomatis setelah operator melakukan input data perdana.</div>' +
+          '</div>';
+      }
       const top1 = ranking[0];
       const top2 = ranking[1];
       const top3 = ranking[2];
@@ -2166,7 +2161,9 @@ window.toggleWebPassword = toggleWebPassword;
     if (listContainer) {
       listContainer.innerHTML = '';
       const remaining = ranking.slice(3);
-      if (remaining.length === 0) {
+      if (ranking.length === 0) {
+        listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0; font-size:12.5px;">Belum ada riwayat kontributor untuk ditampilkan.</div>';
+      } else if (remaining.length === 0) {
         listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0; font-size:12.5px;">Semua kontributor teratas telah ditampilkan pada podium di atas.</div>';
       } else {
         const maxCount = ranking[0] ? ranking[0].count : 1;

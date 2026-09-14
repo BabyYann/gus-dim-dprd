@@ -13,8 +13,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Akun Pengguna
-        $users = [
+        // 1. Akun Superadmin Tunggal Produksi
+        User::where('username', '!=', 'superadmin')->delete();
+
+        User::updateOrCreate(
+            ['username' => 'superadmin'],
             [
                 'username' => 'superadmin',
                 'nama' => 'Superadmin Pusat',
@@ -25,47 +28,10 @@ class DatabaseSeeder extends Seeder
                 'desa' => null,
                 'ranting' => null,
                 'status' => 'Aktif',
-            ],
-            [
-                'username' => 'korcam_kraksaan',
-                'nama' => 'H. Mansyur (Korcam)',
-                'name' => 'H. Mansyur (Korcam)',
-                'password' => Hash::make('password123'),
-                'role' => 'Koordinator Kecamatan',
-                'kecamatan' => 'Kraksaan',
-                'desa' => null,
-                'ranting' => null,
-                'status' => 'Aktif',
-            ],
-            [
-                'username' => 'kordes_wetan',
-                'nama' => 'Ust. Bahri (Kordes)',
-                'name' => 'Ust. Bahri (Kordes)',
-                'password' => Hash::make('password123'),
-                'role' => 'Koordinator Desa',
-                'kecamatan' => 'Kraksaan',
-                'desa' => 'Kraksaan Wetan',
-                'ranting' => null,
-                'status' => 'Aktif',
-            ],
-            [
-                'username' => 'ranting_kraksaan',
-                'nama' => 'Admin Ranting Kraksaan Kota',
-                'name' => 'Admin Ranting Kraksaan Kota',
-                'password' => Hash::make('password123'),
-                'role' => 'Admin Ranting',
-                'kecamatan' => 'Kraksaan',
-                'desa' => 'Kraksaan Wetan',
-                'ranting' => 'Ranting Kraksaan Kota',
-                'status' => 'Aktif',
-            ],
-        ];
+            ]
+        );
 
-        foreach ($users as $u) {
-            User::updateOrCreate(['username' => $u['username']], $u);
-        }
-
-        // 2. Referensi Wilayah Dapil Kraksaan Raya
+        // 2. Referensi Wilayah Dapil Kraksaan Raya (Master Data Wajib)
         $wilayah = [
             // Kraksaan
             ['kecamatan' => 'Kraksaan', 'desa' => 'Kraksaan Wetan', 'lat_default' => -7.7580, 'lng_default' => 113.4150],
@@ -109,107 +75,17 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 3. Contoh Data Pendukung Awal
-        $pendukung = [
-            [
-                'jalur' => 'DPC',
-                'nik' => '3513121508820001',
-                'nama' => 'Ahmad Fauzi, S.Pd',
-                'hp' => '081234567890',
-                'umur' => 44,
-                'jabatan' => 'Ketua DPC',
-                'alamat' => 'Jl. Panglima Sudirman No. 45',
-                'kecamatan' => 'Kraksaan',
-                'desa' => 'Kraksaan Wetan',
-                'latitude' => -7.7580,
-                'longitude' => 113.4150,
-                'status' => 'Final',
-                'catatan' => 'Tokoh masyarakat Kraksaan',
-                'input_by_user_id' => 1,
-                'input_by_user_name' => 'Superadmin Pusat',
-            ],
-            [
-                'jalur' => 'DPRT',
-                'nik' => '3513125203890002',
-                'nama' => 'Siti Aminah',
-                'hp' => '085233445566',
-                'umur' => 37,
-                'jabatan' => 'Sekretaris DPRT',
-                'alamat' => 'Dusun Krajan RT 02/RW 01',
-                'kecamatan' => 'Kraksaan',
-                'desa' => 'Kraksaan Kulon',
-                'latitude' => -7.7550,
-                'longitude' => 113.4090,
-                'status' => 'Divalidasi Kecamatan',
-                'catatan' => 'Koordinator ibu-ibu pengajian',
-                'input_by_user_id' => 4,
-                'input_by_user_name' => 'Admin Ranting Kraksaan Kota',
-            ],
-            [
-                'jalur' => 'PIP',
-                'nik' => '3513120101080003',
-                'nama' => 'Rizky Ramadhan',
-                'hp' => '087811223344',
-                'umur' => 18,
-                'alamat' => 'Jl. Ikan Paus RT 03/RW 02',
-                'kecamatan' => 'Kraksaan',
-                'desa' => 'Semampir',
-                'latitude' => -7.7480,
-                'longitude' => 113.4210,
-                'data_khusus' => ['namaSekolah' => 'SMAN 1 Kraksaan'],
-                'status' => 'Diverifikasi Desa',
-                'catatan' => 'Siswa SMAN 1 Kraksaan berprestasi',
-                'input_by_user_id' => 4,
-                'input_by_user_name' => 'Admin Ranting Kraksaan Kota',
-            ],
-            [
-                'jalur' => 'KIP',
-                'nik' => '3513134511030004',
-                'nama' => 'Putri Ayu Lestari',
-                'hp' => '089677889900',
-                'umur' => 23,
-                'alamat' => 'Dusun Timur RT 01/RW 04',
-                'kecamatan' => 'Besuk',
-                'desa' => 'Besuk Kidul',
-                'latitude' => -7.8020,
-                'longitude' => 113.4420,
-                'data_khusus' => ['namaKampus' => 'Universitas Nurul Jadid'],
-                'status' => 'Diinput',
-                'catatan' => 'Mahasiswi Universitas Nurul Jadid',
-                'input_by_user_id' => 2,
-                'input_by_user_name' => 'H. Mansyur (Korcam)',
-            ],
-            [
-                'jalur' => 'RELAWAN',
-                'nik' => '3513141006950005',
-                'nama' => 'Bambang Sutrisno',
-                'hp' => '082199887766',
-                'umur' => 31,
-                'jabatan' => 'Anggota',
-                'koordinator' => 'Relawan Sayap Muda Gus Dim',
-                'alamat' => 'Jl. Raya Gading No. 12',
-                'kecamatan' => 'Gading',
-                'desa' => 'Gading Wetan',
-                'latitude' => -7.8500,
-                'longitude' => 113.4600,
-                'status' => 'Final',
-                'catatan' => 'Koordinator pemuda Gading',
-                'input_by_user_id' => 1,
-                'input_by_user_name' => 'Superadmin Pusat',
-            ],
-        ];
+        // 3. Kosongkan Data Transaksional Uji Coba
+        Pendukung::truncate();
+        AuditLog::truncate();
 
-        foreach ($pendukung as $p) {
-            Pendukung::updateOrCreate(['nik' => $p['nik']], $p);
-        }
-
-        // 4. Log Audit Awal
+        // 4. Catatan Log Inisialisasi Produksi
         AuditLog::create([
             'user_id' => 1,
             'user_nama' => 'Superadmin Pusat',
-            'aksi' => 'Inisialisasi Laravel',
-            'id_referensi' => 'INIT_LARAVEL',
-            'keterangan' => 'Inisialisasi sistem Gus Dim dengan Laravel 11/12 berhasil dilakukan',
+            'aksi' => 'Inisialisasi Sistem Produksi',
+            'id_referensi' => 'INIT_PRODUKSI',
+            'keterangan' => 'Sistem Informasi Pemenangan Terpadu Gus Dim siap beroperasi penuh di server produksi',
             'ip_address' => '127.0.0.1',
             'created_at' => now(),
         ]);

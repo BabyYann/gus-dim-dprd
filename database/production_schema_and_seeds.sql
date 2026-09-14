@@ -1,12 +1,14 @@
 -- ==========================================================
--- DUMP STRUKTUR & DATA AWAL LARAVEL SISTEM "GUS DIM"
--- Untuk Import Langsung via phpMyAdmin cPanel (Tanpa Butuh SSH)
+-- DUMP STRUKTUR PRODUKSI BERSIH SISTEM "GUS DIM"
+-- Khusus Peluncuran Resmi (1 Akun Superadmin + Referensi Wilayah)
+-- Seluruh Data Pendukung, Aspirasi, dan Log Masih Kosong Murni
+-- Domain: https://gusdim.com
 -- ==========================================================
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
--- 1. TABEL USERS (DENGAN ROLE & WILAYAH)
+-- 1. TABEL USERS
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -15,6 +17,7 @@ CREATE TABLE `users` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `role` enum('Superadmin','Koordinator Kecamatan','Koordinator Desa','Admin Ranting') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Admin Ranting',
   `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `desa` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -28,7 +31,19 @@ CREATE TABLE `users` (
   UNIQUE KEY `users_username_unique` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. TABEL PERSONAL ACCESS TOKENS (SANCTUM)
+-- 2. TABEL TOKENS SESI (USER TOKENS & SANCTUM)
+DROP TABLE IF EXISTS `user_tokens`;
+CREATE TABLE `user_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `token` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_tokens_token_unique` (`token`),
+  KEY `user_tokens_user_id_index` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 DROP TABLE IF EXISTS `personal_access_tokens`;
 CREATE TABLE `personal_access_tokens` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -107,21 +122,94 @@ CREATE TABLE `wilayah_referensi` (
   UNIQUE KEY `wilayah_referensi_kecamatan_desa_unique` (`kecamatan`,`desa`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 6. TABEL ASPIRASI WARGA
+DROP TABLE IF EXISTS `aspirasi`;
+CREATE TABLE `aspirasi` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `nama` VARCHAR(150) NOT NULL,
+  `hp` VARCHAR(25) DEFAULT NULL,
+  `kecamatan` VARCHAR(50) DEFAULT NULL,
+  `desa` VARCHAR(50) DEFAULT NULL,
+  `jalur` VARCHAR(50) DEFAULT 'Relawan',
+  `kategori` VARCHAR(50) DEFAULT 'Umum',
+  `aspirasi` TEXT NOT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'Baru',
+  `tanggal` VARCHAR(50) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_aspirasi_wilayah` (`kecamatan`, `desa`),
+  INDEX `idx_aspirasi_status` (`status`),
+  INDEX `idx_aspirasi_kategori` (`kategori`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. TABEL RESES TITIK
+DROP TABLE IF EXISTS `reses_titik`;
+CREATE TABLE `reses_titik` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nama` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `masa_sidang` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Masa Sidang I 2026',
+  `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `desa` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dusun` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `lokasi_tuan_rumah` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tanggal` date DEFAULT NULL,
+  `waktu` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT '13:30',
+  `target_peserta` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'Masyarakat Umum',
+  `catatan` text COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. TABEL RESES KEHADIRAN
+DROP TABLE IF EXISTS `reses_kehadiran`;
+CREATE TABLE `reses_kehadiran` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `reses_id` bigint unsigned NOT NULL,
+  `nama` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nik` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `no_hp` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `desa` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dusun` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kategori_peserta` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'Konstituen Reses',
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `reses_kehadiran_reses_id_index` (`reses_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. TABEL POKIR USULAN
+DROP TABLE IF EXISTS `pokir_usulan`;
+CREATE TABLE `pokir_usulan` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `reses_id` bigint unsigned DEFAULT NULL,
+  `judul` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kategori` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Infrastruktur',
+  `kecamatan` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `desa` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dusun` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estimasi_anggaran` decimal(15,2) DEFAULT '0.00',
+  `nama_pengusul` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kontak_pengusul` varchar(25) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `deskripsi` text COLLATE utf8mb4_unicode_ci,
+  `status_tahap` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Aspirasi Reses',
+  `catatan_progres` text COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ==========================================================
--- SEED DATA AWAL
+-- DATA AWAL BERSIH (HANYA 1 SUPERADMIN & REFERENSI WILAYAH DAPIL)
 -- ==========================================================
 
--- Data Pengguna Default
--- Password superadmin: admin123
--- Password role lainnya: password123
-INSERT INTO `users` (`username`, `nama`, `name`, `password`, `role`, `kecamatan`, `desa`, `ranting`, `status`, `created_at`, `updated_at`) VALUES
-('superadmin', 'Superadmin Pusat', 'Superadmin Pusat', '$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u', 'Superadmin', NULL, NULL, NULL, 'Aktif', NOW(), NOW()),
-('korcam_kraksaan', 'H. Mansyur (Korcam)', 'H. Mansyur (Korcam)', '$2y$12$cWtQjSrwcYAJrQUQVjJ5CuPtbnQoHG.PZe4VTskvAt17c/yUNG3Ne', 'Koordinator Kecamatan', 'Kraksaan', NULL, NULL, 'Aktif', NOW(), NOW()),
-('kordes_wetan', 'Ust. Bahri (Kordes)', 'Ust. Bahri (Kordes)', '$2y$12$cWtQjSrwcYAJrQUQVjJ5CuPtbnQoHG.PZe4VTskvAt17c/yUNG3Ne', 'Koordinator Desa', 'Kraksaan', 'Kraksaan Wetan', NULL, 'Aktif', NOW(), NOW()),
-('ranting_kraksaan', 'Admin Ranting Kraksaan Kota', 'Admin Ranting Kraksaan Kota', '$2y$12$cWtQjSrwcYAJrQUQVjJ5CuPtbnQoHG.PZe4VTskvAt17c/yUNG3Ne', 'Admin Ranting', 'Kraksaan', 'Kraksaan Wetan', 'Ranting Kraksaan Kota', 'Aktif', NOW(), NOW())
-ON DUPLICATE KEY UPDATE `nama` = VALUES(`nama`);
+-- Akun Tunggal Superadmin (Password: admin123)
+INSERT INTO `users` (`username`, `nama`, `name`, `password`, `password_hash`, `role`, `kecamatan`, `desa`, `ranting`, `status`, `created_at`, `updated_at`) VALUES
+('superadmin', 'Superadmin Pusat', 'Superadmin Pusat', '$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u', '$2y$12$RHrimOtniIZQc8mOO7WdaegtkVChq5D8WcK8WWhJ2CoAindeAOs0u', 'Superadmin', NULL, NULL, NULL, 'Aktif', NOW(), NOW());
 
--- Referensi Wilayah Dapil Kraksaan Raya
+-- Master Referensi Wilayah Dapil Kraksaan Raya
 INSERT INTO `wilayah_referensi` (`kecamatan`, `desa`, `lat_default`, `lng_default`) VALUES
 ('Kraksaan', 'Kraksaan Wetan', -7.7580, 113.4150),
 ('Kraksaan', 'Kraksaan Kulon', -7.7550, 113.4090),
@@ -152,37 +240,5 @@ INSERT INTO `wilayah_referensi` (`kecamatan`, `desa`, `lat_default`, `lng_defaul
 ('Gading', 'Sentul', -7.8800, 113.4600),
 ('Gading', 'Batur', -7.8850, 113.4750)
 ON DUPLICATE KEY UPDATE `lat_default` = VALUES(`lat_default`);
-
--- Contoh Pendukung Awal
-INSERT INTO `pendukung` (`jalur`, `nik`, `nama`, `hp`, `umur`, `jabatan`, `koordinator`, `alamat`, `kecamatan`, `desa`, `latitude`, `longitude`, `status`, `catatan`, `input_by_user_id`, `input_by_user_name`, `created_at`, `updated_at`) VALUES
-('DPC', '3513121508820001', 'Ahmad Fauzi, S.Pd', '081234567890', 44, 'Ketua DPC', NULL, 'Jl. Panglima Sudirman No. 45', 'Kraksaan', 'Kraksaan Wetan', -7.7580, 113.4150, 'Final', 'Tokoh masyarakat Kraksaan', 1, 'Superadmin Pusat', DATE_SUB(NOW(), INTERVAL 5 DAY), NOW()),
-('DPRT', '3513125203890002', 'Siti Aminah', '085233445566', 37, 'Sekretaris DPRT', NULL, 'Dusun Krajan RT 02/RW 01', 'Kraksaan', 'Kraksaan Kulon', -7.7550, 113.4090, 'Divalidasi Kecamatan', 'Koordinator ibu-ibu pengajian', 4, 'Admin Ranting Kraksaan Kota', DATE_SUB(NOW(), INTERVAL 4 DAY), NOW()),
-('PIP', '3513120101080003', 'Rizky Ramadhan', '087811223344', 18, NULL, NULL, 'Jl. Ikan Paus RT 03/RW 02', 'Kraksaan', 'Semampir', -7.7480, 113.4210, 'Diverifikasi Desa', 'Siswa SMAN 1 Kraksaan berprestasi', 4, 'Admin Ranting Kraksaan Kota', DATE_SUB(NOW(), INTERVAL 3 DAY), NOW()),
-('KIP', '3513134511030004', 'Putri Ayu Lestari', '089677889900', 23, NULL, NULL, 'Dusun Timur RT 01/RW 04', 'Besuk', 'Besuk Kidul', -7.8020, 113.4420, 'Diinput', 'Mahasiswi Universitas Nurul Jadid', 2, 'H. Mansyur (Korcam)', DATE_SUB(NOW(), INTERVAL 2 DAY), NOW()),
-('RELAWAN', '3513141006950005', 'Bambang Sutrisno', '082199887766', 31, 'Anggota', 'Relawan Sayap Muda Gus Dim', 'Jl. Raya Gading No. 12', 'Gading', 'Gading Wetan', -7.8500, 113.4600, 'Final', 'Koordinator pemuda Gading', 1, 'Superadmin Pusat', DATE_SUB(NOW(), INTERVAL 1 DAY), NOW());
-
--- Log Audit Awal
-INSERT INTO `audit_logs` (`user_id`, `user_nama`, `aksi`, `id_referensi`, `keterangan`, `ip_address`, `created_at`) VALUES
-(1, 'Superadmin Pusat', 'Inisialisasi Sistem Laravel', 'INIT_LARAVEL', 'Inisialisasi database dan instalasi framework Laravel 11 berhasil dilakukan', '127.0.0.1', NOW());
-
-
--- 6. TABEL ASPIRASI WARGA
-CREATE TABLE IF NOT EXISTS `aspirasi` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `nama` VARCHAR(150) NOT NULL,
-  `hp` VARCHAR(25) DEFAULT NULL,
-  `kecamatan` VARCHAR(50) DEFAULT NULL,
-  `desa` VARCHAR(50) DEFAULT NULL,
-  `jalur` VARCHAR(50) DEFAULT 'Relawan',
-  `kategori` VARCHAR(50) DEFAULT 'Umum',
-  `aspirasi` TEXT NOT NULL,
-  `status` VARCHAR(50) NOT NULL DEFAULT 'Baru',
-  `tanggal` VARCHAR(50) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX `idx_aspirasi_wilayah` (`kecamatan`, `desa`),
-  INDEX `idx_aspirasi_status` (`status`),
-  INDEX `idx_aspirasi_kategori` (`kategori`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
