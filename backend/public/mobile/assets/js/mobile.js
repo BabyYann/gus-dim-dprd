@@ -523,33 +523,36 @@ function renderAspirasiDedicated() {
   const container = document.getElementById('aspirasiDedicatedList');
   if (!container) return;
 
-  // 4 KPI Counters Aspirasi Mobile
+  // Metrik Terintegrasi pada Filter Pill Status (Opsi 1)
   const totalAspirasi = (AppState.aspirasi || []).length;
   let countMenunggu = 0;
   let countAdvokasi = 0;
+  let countPokir = 0;
   let countSelesai = 0;
 
   (AppState.aspirasi || []).forEach(r => {
     const st = (r.status || '').toLowerCase();
     if (st.includes('menunggu') || st.includes('baru') || st.includes('pending') || !st) {
       countMenunggu++;
-    } else if (st.includes('proses') || st.includes('tindak') || st.includes('advokasi')) {
-      countAdvokasi++;
-    } else if (st.includes('selesai') || st.includes('pokir') || st.includes('disetujui') || st.includes('valid')) {
+    } else if (st.includes('pokir')) {
+      countPokir++;
+    } else if (st.includes('selesai') || st.includes('disetujui') || st.includes('valid')) {
       countSelesai++;
     } else {
       countAdvokasi++;
     }
   });
 
-  const elTotal = document.getElementById('mobKpiAspirasiTotal');
-  if (elTotal) elTotal.textContent = totalAspirasi.toLocaleString('id-ID');
-  const elMenunggu = document.getElementById('mobKpiAspirasiMenunggu');
-  if (elMenunggu) elMenunggu.textContent = countMenunggu.toLocaleString('id-ID');
-  const elAdvokasi = document.getElementById('mobKpiAspirasiAdvokasi');
-  if (elAdvokasi) elAdvokasi.textContent = countAdvokasi.toLocaleString('id-ID');
-  const elSelesai = document.getElementById('mobKpiAspirasiSelesai');
-  if (elSelesai) elSelesai.textContent = countSelesai.toLocaleString('id-ID');
+  const elSemua = document.getElementById('countStatusSemua');
+  if (elSemua) elSemua.textContent = totalAspirasi;
+  const elMenunggu = document.getElementById('countStatusMenunggu');
+  if (elMenunggu) elMenunggu.textContent = countMenunggu;
+  const elAdvokasi = document.getElementById('countStatusAdvokasi');
+  if (elAdvokasi) elAdvokasi.textContent = countAdvokasi;
+  const elPokir = document.getElementById('countStatusPokir');
+  if (elPokir) elPokir.textContent = countPokir;
+  const elSelesai = document.getElementById('countStatusSelesai');
+  if (elSelesai) elSelesai.textContent = countSelesai;
 
   let list = [...(AppState.aspirasi || [])];
 
@@ -598,7 +601,7 @@ function renderAspirasiDedicated() {
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
+      <div class="empty-state" style="padding:24px 16px;">
         ${Icons.messageSquare}
         <div class="empty-state-title">Tidak ada data aspirasi</div>
         <div class="empty-state-desc">Belum ada aspirasi warga yang cocok dengan pencarian atau filter yang dipilih.</div>
@@ -634,35 +637,35 @@ function renderAspirasiDedicated() {
     const hasHp = Boolean(a.hp);
 
     return `
-      <div class="touch-card" onclick="openAspirasiDetail(${a.id})">
-        <div class="card-top-row">
-          <div class="card-avatar" style="background:#eff6ff;color:#2563eb;">
+      <div class="touch-card" onclick="openAspirasiDetail(${a.id})" style="padding:12px;margin-bottom:10px;gap:8px;">
+        <div class="card-top-row" style="gap:10px;">
+          <div class="card-avatar" style="width:36px;height:36px;min-width:36px;border-radius:10px;background:#eff6ff;color:#2563eb;font-size:13px;">
             ${Icons.messageSquare}
           </div>
           <div class="card-info">
-            <div class="card-name">${escapeHtml(topik)}</div>
-            <div class="card-nik" style="font-family:inherit;">Pengusul: <strong>${escapeHtml(pengusul)}</strong></div>
+            <div class="card-name" style="font-size:14px;font-weight:700;">${escapeHtml(topik)}</div>
+            <div class="card-nik" style="font-family:inherit;font-size:11px;">Pengusul: <strong>${escapeHtml(pengusul)}</strong></div>
           </div>
-          <span class="badge-status ${badgeClass}">${statusText}</span>
+          <span class="badge-status ${badgeClass}" style="font-size:10.5px;padding:3px 8px;">${statusText}</span>
         </div>
-        <p style="font-size:13px;color:#334155;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+        <p style="font-size:12.5px;color:#334155;line-height:1.42;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;">
           ${escapeHtml(isi)}
         </p>
-        <div class="card-details-row">
-          <div class="card-detail-item">
+        <div class="card-details-row" style="padding-top:6px;gap:6px;font-size:11.5px;">
+          <div class="card-detail-item" style="gap:3px;">
             ${Icons.mapPin}
             <span>${escapeHtml(desa)}, ${escapeHtml(kec)}</span>
           </div>
-          <span class="card-pill blue">${escapeHtml(kat)}</span>
-          ${hasHp ? `<span class="card-pill green">WA Ada</span>` : ''}
+          <span class="card-pill blue" style="font-size:10px;padding:1px 6px;">${escapeHtml(kat)}</span>
+          ${hasHp ? `<span class="card-pill green" style="font-size:10px;padding:1px 6px;">WA Ada</span>` : ''}
         </div>
-        <div class="card-actions-row" onclick="event.stopPropagation()">
+        <div class="card-actions-row" onclick="event.stopPropagation()" style="margin-top:2px;gap:8px;">
           ${hasHp ? `
-            <button type="button" class="btn-wa-touch" style="height:36px;font-size:12px;" onclick="kirimWaUpdateAspirasi(${a.id})">
+            <button type="button" class="btn-wa-touch" style="height:34px;font-size:11.5px;padding:0 10px;" onclick="kirimWaUpdateAspirasi(${a.id})">
               ${Icons.whatsapp} Kabar WA
             </button>
           ` : ''}
-          <button type="button" class="btn-outline-touch" style="flex:1;height:36px;font-size:12px;" onclick="openAspirasiDetail(${a.id})">
+          <button type="button" class="btn-outline-touch" style="flex:1;height:34px;font-size:11.5px;padding:0 10px;" onclick="openAspirasiDetail(${a.id})">
             Detail &amp; Aksi
           </button>
         </div>

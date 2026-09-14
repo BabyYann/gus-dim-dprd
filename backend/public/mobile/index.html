@@ -1115,11 +1115,14 @@ html, body {
 }
 
 .filter-pill {
-  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -1133,6 +1136,39 @@ html, body {
   border-color: var(--primary);
   font-weight: 600;
 }
+
+.filter-pill .pill-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.filter-pill.active .pill-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.filter-pill .pill-badge.yellow { background: #fef3c7; color: #b45309; }
+.filter-pill.active .pill-badge.yellow { background: #fbbf24; color: #78350f; }
+
+.filter-pill .pill-badge.purple { background: #faf5ff; color: #7e22ce; }
+.filter-pill.active .pill-badge.purple { background: #c084fc; color: #4c1d95; }
+
+.filter-pill .pill-badge.blue { background: #eff6ff; color: #1d4ed8; }
+.filter-pill.active .pill-badge.blue { background: #60a5fa; color: #1e3a8a; }
+
+.filter-pill .pill-badge.green { background: #f0fdf4; color: #15803d; }
+.filter-pill.active .pill-badge.green { background: #4ade80; color: #14532d; }
 
 /* ==========================================================================
    BOTTOM SHEET DRAWER (MODAL SENTUH)
@@ -2206,85 +2242,49 @@ html, body {
            HALAMAN 4: ASPIRASI WARGA
            ========================================== -->
       <section id="page-aspirasi" class="tab-pane">
-        <div class="page-title-banner">
+        <!-- Header Ringkas Satu Baris -->
+        <div class="page-title-banner" style="margin-bottom:8px;padding-bottom:0;">
           <div>
-            <div class="page-title-text">Aspirasi Warga</div>
-            <div class="page-subtitle-text">Jaring masukan konstituen Dapil Kraksaan Raya</div>
+            <div class="page-title-text" style="font-size:18px;">Aspirasi Warga</div>
+            <div class="page-subtitle-text" style="font-size:11px;">Jaring masukan Dapil Kraksaan Raya</div>
           </div>
-          <button type="button" class="btn-outline-touch" onclick="openAspirasiForm()" style="height:36px;font-size:12px;padding:0 10px;background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;min-width:14px;min-height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Buat Aspirasi
+          <button type="button" class="btn-outline-touch" onclick="openAspirasiForm()" style="height:32px;font-size:11.5px;padding:0 10px;background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Buat Aspirasi
           </button>
         </div>
 
-        <!-- 4 KPI Grid Aspirasi Mobile -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-title">Total Aspirasi</span>
-              <div class="kpi-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              </div>
-            </div>
-            <div id="mobKpiAspirasiTotal" class="kpi-value">0</div>
-            <div class="kpi-subtext">Masukan Konstituen</div>
-          </div>
-
-          <div class="kpi-card gold">
-            <div class="kpi-header">
-              <span class="kpi-title">Menunggu</span>
-              <div class="kpi-icon gold">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </div>
-            </div>
-            <div id="mobKpiAspirasiMenunggu" class="kpi-value">0</div>
-            <div class="kpi-subtext">Perlu Verifikasi</div>
-          </div>
-
-          <div class="kpi-card purple">
-            <div class="kpi-header">
-              <span class="kpi-title">Advokasi</span>
-              <div class="kpi-icon purple">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              </div>
-            </div>
-            <div id="mobKpiAspirasiAdvokasi" class="kpi-value">0</div>
-            <div class="kpi-subtext">Proses Lapangan</div>
-          </div>
-
-          <div class="kpi-card green">
-            <div class="kpi-header">
-              <span class="kpi-title">Pokir / Selesai</span>
-              <div class="kpi-icon green">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </div>
-            </div>
-            <div id="mobKpiAspirasiSelesai" class="kpi-value">0</div>
-            <div class="kpi-subtext">APBD &amp; Tuntas</div>
-          </div>
-        </div>
-
-        <!-- Search & Filter Controls -->
-        <div class="search-filter-wrapper">
-          <div class="search-input-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="searchAspirasiInput" class="search-input-mobile" placeholder="Cari warga, desa, atau isi keluhan...">
+        <!-- Search & Filter Controls (Opsi 1: KPI Terintegrasi di Filter Pill) -->
+        <div class="search-filter-wrapper" style="margin-bottom:10px;">
+          <div class="search-input-box" style="margin-bottom:8px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:17px;height:17px;min-width:17px;min-height:17px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchAspirasiInput" class="search-input-mobile" style="height:42px;font-size:13.5px;padding-left:40px;" placeholder="Cari warga, desa, atau isi keluhan...">
             <button type="button" id="btnClearAspirasiSearch" class="search-clear-btn" onclick="clearAspirasiSearch()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;min-width:16px;min-height:16px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
 
-          <!-- Status Filters Scroll -->
-          <div class="filter-pills-scroll">
-            <button type="button" class="filter-pill active" data-asp-status="" onclick="filterAspirasiStatus('', this)">Semua Status</button>
-            <button type="button" class="filter-pill" data-asp-status="menunggu" onclick="filterAspirasiStatus('menunggu', this)">Menunggu</button>
-            <button type="button" class="filter-pill" data-asp-status="advokasi" onclick="filterAspirasiStatus('advokasi', this)">Advokasi</button>
-            <button type="button" class="filter-pill" data-asp-status="pokir" onclick="filterAspirasiStatus('pokir', this)">Masuk Pokir</button>
-            <button type="button" class="filter-pill" data-asp-status="selesai" onclick="filterAspirasiStatus('selesai', this)">Selesai</button>
+          <!-- Status Filters dengan Badge Metrik KPI Langsung -->
+          <div class="filter-pills-scroll" style="margin-bottom:6px;">
+            <button type="button" class="filter-pill active" data-asp-status="" onclick="filterAspirasiStatus('', this)">
+              Semua <span class="pill-badge" id="countStatusSemua">0</span>
+            </button>
+            <button type="button" class="filter-pill" data-asp-status="menunggu" onclick="filterAspirasiStatus('menunggu', this)">
+              Menunggu <span class="pill-badge yellow" id="countStatusMenunggu">0</span>
+            </button>
+            <button type="button" class="filter-pill" data-asp-status="advokasi" onclick="filterAspirasiStatus('advokasi', this)">
+              Advokasi <span class="pill-badge purple" id="countStatusAdvokasi">0</span>
+            </button>
+            <button type="button" class="filter-pill" data-asp-status="pokir" onclick="filterAspirasiStatus('pokir', this)">
+              Masuk Pokir <span class="pill-badge blue" id="countStatusPokir">0</span>
+            </button>
+            <button type="button" class="filter-pill" data-asp-status="selesai" onclick="filterAspirasiStatus('selesai', this)">
+              Selesai <span class="pill-badge green" id="countStatusSelesai">0</span>
+            </button>
           </div>
 
           <!-- Category Filters Scroll -->
-          <div class="filter-pills-scroll" style="margin-top:-2px;">
+          <div class="filter-pills-scroll">
             <button type="button" class="filter-pill active" data-asp-cat="" onclick="filterAspirasiCat('', this)">Semua Bidang</button>
             <button type="button" class="filter-pill" data-asp-cat="Infrastruktur" onclick="filterAspirasiCat('Infrastruktur', this)">Infrastruktur</button>
             <button type="button" class="filter-pill" data-asp-cat="Pertanian" onclick="filterAspirasiCat('Pertanian', this)">Pertanian</button>
@@ -3335,33 +3335,36 @@ function renderAspirasiDedicated() {
   const container = document.getElementById('aspirasiDedicatedList');
   if (!container) return;
 
-  // 4 KPI Counters Aspirasi Mobile
+  // Metrik Terintegrasi pada Filter Pill Status (Opsi 1)
   const totalAspirasi = (AppState.aspirasi || []).length;
   let countMenunggu = 0;
   let countAdvokasi = 0;
+  let countPokir = 0;
   let countSelesai = 0;
 
   (AppState.aspirasi || []).forEach(r => {
     const st = (r.status || '').toLowerCase();
     if (st.includes('menunggu') || st.includes('baru') || st.includes('pending') || !st) {
       countMenunggu++;
-    } else if (st.includes('proses') || st.includes('tindak') || st.includes('advokasi')) {
-      countAdvokasi++;
-    } else if (st.includes('selesai') || st.includes('pokir') || st.includes('disetujui') || st.includes('valid')) {
+    } else if (st.includes('pokir')) {
+      countPokir++;
+    } else if (st.includes('selesai') || st.includes('disetujui') || st.includes('valid')) {
       countSelesai++;
     } else {
       countAdvokasi++;
     }
   });
 
-  const elTotal = document.getElementById('mobKpiAspirasiTotal');
-  if (elTotal) elTotal.textContent = totalAspirasi.toLocaleString('id-ID');
-  const elMenunggu = document.getElementById('mobKpiAspirasiMenunggu');
-  if (elMenunggu) elMenunggu.textContent = countMenunggu.toLocaleString('id-ID');
-  const elAdvokasi = document.getElementById('mobKpiAspirasiAdvokasi');
-  if (elAdvokasi) elAdvokasi.textContent = countAdvokasi.toLocaleString('id-ID');
-  const elSelesai = document.getElementById('mobKpiAspirasiSelesai');
-  if (elSelesai) elSelesai.textContent = countSelesai.toLocaleString('id-ID');
+  const elSemua = document.getElementById('countStatusSemua');
+  if (elSemua) elSemua.textContent = totalAspirasi;
+  const elMenunggu = document.getElementById('countStatusMenunggu');
+  if (elMenunggu) elMenunggu.textContent = countMenunggu;
+  const elAdvokasi = document.getElementById('countStatusAdvokasi');
+  if (elAdvokasi) elAdvokasi.textContent = countAdvokasi;
+  const elPokir = document.getElementById('countStatusPokir');
+  if (elPokir) elPokir.textContent = countPokir;
+  const elSelesai = document.getElementById('countStatusSelesai');
+  if (elSelesai) elSelesai.textContent = countSelesai;
 
   let list = [...(AppState.aspirasi || [])];
 
@@ -3410,7 +3413,7 @@ function renderAspirasiDedicated() {
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
+      <div class="empty-state" style="padding:24px 16px;">
         ${Icons.messageSquare}
         <div class="empty-state-title">Tidak ada data aspirasi</div>
         <div class="empty-state-desc">Belum ada aspirasi warga yang cocok dengan pencarian atau filter yang dipilih.</div>
@@ -3446,35 +3449,35 @@ function renderAspirasiDedicated() {
     const hasHp = Boolean(a.hp);
 
     return `
-      <div class="touch-card" onclick="openAspirasiDetail(${a.id})">
-        <div class="card-top-row">
-          <div class="card-avatar" style="background:#eff6ff;color:#2563eb;">
+      <div class="touch-card" onclick="openAspirasiDetail(${a.id})" style="padding:12px;margin-bottom:10px;gap:8px;">
+        <div class="card-top-row" style="gap:10px;">
+          <div class="card-avatar" style="width:36px;height:36px;min-width:36px;border-radius:10px;background:#eff6ff;color:#2563eb;font-size:13px;">
             ${Icons.messageSquare}
           </div>
           <div class="card-info">
-            <div class="card-name">${escapeHtml(topik)}</div>
-            <div class="card-nik" style="font-family:inherit;">Pengusul: <strong>${escapeHtml(pengusul)}</strong></div>
+            <div class="card-name" style="font-size:14px;font-weight:700;">${escapeHtml(topik)}</div>
+            <div class="card-nik" style="font-family:inherit;font-size:11px;">Pengusul: <strong>${escapeHtml(pengusul)}</strong></div>
           </div>
-          <span class="badge-status ${badgeClass}">${statusText}</span>
+          <span class="badge-status ${badgeClass}" style="font-size:10.5px;padding:3px 8px;">${statusText}</span>
         </div>
-        <p style="font-size:13px;color:#334155;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+        <p style="font-size:12.5px;color:#334155;line-height:1.42;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;">
           ${escapeHtml(isi)}
         </p>
-        <div class="card-details-row">
-          <div class="card-detail-item">
+        <div class="card-details-row" style="padding-top:6px;gap:6px;font-size:11.5px;">
+          <div class="card-detail-item" style="gap:3px;">
             ${Icons.mapPin}
             <span>${escapeHtml(desa)}, ${escapeHtml(kec)}</span>
           </div>
-          <span class="card-pill blue">${escapeHtml(kat)}</span>
-          ${hasHp ? `<span class="card-pill green">WA Ada</span>` : ''}
+          <span class="card-pill blue" style="font-size:10px;padding:1px 6px;">${escapeHtml(kat)}</span>
+          ${hasHp ? `<span class="card-pill green" style="font-size:10px;padding:1px 6px;">WA Ada</span>` : ''}
         </div>
-        <div class="card-actions-row" onclick="event.stopPropagation()">
+        <div class="card-actions-row" onclick="event.stopPropagation()" style="margin-top:2px;gap:8px;">
           ${hasHp ? `
-            <button type="button" class="btn-wa-touch" style="height:36px;font-size:12px;" onclick="kirimWaUpdateAspirasi(${a.id})">
+            <button type="button" class="btn-wa-touch" style="height:34px;font-size:11.5px;padding:0 10px;" onclick="kirimWaUpdateAspirasi(${a.id})">
               ${Icons.whatsapp} Kabar WA
             </button>
           ` : ''}
-          <button type="button" class="btn-outline-touch" style="flex:1;height:36px;font-size:12px;" onclick="openAspirasiDetail(${a.id})">
+          <button type="button" class="btn-outline-touch" style="flex:1;height:34px;font-size:11.5px;padding:0 10px;" onclick="openAspirasiDetail(${a.id})">
             Detail &amp; Aksi
           </button>
         </div>
