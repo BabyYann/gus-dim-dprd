@@ -44,6 +44,8 @@
   <link rel="icon" type="image/png" href="assets/icons/gus-dim.png">
   <title>Gus Dim Mobile - Aplikasi PWA Lapangan Dapil Kraksaan Raya</title>
   <script src="assets/js/pusher.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
 /* Strict Global SVG Containment */
 svg {
@@ -732,9 +734,137 @@ html, body {
 /* Quick Navigation Shortcut Grid */
 .shortcut-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-bottom: 14px;
+}
+
+/* ==========================================================================
+   PETA SEBARAN MOBILE (MODEL A - FULLSCREEN INTERACTIVE GIS)
+   ========================================================================== */
+#page-peta {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: calc(100vh - 60px - 65px);
+  position: relative;
+  overflow: hidden;
+}
+
+.map-mobile-header {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 8px 12px;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e2e8f0;
+}
+
+.map-back-btn, .map-locate-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.map-header-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #16225e;
+  text-align: center;
+}
+
+.map-header-sub {
+  font-size: 10.5px;
+  color: #64748b;
+  text-align: center;
+}
+
+.map-floating-filters {
+  position: absolute;
+  top: 66px;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.map-floating-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.map-filter-pill {
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-filter-pill.active {
+  background: #16225e;
+  color: #ffffff;
+  border-color: #16225e;
+}
+
+.mobile-map-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  z-index: 1;
+}
+
+.map-bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  background: #ffffff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.15);
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 16px 18px;
+  animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.map-sheet-drag-handle {
+  width: 40px;
+  height: 4px;
+  background: #cbd5e1;
+  border-radius: 999px;
+  margin: 0 auto 10px;
+  cursor: pointer;
 }
 
 .shortcut-tile {
@@ -1996,77 +2126,55 @@ html, body {
            ========================================== -->
       <section id="page-dashboard" class="tab-pane active">
 
-        <!-- Progress Target Suara Dapil -->
-        <div class="progress-widget">
-          <div class="progress-header">
-            <span class="progress-title">Progres Target Suara Dapil</span>
-            <span id="progressTargetPct" class="progress-target-text" style="font-weight:800;color:#fbbf24;">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div id="progressTargetFill" class="progress-bar-fill" style="width: 0%;"></div>
-          </div>
+        
           <div class="progress-footer">
             <span id="progressTargetSub">0 / 25.000 Suara</span>
             <span>Target: 25.000 Suara</span>
           </div>
         </div>
 
-        <!-- Quick Shortcut Grid (8 Akses Cepat Modul) -->
+        <!-- Quick Shortcut Grid (6 Akses Cepat Modul Utama 3x2) -->
         <div class="shortcut-grid">
+          <div class="shortcut-tile" onclick="navigatePage('input')" style="border-color:#fbbf24;background:#fffbeb;">
+            <div class="shortcut-icon" style="background:#fef3c7;color:#d97706;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px;height:20px;min-width:20px;min-height:20px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <span class="shortcut-label" style="font-weight:700;color:#92400e;">Entri 5 Jalur</span>
+          </div>
+
           <div class="shortcut-tile" onclick="navigatePage('pendukung')">
             <div class="shortcut-icon" style="background:#eff6ff;color:#2563eb;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <span class="shortcut-label">Pendukung</span>
           </div>
 
-          <div class="shortcut-tile" onclick="navigatePage('input')">
-            <div class="shortcut-icon" style="background:#fef3c7;color:#d97706;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-            </div>
-            <span class="shortcut-label">Entri 5 Jalur</span>
-          </div>
-
           <div class="shortcut-tile" onclick="navigatePage('aspirasi')">
             <div class="shortcut-icon" style="background:#f0fdf4;color:#16a34a;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
             <span class="shortcut-label">Aspirasi</span>
           </div>
 
           <div class="shortcut-tile" onclick="navigatePage('reses')">
             <div class="shortcut-icon" style="background:#e0f2fe;color:#0284c7;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
             </div>
             <span class="shortcut-label">Pokir APBD</span>
           </div>
 
           <div class="shortcut-tile" onclick="navigatePage('peta')">
             <div class="shortcut-icon" style="background:#faf5ff;color:#9333ea;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
             </div>
             <span class="shortcut-label">Peta Sebaran</span>
           </div>
 
           <div class="shortcut-tile" onclick="navigatePage('leaderboard')">
             <div class="shortcut-icon" style="background:#fff7ed;color:#ea580c;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
             </div>
             <span class="shortcut-label">Leaderboard</span>
-          </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('riwayat')">
-            <div class="shortcut-icon" style="background:#f1f5f9;color:#475569;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <span class="shortcut-label">Log Riwayat</span>
-          </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('pengaturan')">
-            <div class="shortcut-icon" style="background:#fdf2f8;color:#db2777;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-            </div>
-            <span class="shortcut-label">Pengaturan</span>
           </div>
         </div>
 
@@ -2377,41 +2485,39 @@ html, body {
       </section>
 
       <!-- ==========================================
-           HALAMAN 6: PETA SEBARAN (GIS MOBILE)
+           HALAMAN 6: PETA SEBARAN (GIS MOBILE MODEL A)
            ========================================== -->
       <section id="page-peta" class="tab-pane">
-        <div class="page-title-banner">
+        <!-- Header Peta Mobile -->
+        <div class="map-mobile-header">
+          <button type="button" class="map-back-btn" onclick="navigatePage('dashboard')" title="Kembali">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
           <div>
-            <div class="page-title-text">Peta Sebaran Dapil</div>
-            <div class="page-subtitle-text">Pemetaan wilayah Kraksaan &bull; Besuk &bull; Gading</div>
+            <div class="map-header-title">Peta Sebaran Interaktif</div>
+            <div class="map-header-sub" id="mapHeaderSubtext">Memuat titik Dapil...</div>
           </div>
+          <button type="button" class="map-locate-btn" onclick="locateUserPosition()" title="Lokasi Saya">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </button>
         </div>
 
-        <div class="geo-district-card">
-          <div class="geo-district-header">
-            <span class="geo-district-name">Kecamatan Kraksaan</span>
-            <span class="badge-status valid">Basis Utama</span>
-          </div>
-          <p style="font-size:12px;color:#64748b;margin-bottom:8px;">Total 13 Desa/Kelurahan &bull; Pusat Komando Pemenangan</p>
-          <div class="geo-village-grid" id="gridDesaKraksaan"></div>
+        <!-- Floating Filter Pills -->
+        <div class="map-floating-filters">
+          <button type="button" class="map-filter-pill active" data-map-filter="all" onclick="filterMobileMap('all', this)">Semua</button>
+          <button type="button" class="map-filter-pill" data-map-filter="Kraksaan" onclick="filterMobileMap('Kraksaan', this)">Kraksaan</button>
+          <button type="button" class="map-filter-pill" data-map-filter="Besuk" onclick="filterMobileMap('Besuk', this)">Besuk</button>
+          <button type="button" class="map-filter-pill" data-map-filter="Gading" onclick="filterMobileMap('Gading', this)">Gading</button>
+          <button type="button" class="map-filter-pill" data-map-filter="reses" onclick="filterMobileMap('reses', this)">Titik Reses</button>
         </div>
 
-        <div class="geo-district-card">
-          <div class="geo-district-header">
-            <span class="geo-district-name">Kecamatan Besuk</span>
-            <span class="badge-status pending">Penyangga</span>
-          </div>
-          <p style="font-size:12px;color:#64748b;margin-bottom:8px;">Total 9 Desa &bull; Basis Petani &amp; Jaringan Desa</p>
-          <div class="geo-village-grid" id="gridDesaBesuk"></div>
-        </div>
+        <!-- Map Container -->
+        <div id="mobileLeafletMap" class="mobile-map-canvas"></div>
 
-        <div class="geo-district-card">
-          <div class="geo-district-header">
-            <span class="geo-district-name">Kecamatan Gading</span>
-            <span class="badge-status info">Wilayah Selatan</span>
-          </div>
-          <p style="font-size:12px;color:#64748b;margin-bottom:8px;">Total 9 Desa &bull; Jaringan Tokoh Agama &amp; Kyai</p>
-          <div class="geo-village-grid" id="gridDesaGading"></div>
+        <!-- Bottom Sheet Detail for Tapped Pin -->
+        <div id="mapDetailSheet" class="map-bottom-sheet" style="display:none;">
+          <div class="map-sheet-drag-handle" onclick="closeMapDetailSheet()"></div>
+          <div id="mapSheetContent"></div>
         </div>
       </section>
 
@@ -3259,15 +3365,29 @@ function handleMobileLogout() {
   loadAllData();
 }
 
-// Kalkulasi Statistik
+// Kalkulasi Statistik Dinamis (Rekomendasi 3: Berbasis Wilayah Penugasan)
 function calculateStats() {
-  const total = AppState.supporters.length;
-  const terverifikasi = AppState.supporters.filter(s => {
+  const u = AppState.currentUser || {};
+  let relevantSupporters = AppState.supporters;
+  let relevantAspirasi = AppState.aspirasi;
+  let relevantPokir = AppState.pokir;
+  let scopeLabel = 'Warga Dapil Terdata';
+
+  if ((u.role === 'Koordinator Desa' || u.role === 'Admin Ranting') && u.desa) {
+    relevantSupporters = AppState.supporters.filter(s => (s.desa || '').toLowerCase() === u.desa.toLowerCase());
+    relevantAspirasi = AppState.aspirasi.filter(a => (a.desa || '').toLowerCase() === u.desa.toLowerCase());
+    scopeLabel = 'Desa ' + u.desa;
+  } else if (u.role === 'Koordinator Kecamatan' && u.kecamatan) {
+    relevantSupporters = AppState.supporters.filter(s => (s.kecamatan || '').toLowerCase() === u.kecamatan.toLowerCase());
+    relevantAspirasi = AppState.aspirasi.filter(a => (a.kecamatan || '').toLowerCase() === u.kecamatan.toLowerCase());
+    scopeLabel = 'Kec. ' + u.kecamatan;
+  }
+
+  const total = relevantSupporters.length;
+  const terverifikasi = relevantSupporters.filter(s => {
     const st = s.status || '';
     return st === 'Final' || st === 'valid' || st === 'Terverifikasi' || st === 'Divalidasi Kecamatan' || st === 'Diverifikasi Desa';
   }).length;
-  const target = 25000;
-  const persen = Math.min(100, Math.round((total / target) * 100));
 
   const kecStats = { Kraksaan: 0, Besuk: 0, Gading: 0 };
   AppState.supporters.forEach(s => {
@@ -3279,23 +3399,22 @@ function calculateStats() {
   AppState.stats = {
     total,
     terverifikasi,
-    target,
-    persen,
-    aspirasiCount: AppState.aspirasi.length,
-    pokirCount: AppState.pokir.length,
-    kecamatan: kecStats
+    aspirasiCount: relevantAspirasi.length,
+    pokirCount: relevantPokir.length,
+    kecamatan: kecStats,
+    scopeLabel: scopeLabel
   };
 
   // Update Drawer Badges
   const bP = document.getElementById('drawerBadgePendukung');
   const bA = document.getElementById('drawerBadgeAspirasi');
   const bR = document.getElementById('drawerBadgePokir');
-  if (bP) bP.textContent = total;
+  if (bP) bP.textContent = AppState.supporters.length;
   if (bA) bA.textContent = AppState.aspirasi.length;
   if (bR) bR.textContent = AppState.pokir.length;
 }
 
-// Render Dashboard
+// Render Dashboard Dinamis
 function renderDashboardStats() {
   calculateStats();
   const s = AppState.stats;
@@ -3310,13 +3429,8 @@ function renderDashboardStats() {
   if (elAspirasi) elAspirasi.textContent = s.aspirasiCount.toLocaleString('id-ID');
   if (elPokir) elPokir.textContent = s.pokirCount.toLocaleString('id-ID');
 
-  const elProgressFill = document.getElementById('progressTargetFill');
-  const elProgressPct = document.getElementById('progressTargetPct');
-  const elProgressSub = document.getElementById('progressTargetSub');
-
-  if (elProgressFill) elProgressFill.style.width = `${s.persen}%`;
-  if (elProgressPct) elProgressPct.textContent = `${s.persen}%`;
-  if (elProgressSub) elProgressSub.textContent = `${s.total.toLocaleString('id-ID')} / ${s.target.toLocaleString('id-ID')} Suara`;
+  const kpiSub = document.querySelector('.kpi-card .kpi-subtext');
+  if (kpiSub && s.scopeLabel) kpiSub.textContent = s.scopeLabel;
 
   const elKecKraksaan = document.getElementById('kecKraksaanVal');
   const elKecBesuk = document.getElementById('kecBesukVal');
@@ -4625,38 +4739,255 @@ async function handlePokirSubmit(e) {
   }
 }
 
-// Render Peta Sebaran (GIS Mobile)
+// ==========================================
+// PETA SEBARAN INTERAKTIF MOBILE (MODEL A)
+// ==========================================
+let mobileMapInstance = null;
+let mobileMapMarkersLayer = null;
+let mobileMapResesLayer = null;
+
 function renderPetaDistricts() {
-  const gK = document.getElementById('gridDesaKraksaan');
-  const gB = document.getElementById('gridDesaBesuk');
-  const gG = document.getElementById('gridDesaGading');
+  initMobileMap();
+}
 
-  if (gK) {
-    gK.innerHTML = DapilLocations['Kraksaan'].desa.map(d => `
-      <div class="geo-village-pill">
-        <span style="font-weight:600;">${d}</span>
-        <span style="color:#16a34a;font-weight:700;">85%</span>
-      </div>
-    `).join('');
+function initMobileMap() {
+  const container = document.getElementById('mobileLeafletMap');
+  if (!container) return;
+
+  if (typeof L === 'undefined') {
+    container.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#64748b;">Memuat modul Leaflet geospasial...</div>';
+    setTimeout(initMobileMap, 400);
+    return;
   }
 
-  if (gB) {
-    gB.innerHTML = DapilLocations['Besuk'].desa.map(d => `
-      <div class="geo-village-pill">
-        <span style="font-weight:600;">${d}</span>
-        <span style="color:#2563eb;font-weight:700;">72%</span>
-      </div>
-    `).join('');
+  let centerLat = -7.7595;
+  let centerLng = 113.4185;
+  let defaultZoom = 12;
+
+  const u = AppState.currentUser || {};
+  if (u.kecamatan && DapilLocations[u.kecamatan]) {
+    centerLat = DapilLocations[u.kecamatan].lat;
+    centerLng = DapilLocations[u.kecamatan].lng;
+    defaultZoom = 13.5;
   }
 
-  if (gG) {
-    gG.innerHTML = DapilLocations['Gading'].desa.map(d => `
-      <div class="geo-village-pill">
-        <span style="font-weight:600;">${d}</span>
-        <span style="color:#f59e0b;font-weight:700;">68%</span>
-      </div>
-    `).join('');
+  if (!mobileMapInstance) {
+    mobileMapInstance = L.map('mobileLeafletMap', {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([centerLat, centerLng], defaultZoom);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(mobileMapInstance);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(mobileMapInstance);
+
+    mobileMapMarkersLayer = L.layerGroup().addTo(mobileMapInstance);
+    mobileMapResesLayer = L.layerGroup().addTo(mobileMapInstance);
+  } else {
+    setTimeout(function() {
+      if (mobileMapInstance) mobileMapInstance.invalidateSize();
+    }, 150);
   }
+
+  plotMobileMapData('all');
+}
+
+function plotMobileMapData(filterType) {
+  filterType = filterType || 'all';
+  if (!mobileMapInstance || !mobileMapMarkersLayer) return;
+
+  mobileMapMarkersLayer.clearLayers();
+  mobileMapResesLayer.clearLayers();
+
+  const subHeader = document.getElementById('mapHeaderSubtext');
+  let countPlot = 0;
+
+  const jalurColor = {
+    DPC: '#2563eb',
+    DPRT: '#d97706',
+    PIP: '#16a34a',
+    KIP: '#db2777',
+    RELAWAN: '#9333ea'
+  };
+
+  // 1. Plot Pendukung
+  if (filterType !== 'reses') {
+    (AppState.supporters || []).forEach(function(item) {
+      if (filterType !== 'all' && item.kecamatan !== filterType) return;
+
+      let finalLat = item.lat || (item.latitude ? parseFloat(item.latitude) : null);
+      let finalLng = item.lng || (item.longitude ? parseFloat(item.longitude) : null);
+
+      if (!finalLat || !finalLng) {
+        const d = DapilLocations[item.kecamatan || 'Kraksaan'];
+        if (d) {
+          const pseudoHash = (item.id || item.nik || 1) % 100;
+          finalLat = d.lat + (Math.sin(pseudoHash) * 0.015);
+          finalLng = d.lng + (Math.cos(pseudoHash) * 0.015);
+        }
+      }
+
+      if (!finalLat || !finalLng) return;
+
+      countPlot++;
+      const color = jalurColor[item.jalur] || '#2563eb';
+      const label = (item.jalur || 'R').substring(0, 1);
+
+      const icon = L.divIcon({
+        className: '',
+        html: '<div style="background:' + color + ';width:26px;height:26px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:10px;font-weight:800;">' + label + '</div>',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      const marker = L.marker([finalLat, finalLng], { icon: icon });
+      marker.on('click', function() {
+        showMapDetailSheet(item, false);
+      });
+      mobileMapMarkersLayer.addLayer(marker);
+    });
+  }
+
+  // 2. Plot Reses / Pokir
+  if (filterType === 'all' || filterType === 'reses') {
+    (AppState.pokir || []).forEach(function(ev) {
+      if (filterType !== 'all' && filterType !== 'reses' && ev.kecamatan !== filterType) return;
+
+      let lat = ev.lat ? parseFloat(ev.lat) : null;
+      let lng = ev.lng ? parseFloat(ev.lng) : null;
+
+      if (!lat || !lng) {
+        const d = DapilLocations[ev.kecamatan || 'Kraksaan'];
+        if (d) {
+          lat = d.lat + 0.005;
+          lng = d.lng + 0.005;
+        }
+      }
+
+      if (!lat || !lng) return;
+
+      countPlot++;
+      const icon = L.divIcon({
+        className: '',
+        html: '<div style="background:#059669;width:28px;height:28px;border-radius:6px;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const marker = L.marker([lat, lng], { icon: icon });
+      marker.on('click', function() {
+        showMapDetailSheet(ev, true);
+      });
+      mobileMapResesLayer.addLayer(marker);
+    });
+  }
+
+  if (subHeader) {
+    subHeader.textContent = countPlot + ' Titik Sebaran Aktif';
+  }
+}
+
+function filterMobileMap(val, btn) {
+  document.querySelectorAll('.map-filter-pill').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  if (btn) btn.classList.add('active');
+
+  closeMapDetailSheet();
+
+  if (val === 'Kraksaan' || val === 'Besuk' || val === 'Gading') {
+    const loc = DapilLocations[val];
+    if (loc && mobileMapInstance) {
+      mobileMapInstance.flyTo([loc.lat, loc.lng], 13.5, { duration: 0.8 });
+    }
+  } else if (val === 'all') {
+    if (mobileMapInstance) {
+      mobileMapInstance.flyTo([-7.7595, 113.4185], 12, { duration: 0.8 });
+    }
+  }
+
+  plotMobileMapData(val);
+}
+
+function showMapDetailSheet(item, isReses) {
+  const sheet = document.getElementById('mapDetailSheet');
+  const content = document.getElementById('mapSheetContent');
+  if (!sheet || !content) return;
+
+  if (isReses) {
+    content.innerHTML = [
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">',
+      '  <div>',
+      '    <span class="badge-status valid" style="font-size:10.5px;padding:2px 8px;margin-bottom:4px;display:inline-block;">Titik Kunjungan Reses</span>',
+      '    <div style="font-size:15px;font-weight:800;color:#16225e;">' + escapeHtml(item.nama_acara || item.judul || 'Reses Dewan') + '</div>',
+      '  </div>',
+      '  <button type="button" onclick="closeMapDetailSheet()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px;line-height:1;">&times;</button>',
+      '</div>',
+      '<div style="font-size:12px;color:#475569;margin-bottom:10px;">',
+      '  <div>Wilayah: <b>' + escapeHtml(item.desa || '-') + ', Kec. ' + escapeHtml(item.kecamatan || '-') + '</b></div>',
+      '  <div>Target: ' + escapeHtml(item.target_kelompok || 'Masyarakat Umum') + '</div>',
+      '  <div>Tanggal: ' + escapeHtml(item.tanggal || '-') + '</div>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">',
+      '  <button type="button" class="btn-outline-touch" onclick="navigatePage(\'reses\')" style="height:36px;font-size:12px;justify-content:center;">Lihat Reses</button>',
+      '  <button type="button" class="btn-primary-touch" onclick="window.open(\'https://www.google.com/maps/search/?api=1&query=' + (item.lat || -7.7595) + ',' + (item.lng || 113.4185) + '\', \'_blank\')" style="height:36px;font-size:12px;justify-content:center;">Buka Maps</button>',
+      '</div>'
+    ].join('\n');
+  } else {
+    const color = (item.jalur === 'DPC' ? '#2563eb' : (item.jalur === 'DPRT' ? '#d97706' : (item.jalur === 'PIP' ? '#16a34a' : (item.jalur === 'KIP' ? '#db2777' : '#9333ea'))));
+    content.innerHTML = [
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">',
+      '  <div>',
+      '    <span style="font-size:10.5px;font-weight:700;color:#ffffff;background:' + color + ';padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:4px;">' + escapeHtml(item.jalur || 'Pendukung') + '</span>',
+      '    <div style="font-size:15px;font-weight:800;color:#16225e;">' + escapeHtml(item.nama || '-') + '</div>',
+      '  </div>',
+      '  <button type="button" onclick="closeMapDetailSheet()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px;line-height:1;">&times;</button>',
+      '</div>',
+      '<div style="font-size:12px;color:#475569;margin-bottom:10px;">',
+      '  <div>Wilayah: <b>' + escapeHtml(item.desa || '-') + ', Kec. ' + escapeHtml(item.kecamatan || '-') + '</b></div>',
+      '  <div>Alamat: ' + escapeHtml(item.alamat || '-') + '</div>',
+      '  <div>Status: <b>' + escapeHtml(item.status || 'Diinput') + '</b></div>',
+      '</div>',
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">',
+      '  <button type="button" class="btn-outline-touch" onclick="openDetailModal(' + escapeHtml(JSON.stringify(item)).replace(/"/g, '&quot;') + ')" style="height:36px;font-size:12px;justify-content:center;">Detail Warga</button>',
+      '  <button type="button" class="btn-primary-touch" onclick="window.open(\'https://www.google.com/maps/search/?api=1&query=' + (item.lat || item.latitude || -7.7595) + ',' + (item.lng || item.longitude || 113.4185) + '\', \'_blank\')" style="height:36px;font-size:12px;justify-content:center;">Buka Maps</button>',
+      '</div>'
+    ].join('\n');
+  }
+
+  sheet.style.display = 'block';
+}
+
+function closeMapDetailSheet() {
+  const sheet = document.getElementById('mapDetailSheet');
+  if (sheet) sheet.style.display = 'none';
+}
+
+function locateUserPosition() {
+  if (!navigator.geolocation) {
+    showToast('Geolocation tidak didukung perangkat ini.', 'danger');
+    return;
+  }
+  showToast('Mencari posisi satelit GPS Anda...', 'info');
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    if (mobileMapInstance) {
+      mobileMapInstance.flyTo([pos.coords.latitude, pos.coords.longitude], 15);
+      L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
+        radius: 8,
+        fillColor: '#2563eb',
+        color: '#ffffff',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.9
+      }).addTo(mobileMapInstance);
+      showToast('Posisi GPS berhasil ditemukan!', 'success');
+    }
+  }, function(err) {
+    showToast('Tidak dapat mengunci sinyal GPS.', 'danger');
+  }, { enableHighAccuracy: true, timeout: 8000 });
 }
 
 // Render Leaderboard Relawan
