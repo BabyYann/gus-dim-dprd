@@ -36,5 +36,14 @@ if (file_exists($cachePath) && file_exists($keyPath)) {
     $bundlePath = '/home/gusdimco/ssl/certs/gusdim_fullchain.crt';
     if (file_put_contents($bundlePath, $cacheContent)) {
         echo "4. Berhasil membuat file fullchain: {$bundlePath}\n";
+        $envPath = __DIR__ . '/.env';
+        if (file_exists($envPath)) {
+            $envContent = file_get_contents($envPath);
+            if (str_contains($envContent, 'REVERB_TLS_CERT=')) {
+                $envContent = preg_replace('/REVERB_TLS_CERT=.*/', 'REVERB_TLS_CERT=' . $bundlePath, $envContent);
+                file_put_contents($envPath, $envContent);
+                echo "5. Berkas .env otomatis diperbarui menggunakan sertifikat fullchain.\n";
+            }
+        }
     }
 }
