@@ -43,6 +43,7 @@
   <link rel="apple-touch-icon" href="assets/icons/gus-dim.png">
   <link rel="icon" type="image/png" href="assets/icons/gus-dim.png">
   <title>Gus Dim Mobile - Aplikasi PWA Lapangan Dapil Kraksaan Raya</title>
+  <script src="assets/js/pusher.min.js"></script>
   <style>
 /* Strict Global SVG Containment */
 svg {
@@ -2568,6 +2569,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
   setupEventListeners();
   loadAllData();
+  initMobileRealtimeReverb();
 });
 
 // PWA Service Worker Registration
@@ -2595,6 +2597,50 @@ function initNetworkStatusListener() {
   window.addEventListener('online', updateStatus);
   window.addEventListener('offline', updateStatus);
   updateStatus();
+}
+
+// Realtime WebSocket (Laravel Reverb) Mobile
+function initMobileRealtimeReverb() {
+  if (typeof Pusher === 'undefined') {
+    console.warn('Pusher JS belum terpasang di Mobile, WebSocket dilewati.');
+    return;
+  }
+  if (window._mobilePusher) return;
+
+  try {
+    const pusher = new Pusher('ifst0r0e5f3stkfy1k6g', {
+      wsHost: 'gusdim.com',
+      wsPort: 6001,
+      wssPort: 6001,
+      forceTLS: true,
+      disableStats: true,
+      enabledTransports: ['ws', 'wss'],
+      cluster: 'mt1'
+    });
+
+    const channel = pusher.subscribe('gusdim-updates');
+
+    channel.bind('PendukungCreated', function (data) {
+      console.log('Mobile Realtime PendukungCreated:', data);
+      showToast('Data Baru: ' + (data.nama || 'Warga') + ' (' + (data.jalur || 'Relawan') + ') - Desa ' + (data.desa || '-'), 'info');
+      if (typeof loadAllData === 'function') {
+        try { loadAllData(); } catch (e) {}
+      }
+    });
+
+    channel.bind('PendukungStatusUpdated', function (data) {
+      console.log('Mobile Realtime PendukungStatusUpdated:', data);
+      showToast('Status Verifikasi: ' + (data.nama || 'Data') + ' diubah jadi "' + data.new_status + '" oleh ' + (data.actor_name || 'Petugas'), 'success');
+      if (typeof loadAllData === 'function') {
+        try { loadAllData(); } catch (e) {}
+      }
+    });
+
+    window._mobilePusher = pusher;
+    console.log('Realtime Reverb WebSocket Mobile Aktif di Channel: gusdim-updates');
+  } catch (err) {
+    console.warn('Gagal inisialisasi Realtime Mobile:', err);
+  }
 }
 
 // Setup Navigasi (Bottom Bar & Drawer)

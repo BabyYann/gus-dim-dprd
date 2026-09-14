@@ -572,9 +572,104 @@ function kirimUcapanWa(hp, nama, jalur) {
     document.getElementById('loginScreen').style.display = 'flex';
   }
 
+  // ============ REALTIME WEBSOCKET NOTIFIKASI (LARAVEL REVERB) ============
+  function showDesktopToast(message, type = 'info') {
+    let container = document.getElementById('desktopToastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'desktopToastContainer';
+      container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:10px;pointer-events:none;';
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    const bg = type === 'success' ? '#059669' : type === 'danger' ? '#dc2626' : '#1e3a8a';
+    toast.style.cssText = 'background:' + bg + ';color:#ffffff;padding:14px 20px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.25);font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:500;display:flex;align-items:center;gap:12px;pointer-events:auto;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);opacity:0;transform:translateY(-15px);max-width:400px;line-height:1.4;';
+
+    let iconSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    if (type === 'info') {
+      iconSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+    }
+
+    toast.innerHTML = '<span style="flex-shrink:0;display:inline-flex;">' + iconSvg + '</span><span>' + message + '</span>';
+    container.appendChild(toast);
+
+    requestAnimationFrame(function () {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    });
+
+    setTimeout(function () {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-15px)';
+      setTimeout(function () { toast.remove(); }, 350);
+    }, 4500);
+  }
+
+  function initRealtimeReverb() {
+    if (typeof Pusher === 'undefined') {
+      console.warn('Pusher JS belum terpasang, WebSocket real-time dilewati.');
+      return;
+    }
+    if (window._reverbPusher) return;
+
+    try {
+      const pusher = new Pusher('ifst0r0e5f3stkfy1k6g', {
+        wsHost: 'gusdim.com',
+        wsPort: 6001,
+        wssPort: 6001,
+        forceTLS: true,
+        disableStats: true,
+        enabledTransports: ['ws', 'wss'],
+        cluster: 'mt1'
+      });
+
+      const channel = pusher.subscribe('gusdim-updates');
+
+      channel.bind('PendukungCreated', function (data) {
+        console.log('Realtime PendukungCreated diterima:', data);
+        showDesktopToast('Data Baru: ' + (data.nama || 'Warga') + ' (' + (data.jalur || 'Relawan') + ') - Desa ' + (data.desa || '-'), 'info');
+
+        if (typeof loadDashboard === 'function') {
+          try { loadDashboard(); } catch (e) {}
+        }
+        const activeHash = (window.location.hash || '').replace('#', '');
+        if (activeHash === 'pendukung' && typeof applyListFilter === 'function') {
+          try { applyListFilter(); } catch (e) {}
+        }
+        if (activeHash === 'riwayat' && typeof loadRiwayat === 'function') {
+          try { loadRiwayat(); } catch (e) {}
+        }
+      });
+
+      channel.bind('PendukungStatusUpdated', function (data) {
+        console.log('Realtime PendukungStatusUpdated diterima:', data);
+        showDesktopToast('Status Verifikasi: ' + (data.nama || 'Data') + ' diubah jadi "' + data.new_status + '" oleh ' + (data.actor_name || 'Petugas'), 'success');
+
+        if (typeof loadDashboard === 'function') {
+          try { loadDashboard(); } catch (e) {}
+        }
+        const activeHash = (window.location.hash || '').replace('#', '');
+        if (activeHash === 'pendukung' && typeof applyListFilter === 'function') {
+          try { applyListFilter(); } catch (e) {}
+        }
+        if (activeHash === 'riwayat' && typeof loadRiwayat === 'function') {
+          try { loadRiwayat(); } catch (e) {}
+        }
+      });
+
+      window._reverbPusher = pusher;
+      console.log('Realtime Reverb WebSocket Desktop Aktif di Channel: gusdim-updates');
+    } catch (err) {
+      console.warn('Gagal menghubungkan Realtime Reverb Desktop:', err);
+    }
+  }
+
   function enterApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
+
+    initRealtimeReverb();
 
     document.getElementById('userName').textContent = CURRENT_USER.nama;
     document.getElementById('userRole').textContent = CURRENT_USER.role +

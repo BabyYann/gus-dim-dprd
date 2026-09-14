@@ -1851,6 +1851,7 @@
       </div>
     </div>
   </div>
+  <script src="{{ asset('assets/js/pusher.min.js') }}"></script>
   <script src="{{ asset('assets/js/app.js') }}?v={{ time() }}"></script>
 </body>
 </html>
