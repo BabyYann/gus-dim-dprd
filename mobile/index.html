@@ -2664,25 +2664,30 @@ const DapilLocations = {
     lat: -7.7595,
     lng: 113.4185,
     desa: [
-      'Kraksaan Wetan', 'Kandangjati Kulon', 'Kandangjati Wetan', 'Patokan',
-      'Semampir', 'Sidomukti', 'Kebonagung', 'Rondokuning', 'Asembagus',
-      'Bulubrangsi', 'Kalisalam', 'Kregenan', 'Tamansari'
+      'Alassumur Kulon', 'Asembagus', 'Bulu', 'Bulubrangsi', 'Kalibuntu', 
+      'Kalisalam', 'Kandangjati Kulon', 'Kandangjati Wetan', 'Kebonagung', 
+      'Kraksaan Kulon', 'Kraksaan Wetan', 'Kregenan', 'Patokan', 'Reksosari', 
+      'Rondokuning', 'Semampir', 'Sidomukti', 'Sidopekso', 'Sumberlele', 'Tamansari'
     ]
   },
   'Besuk': {
     lat: -7.7924,
     lng: 113.4561,
     desa: [
-      'Besuk Agung', 'Besuk Kidul', 'Alas Sumur Lor', 'Bago', 'Klampokan',
-      'Randu Jalak', 'Sindet Lami', 'Sumur Dalam', 'Matekan'
+      'Alas Sumur Lor', 'Alaskandang', 'Bago', 'Besuk Agung', 'Besuk Kidul', 
+      'Jambangan', 'Kecik', 'Klampokan', 'Krampilan', 'Matekan', 'Meayan', 
+      'Randu Jalak', 'Sindet Anyar', 'Sindet Lami', 'Sumberan', 'Sumbersuko', 
+      'Sumurdalam', 'Warugunung'
     ]
   },
   'Gading': {
     lat: -7.8341,
     lng: 113.4352,
     desa: [
-      'Gading Wetan', 'Bulu', 'Condong', 'Dandang', 'Jurangrejo',
-      'Kalianyar', 'Kertosono', 'Prasi', 'Wangkal'
+      'Batur', 'Betek Kulon', 'Bulu', 'Bulupandak', 'Condong', 'Dandang', 
+      'Duren', 'Gading Kulon', 'Gading Wetan', 'Jurangjero', 'Kaliacar', 
+      'Kalisat', 'Kertosari', 'Kertosono', 'Mojolegi', 'Nogosaren', 'Prasi', 
+      'Randujalak', 'Ranuwurung', 'Renteng', 'Sentul', 'Sumbersecang', 'Wangkal'
     ]
   }
 };
@@ -5722,19 +5727,7 @@ function openEntryForm(jalurKey, jalurTitle) {
         <div class="form-group">
           <label class="form-label">Desa <span class="required-mark">*</span></label>
           <select id="formDesa" class="form-select-touch" required>
-            <option value="Kraksaan Wetan">Kraksaan Wetan</option>
-            <option value="Kandangjati Kulon">Kandangjati Kulon</option>
-            <option value="Kandangjati Wetan">Kandangjati Wetan</option>
-            <option value="Patokan" selected>Patokan</option>
-            <option value="Semampir">Semampir</option>
-            <option value="Sidomukti">Sidomukti</option>
-            <option value="Kebonagung">Kebonagung</option>
-            <option value="Rondokuning">Rondokuning</option>
-            <option value="Asembagus">Asembagus</option>
-            <option value="Bulubrangsi">Bulubrangsi</option>
-            <option value="Kalisalam">Kalisalam</option>
-            <option value="Kregenan">Kregenan</option>
-            <option value="Tamansari">Tamansari</option>
+            ${(DapilLocations['Kraksaan'] ? DapilLocations['Kraksaan'].desa : []).map(d => `<option value="${escapeHtml(d)}"${d === 'Patokan' ? ' selected' : ''}>${escapeHtml(d)}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -5869,12 +5862,12 @@ function detectNearestKecamatan(lat, lng) {
   }
 }
 
-function updateDesaDropdown(kecamatan) {
+function updateDesaDropdown(kecamatan, selectedDesa = '') {
   const desaSelect = document.getElementById('formDesa');
   if (!desaSelect) return;
   const data = DapilLocations[kecamatan];
   if (!data) return;
-  desaSelect.innerHTML = data.desa.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+  desaSelect.innerHTML = data.desa.map(d => `<option value="${escapeHtml(d)}"${(selectedDesa && selectedDesa.toLowerCase() === d.toLowerCase()) ? ' selected' : ''}>${escapeHtml(d)}</option>`).join('');
 }
 
 async function handleFormSubmit(event) {
@@ -5954,6 +5947,7 @@ async function handleFormSubmit(event) {
     jabatan = document.getElementById('formKategoriRelawan')?.value || 'Relawan TPS';
     koordinator = document.getElementById('formKoordinator')?.value.trim() || '';
     payload.jabatan = jabatan;
+    payload.kategoriRelawan = jabatan;
     payload.namaKoordinator = koordinator;
     payload.koordinator = koordinator;
     payload.namaAnggota = nama;

@@ -741,22 +741,48 @@
                       <h4 class="form-section-title">Data Identitas Personal</h4>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>Nama Lengkap (Sesuai KTP)</label><input type="text" id="dpcNama" placeholder="Contoh: Mochamad Hasan"></div>
-                      <div class="form-group"><label>NIK (16 Digit Angka)</label><input type="text" id="dpcNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
+                      <div class="form-group"><label>Nama Lengkap (Sesuai KTP) <span style="color:#ef4444;">*</span></label><input type="text" id="dpcNama" placeholder="Contoh: Mochamad Hasan"></div>
+                      <div class="form-group"><label>NIK (16 Digit Angka) <span style="color:#ef4444;">*</span></label><input type="text" id="dpcNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>Nomor WhatsApp / HP</label><input type="text" id="dpcHp" placeholder="08xxxxxxxxxx"></div>
-                      <div class="form-group"><label>Jabatan Organisasi</label><input type="text" id="dpcJabatan" placeholder="Contoh: Ketua DPC, Sekretaris, Bendahara"></div>
+                      <div class="form-group"><label>Nomor WhatsApp / HP <span style="color:#ef4444;">*</span></label><input type="text" id="dpcHp" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Jabatan Struktural DPC <span style="color:#ef4444;">*</span></label>
+                        <select id="dpcJabatan">
+                          <option value="">-- Pilih Jabatan DPC --</option>
+                          <option value="Ketua DPC">Ketua DPC</option>
+                          <option value="Sekretaris DPC">Sekretaris DPC</option>
+                          <option value="Bendahara DPC">Bendahara DPC</option>
+                          <option value="Wakil Ketua">Wakil Ketua</option>
+                          <option value="Pengurus Harian">Pengurus Harian</option>
+                          <option value="Pengurus Pleno" selected>Pengurus Pleno</option>
+                          <option value="Anggota DPC">Anggota DPC</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div class="form-section-header">
                       <div class="step-badge">2</div>
                       <h4 class="form-section-title">Wilayah Penugasan &amp; Domisili</h4>
                     </div>
-                    <div class="form-group"><label>Kecamatan</label>
-                      <select id="dpcKecamatan"><option value="">-- Pilih Kecamatan --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    <div class="form-row">
+                      <div class="form-group"><label>Kecamatan <span style="color:#ef4444;">*</span></label>
+                        <select id="dpcKecamatan" onchange="populateDesaDropdown(this.value, 'dpcDesa')">
+                          <option value="">-- Pilih Kecamatan --</option>
+                          <option value="Kraksaan">Kraksaan</option>
+                          <option value="Besuk">Besuk</option>
+                          <option value="Gading">Gading</option>
+                        </select>
+                      </div>
+                      <div class="form-group"><label>Desa / Kelurahan <span style="color:#ef4444;">*</span></label>
+                        <select id="dpcDesa">
+                          <option value="">-- Pilih Desa / Kelurahan --</option>
+                        </select>
+                      </div>
                     </div>
-                    <div class="form-group"><label>Alamat Lengkap</label><textarea id="dpcAlamat" rows="2" placeholder="Nama jalan, RT/RW, Dusun"></textarea></div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="dpcTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
+                      <div class="form-group"><label>Alamat Lengkap</label><input type="text" id="dpcAlamat" placeholder="Nama jalan, RT/RW, Dusun"></div>
+                    </div>
                   </div>
                 </div>
 
@@ -787,25 +813,47 @@
                       <h4 class="form-section-title">Data Pengurus DPRT</h4>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>Nama Lengkap</label><input type="text" id="dprtNama" placeholder="Sesuai KTP"></div>
-                      <div class="form-group"><label>NIK (16 Digit)</label><input type="text" id="dprtNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
+                      <div class="form-group"><label>Nama Lengkap (Sesuai KTP) <span style="color:#ef4444;">*</span></label><input type="text" id="dprtNama" placeholder="Sesuai KTP"></div>
+                      <div class="form-group"><label>NIK (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="dprtNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>No. WhatsApp</label><input type="text" id="dprtHp" placeholder="08xxxxxxxxxx"></div>
-                      <div class="form-group"><label>Jabatan Ranting</label><input type="text" id="dprtJabatan" placeholder="Ketua Ranting, Sekretaris"></div>
+                      <div class="form-group"><label>No. WhatsApp / HP <span style="color:#ef4444;">*</span></label><input type="text" id="dprtHp" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Jabatan Struktural DPRT Desa <span style="color:#ef4444;">*</span></label>
+                        <select id="dprtJabatan">
+                          <option value="">-- Pilih Jabatan DPRT --</option>
+                          <option value="Ketua Ranting">Ketua Ranting (DPRT)</option>
+                          <option value="Sekretaris Ranting">Sekretaris Ranting</option>
+                          <option value="Bendahara Ranting">Bendahara Ranting</option>
+                          <option value="Koordinator Dusun">Koordinator Dusun</option>
+                          <option value="Pengurus Ranting" selected>Pengurus Ranting</option>
+                          <option value="Anggota Ranting">Anggota Ranting</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div class="form-section-header">
                       <div class="step-badge">2</div>
-                      <h4 class="form-section-title">Wilayah Ranting</h4>
+                      <h4 class="form-section-title">Wilayah Ranting &amp; Domisili</h4>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>Kecamatan</label>
-                        <select id="dprtKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                      <div class="form-group"><label>Kecamatan <span style="color:#ef4444;">*</span></label>
+                        <select id="dprtKecamatan" onchange="populateDesaDropdown(this.value, 'dprtDesa')">
+                          <option value="">-- Pilih --</option>
+                          <option value="Kraksaan">Kraksaan</option>
+                          <option value="Besuk">Besuk</option>
+                          <option value="Gading">Gading</option>
+                        </select>
                       </div>
-                      <div class="form-group"><label>Desa / Kelurahan</label><input type="text" id="dprtDesa" placeholder="Nama desa/kelurahan"></div>
+                      <div class="form-group"><label>Desa / Kelurahan <span style="color:#ef4444;">*</span></label>
+                        <select id="dprtDesa">
+                          <option value="">-- Pilih Desa / Kelurahan --</option>
+                        </select>
+                      </div>
                     </div>
-                    <div class="form-group"><label>Alamat Domisili</label><textarea id="dprtAlamat" rows="2" placeholder="Nama dusun, RT/RW"></textarea></div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="dprtTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
+                      <div class="form-group"><label>Alamat Domisili</label><input type="text" id="dprtAlamat" placeholder="Nama dusun, RT/RW"></div>
+                    </div>
                   </div>
                 </div>
 
@@ -830,55 +878,78 @@
                     <div class="ocr-status" id="ocrStatus-PIP" style="display:none; margin-top:12px;"></div>
                   </div>
                   <div id="manualFields-PIP" style="display:block;">
-                  <div class="form-section-header">
-                    <div class="step-badge">1</div>
-                    <h4 class="form-section-title">Data Siswa Penerima Beasiswa</h4>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Lengkap Siswa</label><input type="text" id="pipNamaAnak" placeholder="Nama siswa penerima"></div>
-                    <div class="form-group"><label>NIK Siswa</label><input type="text" id="pipNikAnak" maxlength="16" placeholder="16 digit NIK siswa"></div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Sekolah / Madrasah</label><input type="text" id="pipNamaSekolah" placeholder="Contoh: SMPN 1 Kraksaan"></div>
-                    <div class="form-group"><label>No. HP Siswa / Kontak</label><input type="text" id="pipHpAnak" placeholder="08xxxxxxxxxx"></div>
-                  </div>
-                  <div class="form-group"><label>Alamat Sekolah</label><input type="text" id="pipAlamatSekolah" placeholder="Alamat atau kecamatan sekolah"></div>
-
-                  <div class="form-section-header">
-                    <div class="step-badge">2</div>
-                    <h4 class="form-section-title">Data Orang Tua / Wali</h4>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Ayah</label><input type="text" id="pipNamaAyah" placeholder="Nama lengkap ayah"></div>
-                    <div class="form-group"><label>NIK Ayah</label><input type="text" id="pipNikAyah" maxlength="16" placeholder="NIK 16 digit"></div>
-                  </div>
-                  <div class="form-group"><label>No. HP Ayah</label><input type="text" id="pipHpAyah" placeholder="08xxxxxxxxxx"></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Ibu</label><input type="text" id="pipNamaIbu" placeholder="Nama lengkap ibu"></div>
-                    <div class="form-group"><label>NIK Ibu</label><input type="text" id="pipNikIbu" maxlength="16" placeholder="NIK 16 digit"></div>
-                  </div>
-                  <div class="form-group"><label>No. HP Ibu</label><input type="text" id="pipHpIbu" placeholder="08xxxxxxxxxx"></div>
-                  <div class="form-group"><label>Alamat Rumah Keluarga</label><textarea id="pipAlamatKeluarga" rows="2" placeholder="Alamat lengkap keluarga"></textarea></div>
-
-                  <div class="form-section-header">
-                    <div class="step-badge">3</div>
-                    <h4 class="form-section-title">Data Saudara Kandung &amp; Wilayah</h4>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="pipJumlahSaudara" min="0" placeholder="0"></div>
-                    <div class="form-group"><label>Nama Saudara (Kontak Tambahan)</label><input type="text" id="pipNamaSaudara" placeholder="Nama saudara"></div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>NIK Saudara</label><input type="text" id="pipNikSaudara" maxlength="16"></div>
-                    <div class="form-group"><label>No. HP Saudara</label><input type="text" id="pipHpSaudara"></div>
-                  </div>
-                  <div class="form-group"><label>Alamat Saudara</label><input type="text" id="pipAlamatSaudara"></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Kecamatan</label>
-                      <select id="pipKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    <div class="form-section-header">
+                      <div class="step-badge">1</div>
+                      <h4 class="form-section-title">Data Siswa Penerima Beasiswa</h4>
                     </div>
-                    <div class="form-group"><label>Desa</label><input type="text" id="pipDesa" placeholder="Desa tempat tinggal"></div>
-                  </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Lengkap Siswa <span style="color:#ef4444;">*</span></label><input type="text" id="pipNamaAnak" placeholder="Nama siswa penerima"></div>
+                      <div class="form-group"><label>NIK Siswa (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="pipNikAnak" maxlength="16" placeholder="16 digit NIK siswa"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Sekolah / Madrasah <span style="color:#ef4444;">*</span></label><input type="text" id="pipNamaSekolah" placeholder="Contoh: SMPN 1 Kraksaan"></div>
+                      <div class="form-group"><label>Jenjang Pendidikan <span style="color:#ef4444;">*</span></label>
+                        <select id="pipTingkatSekolah">
+                          <option value="SD/MI" selected>SD / MI</option>
+                          <option value="SMP/MTs">SMP / MTs</option>
+                          <option value="SMA/SMK/MA">SMA / SMK / MA</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>No. HP Siswa / Kontak</label><input type="text" id="pipHpAnak" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Alamat Sekolah</label><input type="text" id="pipAlamatSekolah" placeholder="Alamat atau kecamatan sekolah"></div>
+                    </div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">2</div>
+                      <h4 class="form-section-title">Data Orang Tua / Wali</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Ayah <span style="color:#ef4444;">*</span></label><input type="text" id="pipNamaAyah" placeholder="Nama lengkap ayah"></div>
+                      <div class="form-group"><label>NIK Ayah</label><input type="text" id="pipNikAyah" maxlength="16" placeholder="NIK 16 digit"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>No. HP / WhatsApp Ayah</label><input type="text" id="pipHpAyah" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Nama Ibu</label><input type="text" id="pipNamaIbu" placeholder="Nama lengkap ibu"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>NIK Ibu</label><input type="text" id="pipNikIbu" maxlength="16" placeholder="NIK 16 digit"></div>
+                      <div class="form-group"><label>No. HP Ibu</label><input type="text" id="pipHpIbu" placeholder="08xxxxxxxxxx"></div>
+                    </div>
+                    <div class="form-group"><label>Alamat Rumah Keluarga</label><textarea id="pipAlamatKeluarga" rows="2" placeholder="Alamat lengkap keluarga"></textarea></div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">3</div>
+                      <h4 class="form-section-title">Wilayah Domisili &amp; Data Saudara</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Kecamatan <span style="color:#ef4444;">*</span></label>
+                        <select id="pipKecamatan" onchange="populateDesaDropdown(this.value, 'pipDesa')">
+                          <option value="">-- Pilih --</option>
+                          <option value="Kraksaan">Kraksaan</option>
+                          <option value="Besuk">Besuk</option>
+                          <option value="Gading">Gading</option>
+                        </select>
+                      </div>
+                      <div class="form-group"><label>Desa / Kelurahan <span style="color:#ef4444;">*</span></label>
+                        <select id="pipDesa">
+                          <option value="">-- Pilih Desa / Kelurahan --</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="pipTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
+                      <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="pipJumlahSaudara" min="0" placeholder="0"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Saudara (Kontak Tambahan)</label><input type="text" id="pipNamaSaudara" placeholder="Nama saudara"></div>
+                      <div class="form-group"><label>NIK Saudara</label><input type="text" id="pipNikSaudara" maxlength="16" placeholder="NIK saudara"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>No. HP Saudara</label><input type="text" id="pipHpSaudara" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Alamat Saudara</label><input type="text" id="pipAlamatSaudara" placeholder="Alamat tempat tinggal saudara"></div>
+                    </div>
                   </div>
                 </div>
 
@@ -903,55 +974,73 @@
                     <div class="ocr-status" id="ocrStatus-KIP" style="display:none; margin-top:12px;"></div>
                   </div>
                   <div id="manualFields-KIP" style="display:block;">
-                  <div class="form-section-header">
-                    <div class="step-badge">1</div>
-                    <h4 class="form-section-title">Data Mahasiswa Penerima KIP</h4>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Mahasiswa</label><input type="text" id="kipNamaAnak" placeholder="Nama lengkap mahasiswa"></div>
-                    <div class="form-group"><label>NIK Mahasiswa</label><input type="text" id="kipNikAnak" maxlength="16" placeholder="16 digit NIK"></div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Perguruan Tinggi / Kampus</label><input type="text" id="kipNamaKampus" placeholder="Contoh: Universitas Nurul Jadid"></div>
-                    <div class="form-group"><label>No. WhatsApp Mahasiswa</label><input type="text" id="kipHpAnak" placeholder="08xxxxxxxxxx"></div>
-                  </div>
-                  <div class="form-group"><label>Alamat Kampus</label><input type="text" id="kipAlamatKampus"></div>
-
-                  <div class="form-section-header">
-                    <div class="step-badge">2</div>
-                    <h4 class="form-section-title">Data Orang Tua Mahasiswa</h4>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Ayah</label><input type="text" id="kipNamaAyah"></div>
-                    <div class="form-group"><label>NIK Ayah</label><input type="text" id="kipNikAyah" maxlength="16"></div>
-                  </div>
-                  <div class="form-group"><label>No. HP Ayah</label><input type="text" id="kipHpAyah"></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Nama Ibu</label><input type="text" id="kipNamaIbu"></div>
-                    <div class="form-group"><label>NIK Ibu</label><input type="text" id="kipNikIbu" maxlength="16"></div>
-                  </div>
-                  <div class="form-group"><label>No. HP Ibu</label><input type="text" id="kipHpIbu"></div>
-                  <div class="form-group"><label>Alamat Keluarga</label><textarea id="kipAlamatKeluarga" rows="2"></textarea></div>
-
-                  <div class="form-section-header">
-                    <div class="step-badge">3</div>
-                    <h4 class="form-section-title">Saudara &amp; Wilayah Domisili</h4>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="kipJumlahSaudara" min="0"></div>
-                    <div class="form-group"><label>Nama Saudara</label><input type="text" id="kipNamaSaudara"></div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>NIK Saudara</label><input type="text" id="kipNikSaudara" maxlength="16"></div>
-                    <div class="form-group"><label>No. HP Saudara</label><input type="text" id="kipHpSaudara"></div>
-                  </div>
-                  <div class="form-group"><label>Alamat Saudara</label><input type="text" id="kipAlamatSaudara"></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Kecamatan</label>
-                      <select id="kipKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    <div class="form-section-header">
+                      <div class="step-badge">1</div>
+                      <h4 class="form-section-title">Data Mahasiswa Penerima KIP</h4>
                     </div>
-                    <div class="form-group"><label>Desa</label><input type="text" id="kipDesa" placeholder="Desa domisili"></div>
-                  </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Mahasiswa <span style="color:#ef4444;">*</span></label><input type="text" id="kipNamaAnak" placeholder="Nama lengkap mahasiswa"></div>
+                      <div class="form-group"><label>NIK Mahasiswa (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="kipNikAnak" maxlength="16" placeholder="16 digit NIK"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Perguruan Tinggi / Kampus <span style="color:#ef4444;">*</span></label><input type="text" id="kipNamaKampus" placeholder="Contoh: Universitas Nurul Jadid / Unej"></div>
+                      <div class="form-group"><label>No. WhatsApp Mahasiswa <span style="color:#ef4444;">*</span></label><input type="text" id="kipHpAnak" placeholder="08xxxxxxxxxx"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Fakultas / Program Studi <span style="color:#ef4444;">*</span></label><input type="text" id="kipFakultas" placeholder="Contoh: Teknik Informatika / Syariah"></div>
+                      <div class="form-group"><label>Semester / Angkatan</label><input type="text" id="kipSemester" placeholder="Contoh: Semester 1 (Angkatan 2025)"></div>
+                    </div>
+                    <div class="form-group"><label>Alamat Kampus</label><input type="text" id="kipAlamatKampus" placeholder="Kota / Alamat kampus"></div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">2</div>
+                      <h4 class="form-section-title">Data Orang Tua Mahasiswa</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Ayah / Wali <span style="color:#ef4444;">*</span></label><input type="text" id="kipNamaAyah" placeholder="Nama ayah / wali"></div>
+                      <div class="form-group"><label>NIK Ayah</label><input type="text" id="kipNikAyah" maxlength="16" placeholder="NIK ayah"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>No. HP / WhatsApp Ayah</label><input type="text" id="kipHpAyah" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Nama Ibu</label><input type="text" id="kipNamaIbu" placeholder="Nama ibu"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>NIK Ibu</label><input type="text" id="kipNikIbu" maxlength="16" placeholder="NIK ibu"></div>
+                      <div class="form-group"><label>No. HP Ibu</label><input type="text" id="kipHpIbu" placeholder="08xxxxxxxxxx"></div>
+                    </div>
+                    <div class="form-group"><label>Alamat Keluarga</label><textarea id="kipAlamatKeluarga" rows="2" placeholder="Alamat lengkap keluarga"></textarea></div>
+
+                    <div class="form-section-header">
+                      <div class="step-badge">3</div>
+                      <h4 class="form-section-title">Wilayah Domisili &amp; Data Saudara</h4>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Kecamatan <span style="color:#ef4444;">*</span></label>
+                        <select id="kipKecamatan" onchange="populateDesaDropdown(this.value, 'kipDesa')">
+                          <option value="">-- Pilih --</option>
+                          <option value="Kraksaan">Kraksaan</option>
+                          <option value="Besuk">Besuk</option>
+                          <option value="Gading">Gading</option>
+                        </select>
+                      </div>
+                      <div class="form-group"><label>Desa / Kelurahan <span style="color:#ef4444;">*</span></label>
+                        <select id="kipDesa">
+                          <option value="">-- Pilih Desa / Kelurahan --</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nomor TPS</label><input type="number" id="kipTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
+                      <div class="form-group"><label>Jumlah Saudara</label><input type="number" id="kipJumlahSaudara" min="0" placeholder="0"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>Nama Saudara</label><input type="text" id="kipNamaSaudara" placeholder="Nama saudara"></div>
+                      <div class="form-group"><label>NIK Saudara</label><input type="text" id="kipNikSaudara" maxlength="16" placeholder="NIK saudara"></div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group"><label>No. HP Saudara</label><input type="text" id="kipHpSaudara" placeholder="08xxxxxxxxxx"></div>
+                      <div class="form-group"><label>Alamat Saudara</label><input type="text" id="kipAlamatSaudara" placeholder="Alamat tempat tinggal saudara"></div>
+                    </div>
                   </div>
                 </div>
 
@@ -979,26 +1068,47 @@
                   <div id="manualFields-RELAWAN" style="display:block;">
                     <div class="form-section-header">
                       <div class="step-badge">1</div>
-                      <h4 class="form-section-title">Koordinator Jaringan Relawan</h4>
+                      <h4 class="form-section-title">Kategori Penugasan &amp; Jaringan Relawan</h4>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>Nama Koordinator (mis. Relawan Kraksaan)</label><input type="text" id="rlwKoordinator" placeholder="Nama simpul relawan"></div>
-                      <div class="form-group"><label>Desa Basis</label><input type="text" id="rlwDesa" placeholder="Nama desa basis"></div>
+                      <div class="form-group"><label>Kategori Penugasan Relawan <span style="color:#ef4444;">*</span></label>
+                        <select id="rlwJabatan">
+                          <option value="Relawan TPS" selected>Relawan TPS</option>
+                          <option value="Saksi TPS">Saksi TPS Mandat</option>
+                          <option value="Koordinator Desa">Koordinator Desa (Kordes)</option>
+                          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam)</option>
+                          <option value="Simpatisan Warga">Simpatisan Warga Setia</option>
+                        </select>
+                      </div>
+                      <div class="form-group"><label>Nama Simpul / Koordinator</label><input type="text" id="rlwKoordinator" placeholder="Contoh: Korcam Kraksaan / Sahabat Santri"></div>
                     </div>
-                    <div class="form-group"><label>Kecamatan</label>
-                      <select id="rlwKecamatan"><option value="">-- Pilih --</option><option>Kraksaan</option><option>Besuk</option><option>Gading</option></select>
+                    <div class="form-row">
+                      <div class="form-group"><label>Kecamatan Basis <span style="color:#ef4444;">*</span></label>
+                        <select id="rlwKecamatan" onchange="populateDesaDropdown(this.value, 'rlwDesa')">
+                          <option value="">-- Pilih --</option>
+                          <option value="Kraksaan">Kraksaan</option>
+                          <option value="Besuk">Besuk</option>
+                          <option value="Gading">Gading</option>
+                        </select>
+                      </div>
+                      <div class="form-group"><label>Desa / Kelurahan Basis <span style="color:#ef4444;">*</span></label>
+                        <select id="rlwDesa">
+                          <option value="">-- Pilih Desa / Kelurahan --</option>
+                        </select>
+                      </div>
                     </div>
+                    <div class="form-group"><label>Nomor TPS</label><input type="number" id="rlwTps" placeholder="Contoh: 01" min="1" max="99" value="01"></div>
 
                     <div class="form-section-header">
                       <div class="step-badge">2</div>
-                      <h4 class="form-section-title">Data Anggota / Simpatisan</h4>
+                      <h4 class="form-section-title">Data Anggota / Relawan</h4>
                     </div>
                     <div class="form-row">
-                      <div class="form-group"><label>Nama Anggota</label><input type="text" id="rlwNamaAnggota" placeholder="Nama lengkap"></div>
-                      <div class="form-group"><label>NIK Anggota</label><input type="text" id="rlwNikAnggota" maxlength="16" placeholder="16 digit"></div>
+                      <div class="form-group"><label>Nama Lengkap Anggota <span style="color:#ef4444;">*</span></label><input type="text" id="rlwNamaAnggota" placeholder="Nama lengkap sesuai KTP"></div>
+                      <div class="form-group"><label>NIK Anggota (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="rlwNikAnggota" maxlength="16" placeholder="16 digit NIK"></div>
                     </div>
-                    <div class="form-group"><label>Nomor WhatsApp Anggota</label><input type="text" id="rlwHpAnggota" placeholder="08xxxxxxxxxx"></div>
-                    <div class="form-group"><label>Alamat Lengkap</label><textarea id="rlwAlamatAnggota" rows="2" placeholder="Alamat rumah"></textarea></div>
+                    <div class="form-group"><label>Nomor WhatsApp / HP Anggota <span style="color:#ef4444;">*</span></label><input type="text" id="rlwHpAnggota" placeholder="08xxxxxxxxxx"></div>
+                    <div class="form-group"><label>Alamat Domisili Lengkap</label><textarea id="rlwAlamatAnggota" rows="2" placeholder="Nama jalan, RT/RW, Dusun"></textarea></div>
                   </div>
                 </div>
 

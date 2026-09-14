@@ -81,8 +81,9 @@ class PendukungController extends Controller
             $nama = trim($request->input('nama', ''));
             $nik = trim($request->input('nik', ''));
             $hp = trim($request->input('hp', ''));
-            $jabatan = trim($request->input('jabatan', ''));
+            $jabatan = trim($request->input('jabatan', 'Pengurus DPC'));
             $kecamatan = trim($request->input('kecamatan', ''));
+            $desa = trim($request->input('desa', $request->input('dpcDesa', '')));
             $alamat = trim($request->input('alamat', ''));
         } elseif ($jalur === 'DPRT') {
             $nama = trim($request->input('nama', ''));
@@ -101,6 +102,7 @@ class PendukungController extends Controller
             $alamat = trim($request->input('alamatKeluarga', ''));
             $dataKhusus = [
                 'namaSekolah' => trim($request->input('namaSekolah', '')),
+                'tingkatSekolah' => trim($request->input('tingkatSekolah', $request->input('pipTingkatSekolah', ''))),
                 'alamatSekolah' => trim($request->input('alamatSekolah', '')),
                 'namaAyah' => trim($request->input('namaAyah', '')),
                 'nikAyah' => trim($request->input('nikAyah', '')),
@@ -121,6 +123,8 @@ class PendukungController extends Controller
             $alamat = trim($request->input('alamatKeluarga', ''));
             $dataKhusus = [
                 'namaKampus' => trim($request->input('namaKampus', '')),
+                'fakultas' => trim($request->input('fakultas', $request->input('kipFakultas', ''))),
+                'jurusan' => trim($request->input('jurusan', $request->input('semester', $request->input('kipSemester', '')))),
                 'alamatKampus' => trim($request->input('alamatKampus', '')),
                 'namaAyah' => trim($request->input('namaAyah', '')),
                 'nikAyah' => trim($request->input('nikAyah', '')),
@@ -136,8 +140,8 @@ class PendukungController extends Controller
             $nama = trim($request->input('namaAnggota', ''));
             $nik = trim($request->input('nikAnggota', ''));
             $hp = trim($request->input('hpAnggota', ''));
-            $jabatan = 'Anggota';
-            $koordinator = trim($request->input('namaKoordinator', ''));
+            $jabatan = trim($request->input('jabatan', $request->input('kategoriRelawan', $request->input('rlwJabatan', 'Relawan TPS'))));
+            $koordinator = trim($request->input('namaKoordinator', $request->input('koordinator', '')));
             $kecamatan = trim($request->input('kecamatan', ''));
             $desa = trim($request->input('desa', ''));
             $alamat = trim($request->input('alamatAnggota', ''));
@@ -157,10 +161,15 @@ class PendukungController extends Controller
             $kecamatan = trim($request->input('kecamatan') ?? $request->input('dpcKecamatan') ?? $request->input('dprtKecamatan') ?? '');
         }
         if (!$desa) {
-            $desa = trim($request->input('desa') ?? $request->input('dprtDesa') ?? '');
+            $desa = trim($request->input('desa') ?? $request->input('dpcDesa') ?? $request->input('dprtDesa') ?? $request->input('pipDesa') ?? $request->input('kipDesa') ?? $request->input('rlwDesa') ?? '');
         }
         if (!$alamat) {
             $alamat = trim($request->input('alamat') ?? $request->input('dpcAlamat') ?? $request->input('dprtAlamat') ?? $request->input('alamatKeluarga') ?? '');
+        }
+        $tps = trim($request->input('tps', $request->input('dpcTps', $request->input('dprtTps', $request->input('pipTps', $request->input('kipTps', $request->input('rlwTps', '')))))));
+        if ($tps !== '') {
+            if (!is_array($dataKhusus)) $dataKhusus = [];
+            $dataKhusus['tps'] = $tps;
         }
 
         if (!$nama || !$nik) {

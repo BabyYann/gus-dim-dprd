@@ -90,7 +90,7 @@ switch ($action) {
             $nama = trim($body['namaAnggota'] ?? $body['nama'] ?? '');
             $nik = trim($body['nikAnggota'] ?? $body['nik'] ?? '');
             $hp = trim($body['hpAnggota'] ?? $body['hp'] ?? '');
-            $jabatan = trim($body['jabatan'] ?? 'Anggota');
+            $jabatan = trim($body['jabatan'] ?? $body['kategoriRelawan'] ?? $body['rlwJabatan'] ?? 'Relawan TPS');
             $koordinator = trim($body['namaKoordinator'] ?? $body['koordinator'] ?? '');
             $kecamatan = trim($body['kecamatan'] ?? '');
             $desa = trim($body['desa'] ?? '');
@@ -111,10 +111,15 @@ switch ($action) {
             $kecamatan = trim($body['kecamatan'] ?? $body['dpcKecamatan'] ?? $body['dprtKecamatan'] ?? $body['pipKecamatan'] ?? $body['kipKecamatan'] ?? $body['rlwKecamatan'] ?? '');
         }
         if (!$desa) {
-            $desa = trim($body['desa'] ?? $body['dprtDesa'] ?? $body['pipDesa'] ?? $body['kipDesa'] ?? $body['rlwDesa'] ?? '');
+            $desa = trim($body['desa'] ?? $body['dpcDesa'] ?? $body['dprtDesa'] ?? $body['pipDesa'] ?? $body['kipDesa'] ?? $body['rlwDesa'] ?? '');
         }
         if (!$alamat) {
             $alamat = trim($body['alamat'] ?? $body['dpcAlamat'] ?? $body['dprtAlamat'] ?? $body['pipAlamatKeluarga'] ?? $body['kipAlamatKeluarga'] ?? $body['rlwAlamatAnggota'] ?? '');
+        }
+        $tps = trim($body['tps'] ?? $body['dpcTps'] ?? $body['dprtTps'] ?? $body['pipTps'] ?? $body['kipTps'] ?? $body['rlwTps'] ?? '');
+        if ($tps !== '') {
+            if (!is_array($dataKhusus)) $dataKhusus = [];
+            $dataKhusus['tps'] = $tps;
         }
 
         if (!$nama || !$nik) {

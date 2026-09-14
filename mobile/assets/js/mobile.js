@@ -43,25 +43,30 @@ const DapilLocations = {
     lat: -7.7595,
     lng: 113.4185,
     desa: [
-      'Kraksaan Wetan', 'Kandangjati Kulon', 'Kandangjati Wetan', 'Patokan',
-      'Semampir', 'Sidomukti', 'Kebonagung', 'Rondokuning', 'Asembagus',
-      'Bulubrangsi', 'Kalisalam', 'Kregenan', 'Tamansari'
+      'Alassumur Kulon', 'Asembagus', 'Bulu', 'Bulubrangsi', 'Kalibuntu', 
+      'Kalisalam', 'Kandangjati Kulon', 'Kandangjati Wetan', 'Kebonagung', 
+      'Kraksaan Kulon', 'Kraksaan Wetan', 'Kregenan', 'Patokan', 'Reksosari', 
+      'Rondokuning', 'Semampir', 'Sidomukti', 'Sidopekso', 'Sumberlele', 'Tamansari'
     ]
   },
   'Besuk': {
     lat: -7.7924,
     lng: 113.4561,
     desa: [
-      'Besuk Agung', 'Besuk Kidul', 'Alas Sumur Lor', 'Bago', 'Klampokan',
-      'Randu Jalak', 'Sindet Lami', 'Sumur Dalam', 'Matekan'
+      'Alas Sumur Lor', 'Alaskandang', 'Bago', 'Besuk Agung', 'Besuk Kidul', 
+      'Jambangan', 'Kecik', 'Klampokan', 'Krampilan', 'Matekan', 'Meayan', 
+      'Randu Jalak', 'Sindet Anyar', 'Sindet Lami', 'Sumberan', 'Sumbersuko', 
+      'Sumurdalam', 'Warugunung'
     ]
   },
   'Gading': {
     lat: -7.8341,
     lng: 113.4352,
     desa: [
-      'Gading Wetan', 'Bulu', 'Condong', 'Dandang', 'Jurangrejo',
-      'Kalianyar', 'Kertosono', 'Prasi', 'Wangkal'
+      'Batur', 'Betek Kulon', 'Bulu', 'Bulupandak', 'Condong', 'Dandang', 
+      'Duren', 'Gading Kulon', 'Gading Wetan', 'Jurangjero', 'Kaliacar', 
+      'Kalisat', 'Kertosari', 'Kertosono', 'Mojolegi', 'Nogosaren', 'Prasi', 
+      'Randujalak', 'Ranuwurung', 'Renteng', 'Sentul', 'Sumbersecang', 'Wangkal'
     ]
   }
 };

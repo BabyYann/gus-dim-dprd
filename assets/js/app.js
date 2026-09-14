@@ -318,12 +318,21 @@ function kirimUcapanWa(hp, nama, jalur) {
     const statusBadgeClass = curStatus === 'Final' ? 'badge-final' : curStatus === 'Ditolak' ? 'badge-ditolak' : (curStatus === 'Diverifikasi Desa' || curStatus === 'Divalidasi Kecamatan' ? 'badge-diverifikasi' : 'badge-diinput');
     const statusHtml = '<span class="badge ' + statusBadgeClass + '" style="font-size:11px; padding:2.5px 8px; border-radius:5px; font-weight:700;">' + curStatus + '</span>';
 
+    const dataKhususObj = (r.data_khusus && typeof r.data_khusus === 'object') ? r.data_khusus : (typeof r.data_khusus === 'string' ? JSON.parse(r.data_khusus || '{}') : {});
+    const nomorTps = (dataKhususObj && dataKhususObj.tps) || r.tps || '';
+    const barisKhusus = [];
+    if (r.jabatan) barisKhusus.push(['Jabatan / Posisi', r.jabatan]);
+    if (nomorTps) barisKhusus.push(['Nomor TPS', 'TPS ' + nomorTps]);
+    if (dataKhususObj && dataKhususObj.tingkatSekolah) barisKhusus.push(['Jenjang Sekolah', dataKhususObj.tingkatSekolah]);
+    if (dataKhususObj && dataKhususObj.fakultas) barisKhusus.push(['Fakultas / Prodi', dataKhususObj.fakultas]);
+
     const rowsData = [
       ['NIK', r.nik ? '<code style="font-family:monospace; font-size:12px; font-weight:600; color:#1e293b;">' + r.nik + '</code>' : '-'],
       ['Umur', umur !== null ? umur + ' tahun' : '-'],
       ['No. HP', r.hp || '-'],
       ['Alamat', r.alamat || '-'],
       ['Kecamatan / Desa', [r.kecamatan, r.desa].filter(Boolean).join(' / ') || '-'],
+      ...barisKhusus,
       ['Status Verifikasi', statusHtml],
       ['Tanggal Input', r.tanggal || '-'],
       ['Diinput oleh', r.userInput || '-'],
@@ -2167,6 +2176,41 @@ function kirimUcapanWa(hp, nama, jalur) {
   const JALUR_BOLEH_SCAN = ['DPC', 'DPRT', 'RELAWAN', 'PIP', 'KIP'];
 
   
+    // Master Data Wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)
+  const WILAYAH_DAPIL = {
+    'Kraksaan': [
+      'Alassumur Kulon', 'Asembagus', 'Bulu', 'Bulubrangsi', 'Kalibuntu', 
+      'Kalisalam', 'Kandangjati Kulon', 'Kandangjati Wetan', 'Kebonagung', 
+      'Kraksaan Kulon', 'Kraksaan Wetan', 'Kregenan', 'Patokan', 'Reksosari', 
+      'Rondokuning', 'Semampir', 'Sidomukti', 'Sidopekso', 'Sumberlele', 'Tamansari'
+    ],
+    'Besuk': [
+      'Alas Sumur Lor', 'Alaskandang', 'Bago', 'Besuk Agung', 'Besuk Kidul', 
+      'Jambangan', 'Kecik', 'Klampokan', 'Krampilan', 'Matekan', 'Meayan', 
+      'Randu Jalak', 'Sindet Anyar', 'Sindet Lami', 'Sumberan', 'Sumbersuko', 
+      'Sumurdalam', 'Warugunung'
+    ],
+    'Gading': [
+      'Batur', 'Betek Kulon', 'Bulu', 'Bulupandak', 'Condong', 'Dandang', 
+      'Duren', 'Gading Kulon', 'Gading Wetan', 'Jurangjero', 'Kaliacar', 
+      'Kalisat', 'Kertosari', 'Kertosono', 'Mojolegi', 'Nogosaren', 'Prasi', 
+      'Randujalak', 'Ranuwurung', 'Renteng', 'Sentul', 'Sumbersecang', 'Wangkal'
+    ]
+  };
+
+  function populateDesaDropdown(kecamatan, desaElementId, selectedValue = '') {
+    const el = document.getElementById(desaElementId);
+    if (!el) return;
+    const list = WILAYAH_DAPIL[kecamatan] || [];
+    let html = '<option value="">-- Pilih Desa / Kelurahan --</option>';
+    list.forEach(function (d) {
+      const isSel = (selectedValue && selectedValue.toLowerCase() === d.toLowerCase()) ? ' selected' : '';
+      html += '<option value="' + d + '"' + isSel + '>' + d + '</option>';
+    });
+    el.innerHTML = html;
+  }
+  window.populateDesaDropdown = populateDesaDropdown;
+
   // ============ FITUR NEXT-GEN UI: JALUR CARDS & GPS ============
   function pilihJalurCard(jalur) {
     document.querySelectorAll('.jalur-selector-card').forEach(function (c) {
@@ -2278,13 +2322,15 @@ function kirimUcapanWa(hp, nama, jalur) {
     const peta = {
       DPC: { nik: 'dpcNik', nama: 'dpcNama', alamat: 'dpcAlamat' },
       DPRT: { nik: 'dprtNik', nama: 'dprtNama', alamat: 'dprtAlamat' },
+      PIP: { nik: 'pipNikAnak', nama: 'pipNamaAnak', alamat: 'pipAlamatKeluarga' },
+      KIP: { nik: 'kipNikAnak', nama: 'kipNamaAnak', alamat: 'kipAlamatKeluarga' },
       RELAWAN: { nik: 'rlwNikAnggota', nama: 'rlwNamaAnggota', alamat: 'rlwAlamatAnggota' }
     };
     const f = peta[jalur];
     if (!f) return;
-    if (hasil.nik) document.getElementById(f.nik).value = hasil.nik;
-    if (hasil.nama) document.getElementById(f.nama).value = hasil.nama;
-    if (hasil.alamat) document.getElementById(f.alamat).value = hasil.alamat;
+    if (hasil.nik) { const el = document.getElementById(f.nik); if (el) el.value = hasil.nik; }
+    if (hasil.nama) { const el = document.getElementById(f.nama); if (el) el.value = hasil.nama; }
+    if (hasil.alamat) { const el = document.getElementById(f.alamat); if (el) el.value = hasil.alamat; }
   }
 
   /** Kompresi gambar client-side untuk mempercepat upload & menghindari limit post_max_size */
@@ -2452,6 +2498,8 @@ function kirimUcapanWa(hp, nama, jalur) {
         hp: v('dpcHp'), 
         jabatan: v('dpcJabatan'), 
         kecamatan: v('dpcKecamatan'), 
+        desa: v('dpcDesa'),
+        tps: v('dpcTps'),
         alamat: v('dpcAlamat') 
       });
       fungsi = 'submitDPC';
@@ -2463,35 +2511,45 @@ function kirimUcapanWa(hp, nama, jalur) {
         jabatan: v('dprtJabatan'), 
         desa: v('dprtDesa'), 
         kecamatan: v('dprtKecamatan'), 
+        tps: v('dprtTps'),
         alamat: v('dprtAlamat') 
       });
       fungsi = 'submitDPRT';
     } else if (jalur === 'PIP') {
       formData = Object.assign(formData, {
         namaAnak: v('pipNamaAnak'), nikAnak: v('pipNikAnak'), hpAnak: v('pipHpAnak'),
-        namaSekolah: v('pipNamaSekolah'), alamatSekolah: v('pipAlamatSekolah'),
+        namaSekolah: v('pipNamaSekolah'), tingkatSekolah: v('pipTingkatSekolah'), alamatSekolah: v('pipAlamatSekolah'),
         namaAyah: v('pipNamaAyah'), nikAyah: v('pipNikAyah'), hpAyah: v('pipHpAyah'),
         namaIbu: v('pipNamaIbu'), nikIbu: v('pipNikIbu'), hpIbu: v('pipHpIbu'),
         alamatKeluarga: v('pipAlamatKeluarga'),
         jumlahSaudara: v('pipJumlahSaudara'), namaSaudara: v('pipNamaSaudara'), nikSaudara: v('pipNikSaudara'), hpSaudara: v('pipHpSaudara'), alamatSaudara: v('pipAlamatSaudara'),
-        desa: v('pipDesa'), kecamatan: v('pipKecamatan')
+        desa: v('pipDesa'), kecamatan: v('pipKecamatan'), tps: v('pipTps')
       });
       fungsi = 'submitPIP';
     } else if (jalur === 'KIP') {
       formData = Object.assign(formData, {
         namaAnak: v('kipNamaAnak'), nikAnak: v('kipNikAnak'), hpAnak: v('kipHpAnak'),
-        namaKampus: v('kipNamaKampus'), alamatKampus: v('kipAlamatKampus'),
+        namaKampus: v('kipNamaKampus'), fakultas: v('kipFakultas'), jurusan: v('kipSemester'), alamatKampus: v('kipAlamatKampus'),
         namaAyah: v('kipNamaAyah'), nikAyah: v('kipNikAyah'), hpAyah: v('kipHpAyah'),
         namaIbu: v('kipNamaIbu'), nikIbu: v('kipNikIbu'), hpIbu: v('kipHpIbu'),
         alamatKeluarga: v('kipAlamatKeluarga'),
         jumlahSaudara: v('kipJumlahSaudara'), namaSaudara: v('kipNamaSaudara'), nikSaudara: v('kipNikSaudara'), hpSaudara: v('kipHpSaudara'), alamatSaudara: v('kipAlamatSaudara'),
-        desa: v('kipDesa'), kecamatan: v('kipKecamatan')
+        desa: v('kipDesa'), kecamatan: v('kipKecamatan'), tps: v('kipTps')
       });
       fungsi = 'submitKIP';
     } else if (jalur === 'RELAWAN') {
       formData = Object.assign(formData, {
-        namaKoordinator: v('rlwKoordinator'), desa: v('rlwDesa'), kecamatan: v('rlwKecamatan'),
-        namaAnggota: v('rlwNamaAnggota'), nikAnggota: v('rlwNikAnggota'), hpAnggota: v('rlwHpAnggota'), alamatAnggota: v('rlwAlamatAnggota')
+        jabatan: v('rlwJabatan'),
+        kategoriRelawan: v('rlwJabatan'),
+        namaKoordinator: v('rlwKoordinator'),
+        koordinator: v('rlwKoordinator'),
+        desa: v('rlwDesa'),
+        kecamatan: v('rlwKecamatan'),
+        tps: v('rlwTps'),
+        namaAnggota: v('rlwNamaAnggota'),
+        nikAnggota: v('rlwNikAnggota'),
+        hpAnggota: v('rlwHpAnggota'),
+        alamatAnggota: v('rlwAlamatAnggota')
       });
       fungsi = 'submitRelawan';
     }
