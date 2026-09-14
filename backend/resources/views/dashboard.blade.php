@@ -45,31 +45,65 @@
   <!-- ============ LOGIN SCREEN ============ -->
   <div id="loginScreen">
     <div class="login-box">
-      <img src="{{ asset('assets/img/gus-dim.png') }}" class="login-photo" alt="Gus Dim">
-      <h1>GUS DIM</h1>
-      <p class="subtitle">Sistem Pemenangan &bull; Dapil Kraksaan Raya &bull; Partai NasDem</p>
-
-      <div class="error-msg" id="loginError"></div>
-
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="loginUsername" placeholder="Masukkan username akun">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="Masukkan password">
-      </div>
-      <button class="btn-primary" id="btnLogin" onclick="doLogin()">Masuk ke Sistem</button>
-
-      <div style="margin-top:10px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:11.5px; color:#475569; text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <span style="font-weight:700; color:#1e293b;">Akun Superadmin:</span>
-          <span style="font-weight:600; color:#2563eb;">admin / admin</span>
+      <div class="login-avatar-wrapper">
+        <img src="{{ asset('assets/img/gus-dim.png') }}" class="login-photo" alt="Gus Dim" onerror="this.onerror=null; this.src='{{ asset('assets/icons/gus-dim.png') }}';">
+        <div class="login-badge-verified" title="Sistem Resmi Terverifikasi">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <button type="button" onclick="document.getElementById('loginUsername').value='admin';document.getElementById('loginPassword').value='admin';doLogin();" style="width:100%; padding:6px 10px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; font-weight:700; font-size:11.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Masuk Cepat Otomatis (1-Klik)</span>
+      </div>
+
+      <h1 class="login-title">GUS DIM</h1>
+      <div class="login-badge-sub">Sistem Informasi Pemenangan Terpadu</div>
+      <p class="subtitle">Dapil Kraksaan Raya &bull; Fraksi Partai NasDem DPRD Kab. Probolinggo</p>
+
+      <div class="error-msg" id="loginError" style="display:none;"></div>
+
+      <form onsubmit="event.preventDefault(); doLogin();" autocomplete="on">
+        <div class="form-group">
+          <label for="loginUsername">Nama Pengguna (Username)</label>
+          <div class="input-with-icon">
+            <div class="input-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <input type="text" id="loginUsername" placeholder="Masukkan username akun" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label for="loginPassword" style="margin-bottom:0;">Kata Sandi (Password)</label>
+            <span id="btnTogglePassword" class="login-toggle-pass" onclick="toggleWebPassword()" title="Tampilkan/Sembunyikan sandi">
+              <svg id="toggleWebPasswordIcon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span id="toggleWebPasswordText">Lihat</span>
+            </span>
+          </div>
+          <div class="input-with-icon">
+            <div class="input-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <input type="password" id="loginPassword" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
+          </div>
+        </div>
+
+        <div class="login-remember-row">
+          <label class="login-remember-label">
+            <input type="checkbox" id="loginRememberMe" checked>
+            <span>Ingat sesi di perangkat ini</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary login-submit-btn" id="btnLogin">
+          <span>Masuk ke Sistem</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+      </form>
+
+      <div class="login-security-notice">
+        <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px; font-weight:600; color:#0f766e;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Akses Terenkripsi SSL 256-Bit &bull; Server Produksi</span>
+        </div>
+        <div>Butuh akun petugas atau reset sandi? Hubungi Administrator Fraksi.</div>
       </div>
     </div>
   </div>

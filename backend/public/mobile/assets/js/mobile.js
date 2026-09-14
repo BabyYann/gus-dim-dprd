@@ -2411,6 +2411,54 @@ function syncDatabaseNow() {
 // PENGELOLAAN PROFIL SAYA
 // ==========================================
 
+
+// Toggle Tampilan Kata Sandi Mobile
+function toggleMobilePassword(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    input.type = 'password';
+    if (icon) icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+// Handler Drawer Auth Action
+function handleDrawerAuthAction() {
+  closeDrawer();
+  if (AppState.currentUser) {
+    if (confirm('Apakah Anda yakin ingin keluar dari sesi akun ' + (AppState.currentUser.nama || '') + '?')) {
+      handleMobileLogout();
+    }
+  } else {
+    navigatePage('profil');
+  }
+}
+
+function updateDrawerAuthState() {
+  const authBtn = document.getElementById('drawerAuthBtn');
+  const authText = document.getElementById('drawerAuthText');
+  const authIcon = document.getElementById('drawerAuthIcon');
+  if (!authBtn || !authText) return;
+
+  if (AppState.currentUser) {
+    authBtn.style.color = '#dc2626';
+    authText.textContent = 'Keluar Sesi (Logout)';
+    if (authIcon) {
+      authIcon.innerHTML = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>';
+    }
+  } else {
+    authBtn.style.color = '#2563eb';
+    authText.textContent = 'Masuk Akun Petugas';
+    if (authIcon) {
+      authIcon.innerHTML = '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>';
+    }
+  }
+}
+
 function renderProfile() {
   const container = document.getElementById('profileContainer');
   if (!container) return;
@@ -2523,46 +2571,87 @@ function renderProfile() {
       </div>
     `;
   } else {
-    // Mode Belum Login (Sesi Tamu)
+    // Mode Belum Login (Otentikasi Produksi)
     container.innerHTML = `
-      <div class="card" style="text-align:center;padding:22px 16px;">
-        <div style="width:68px;height:68px;border-radius:50%;background:#f1f5f9;color:#64748b;font-size:24px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;border:2px dashed #cbd5e1;">
-          ${Icons.users}
+      <!-- Hero Header Portal -->
+      <div class="card" style="background:linear-gradient(135deg, #16225e 0%, #1e3a8a 100%);color:#ffffff;text-align:center;padding:24px 16px;border:none;box-shadow:0 8px 24px rgba(22,34,94,0.2);">
+        <div style="position:relative;width:76px;height:76px;margin:0 auto 12px;">
+          <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid #fbbf24;box-shadow:0 4px 14px rgba(0,0,0,0.3);">
+          <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#0d9488;border-radius:50%;border:2px solid #ffffff;display:flex;align-items:center;justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
         </div>
-        <div style="font-size:18px;font-weight:800;color:#0f172a;">Sesi Tamu Lapangan</div>
-        <div style="font-size:12px;color:#64748b;margin-top:4px;">
-          Aplikasi berjalan dalam mode baca data offline.
-        </div>
-        <div style="display:inline-block;background:#fef3c7;border:1px solid #fde68a;padding:4px 12px;border-radius:999px;font-size:11px;color:#b45309;font-weight:600;margin-top:8px;">
-          Belum Masuk Akun Petugas
+        <div style="font-size:18px;font-weight:800;letter-spacing:0.3px;">GUS DIM MOBILE</div>
+        <div style="font-size:12px;color:#cbd5e1;margin-top:2px;">Portal Petugas &amp; Relawan Lapangan</div>
+        <div style="display:inline-block;margin-top:10px;padding:3px 12px;border-radius:999px;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.25);font-size:11px;font-weight:600;color:#fbbf24;">
+          Sistem Terotentikasi &bull; Produksi
         </div>
       </div>
 
-      <div class="card">
-        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:6px;">Masuk Akun Petugas Lapangan</div>
-        <p style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.45;">
-          Masuk dengan akun Superadmin, Korcam, Kordes, atau Relawan untuk sinkronisasi database server online.
+      <!-- Form Otentikasi Akun -->
+      <div class="card" style="padding:20px 16px;">
+        <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px;">Masuk Akun Petugas</div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.45;">
+          Gunakan akun resmi penugasan Anda untuk sinkronisasi data lapangan secara real-time ke server pusat.
         </p>
-        <form onsubmit="handleProfileLoginForm(event)">
-          <div class="form-group" style="margin-bottom:10px;">
-            <label class="form-label" style="font-size:12px;">Username</label>
-            <input type="text" id="profileLoginUser" class="form-input-touch" placeholder="Contoh: superadmin" required>
+
+        <form onsubmit="handleProfileLoginForm(event)" autocomplete="on">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" style="font-size:12px;font-weight:700;color:#334155;margin-bottom:5px;display:block;">Nama Pengguna (Username)</label>
+            <div style="position:relative;display:flex;align-items:center;">
+              <div style="position:absolute;left:12px;color:#64748b;display:flex;align-items:center;pointer-events:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <input type="text" id="profileLoginUser" class="form-input-touch" placeholder="Masukkan username akun" style="padding-left:38px !important;" autocomplete="username" required>
+            </div>
           </div>
+
           <div class="form-group" style="margin-bottom:14px;">
-            <label class="form-label" style="font-size:12px;">Password</label>
-            <input type="password" id="profileLoginPass" class="form-input-touch" placeholder="Masukkan kata sandi" required>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+              <label class="form-label" style="font-size:12px;font-weight:700;color:#334155;margin-bottom:0;">Kata Sandi (Password)</label>
+              <button type="button" class="btn-toggle-pass-mobile" onclick="toggleMobilePassword('profileLoginPass', 'togglePassMobileIcon')" style="background:none;border:none;color:#2563eb;font-size:11.5px;font-weight:600;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                <svg id="togglePassMobileIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Lihat</span>
+              </button>
+            </div>
+            <div style="position:relative;display:flex;align-items:center;">
+              <div style="position:absolute;left:12px;color:#64748b;display:flex;align-items:center;pointer-events:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <input type="password" id="profileLoginPass" class="form-input-touch" placeholder="Masukkan kata sandi" style="padding-left:38px !important;" autocomplete="current-password" required>
+            </div>
           </div>
-          <button type="submit" class="btn-primary-touch" style="width:100%;height:44px;font-size:13.5px;">
-            Masuk Akun Sekarang
+
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <input type="checkbox" id="mobileRememberMe" checked style="width:16px;height:16px;accent-color:#16225e;border-radius:4px;">
+            <label for="mobileRememberMe" style="font-size:12px;color:#475569;cursor:pointer;">Ingat sesi di smartphone ini</label>
+          </div>
+
+          <button type="submit" id="btnSubmitProfileLogin" class="btn-primary-touch" style="width:100%;height:46px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg, #16225e 0%, #1e3a8a 100%);">
+            <span>Masuk ke Sistem</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </form>
+
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#0f766e;font-weight:600;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Koneksi Aman Terenkripsi SSL 256-Bit</span>
+        </div>
       </div>
 
-      <div class="card" style="background:#f8fafc;border:1px solid #e2e8f0;">
-        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:6px;">Bantuan Akses Akun</div>
-        <p style="font-size:11.5px;color:#64748b;line-height:1.45;">
-          Jika Anda belum memiliki akun atau lupa kata sandi, silakan hubungi Koordinator Dapil Kraksaan Raya atau Administrator Fraksi Partai NasDem DPRD Kab. Probolinggo.
-        </p>
+      <!-- Kartu Bantuan Akses Akun -->
+      <div class="card" style="background:#f8fafc;border:1px solid #e2e8f0;padding:16px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#e0e7ff;color:#4338ca;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f172a;">Bantuan Akses &amp; Akun Petugas</div>
+            <p style="font-size:11.5px;color:#64748b;margin-top:2px;margin-bottom:8px;line-height:1.45;">
+              Belum memiliki akun login atau lupa kata sandi? Silakan hubungi Koordinator Kecamatan (Korcam) atau Administrator Pusat untuk aktivasi akun.
+            </p>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -2583,6 +2672,11 @@ async function handleMobileLogin(isFromProfile = false) {
     showToast('Username dan password wajib diisi.', 'warning');
     return;
   }
+  const btnLoginEl = document.getElementById('btnSubmitProfileLogin');
+  if (btnLoginEl) {
+    btnLoginEl.disabled = true;
+    btnLoginEl.innerHTML = '<span class="spinner" style="width:14px;height:14px;border:2px solid #ffffff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.6s linear infinite;margin-right:6px;"></span> Memverifikasi...';
+  }
   showToast('Memverifikasi akun...', 'info');
   const res = await fetch('../api/auth.php?action=login', {
     method: 'POST',
@@ -2593,6 +2687,11 @@ async function handleMobileLogin(isFromProfile = false) {
   if (res && res.success) {
     localStorage.setItem('dprd_token', res.token);
     if (res.user) AppState.currentUser = res.user;
+    if (btnLoginEl) {
+      btnLoginEl.disabled = false;
+      btnLoginEl.innerHTML = '<span>Masuk ke Sistem</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+    }
+    updateDrawerAuthState();
     showToast('Berhasil masuk! Menyinkronkan data...', 'success');
     renderMobileAuth();
     renderProfile();
@@ -2605,6 +2704,7 @@ async function handleMobileLogin(isFromProfile = false) {
 function handleMobileLogout() {
   localStorage.removeItem('dprd_token');
   AppState.currentUser = null;
+  updateDrawerAuthState();
   showToast('Anda telah keluar.', 'info');
   renderMobileAuth();
   renderProfile();
