@@ -658,6 +658,22 @@ function kirimUcapanWa(hp, nama, jalur) {
         }
       });
 
+      channel.bind('AspirasiCreated', function (data) {
+        console.log('Realtime AspirasiCreated diterima:', data);
+        showDesktopToast('Aspirasi Baru: ' + (data.nama || 'Konstituen') + ' (' + (data.kategori || 'Infrastruktur') + ') - ' + (data.desa || '-'), 'info');
+        if (typeof loadAspirasi === 'function') {
+          try { loadAspirasi(); } catch (e) {}
+        }
+      });
+
+      channel.bind('AspirasiStatusUpdated', function (data) {
+        console.log('Realtime AspirasiStatusUpdated diterima:', data);
+        showDesktopToast('Status Aspirasi: ' + (data.topik || 'Aspirasi') + ' diperbarui ke "' + data.new_status + '"', 'success');
+        if (typeof loadAspirasi === 'function') {
+          try { loadAspirasi(); } catch (e) {}
+        }
+      });
+
       window._reverbPusher = pusher;
       console.log('Realtime Reverb WebSocket Desktop Aktif di Channel: gusdim-updates');
     } catch (err) {

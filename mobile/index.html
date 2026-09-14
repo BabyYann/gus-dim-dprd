@@ -928,6 +928,11 @@ html, body {
   color: var(--info);
 }
 
+.badge-status.purple {
+  background-color: var(--purple-light);
+  color: var(--purple);
+}
+
 .badge-status svg {
   width: 12px;
   height: 12px;
@@ -965,6 +970,13 @@ html, body {
   color: var(--text-secondary);
   font-weight: 500;
 }
+
+.card-pill.blue { background-color: #eff6ff; color: #1d4ed8; }
+.card-pill.amber { background-color: #fef3c7; color: #b45309; }
+.card-pill.green { background-color: #f0fdf4; color: #15803d; }
+.card-pill.purple { background-color: #faf5ff; color: #7e22ce; }
+.card-pill.rose { background-color: #fff1f2; color: #be123c; }
+.card-pill.teal { background-color: #f0fdfa; color: #0f766e; }
 
 .card-actions-row {
   display: flex;
@@ -2205,12 +2217,87 @@ html, body {
           </button>
         </div>
 
-        <div class="filter-pills-scroll" style="margin-bottom:12px;">
-          <button type="button" class="filter-pill active" onclick="filterAspirasiCat('', this)">Semua</button>
-          <button type="button" class="filter-pill" onclick="filterAspirasiCat('Infrastruktur', this)">Infrastruktur</button>
-          <button type="button" class="filter-pill" onclick="filterAspirasiCat('Pertanian', this)">Pertanian</button>
-          <button type="button" class="filter-pill" onclick="filterAspirasiCat('Pendidikan', this)">Pendidikan</button>
-          <button type="button" class="filter-pill" onclick="filterAspirasiCat('UMKM', this)">UMKM &amp; Ekonomi</button>
+        <!-- 4 KPI Grid Aspirasi Mobile -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Aspirasi</span>
+              <div class="kpi-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+            <div id="mobKpiAspirasiTotal" class="kpi-value">0</div>
+            <div class="kpi-subtext">Masukan Konstituen</div>
+          </div>
+
+          <div class="kpi-card gold">
+            <div class="kpi-header">
+              <span class="kpi-title">Menunggu</span>
+              <div class="kpi-icon gold">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <div id="mobKpiAspirasiMenunggu" class="kpi-value">0</div>
+            <div class="kpi-subtext">Perlu Verifikasi</div>
+          </div>
+
+          <div class="kpi-card purple">
+            <div class="kpi-header">
+              <span class="kpi-title">Advokasi</span>
+              <div class="kpi-icon purple">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+            </div>
+            <div id="mobKpiAspirasiAdvokasi" class="kpi-value">0</div>
+            <div class="kpi-subtext">Proses Lapangan</div>
+          </div>
+
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <span class="kpi-title">Pokir / Selesai</span>
+              <div class="kpi-icon green">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+            </div>
+            <div id="mobKpiAspirasiSelesai" class="kpi-value">0</div>
+            <div class="kpi-subtext">APBD &amp; Tuntas</div>
+          </div>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="search-filter-wrapper">
+          <div class="search-input-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchAspirasiInput" class="search-input-mobile" placeholder="Cari warga, desa, atau isi keluhan...">
+            <button type="button" id="btnClearAspirasiSearch" class="search-clear-btn" onclick="clearAspirasiSearch()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;min-width:16px;min-height:16px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- Status Filters Scroll -->
+          <div class="filter-pills-scroll">
+            <button type="button" class="filter-pill active" data-asp-status="" onclick="filterAspirasiStatus('', this)">Semua Status</button>
+            <button type="button" class="filter-pill" data-asp-status="menunggu" onclick="filterAspirasiStatus('menunggu', this)">Menunggu</button>
+            <button type="button" class="filter-pill" data-asp-status="advokasi" onclick="filterAspirasiStatus('advokasi', this)">Advokasi</button>
+            <button type="button" class="filter-pill" data-asp-status="pokir" onclick="filterAspirasiStatus('pokir', this)">Masuk Pokir</button>
+            <button type="button" class="filter-pill" data-asp-status="selesai" onclick="filterAspirasiStatus('selesai', this)">Selesai</button>
+          </div>
+
+          <!-- Category Filters Scroll -->
+          <div class="filter-pills-scroll" style="margin-top:-2px;">
+            <button type="button" class="filter-pill active" data-asp-cat="" onclick="filterAspirasiCat('', this)">Semua Bidang</button>
+            <button type="button" class="filter-pill" data-asp-cat="Infrastruktur" onclick="filterAspirasiCat('Infrastruktur', this)">Infrastruktur</button>
+            <button type="button" class="filter-pill" data-asp-cat="Pertanian" onclick="filterAspirasiCat('Pertanian', this)">Pertanian</button>
+            <button type="button" class="filter-pill" data-asp-cat="Pendidikan" onclick="filterAspirasiCat('Pendidikan', this)">Pendidikan</button>
+            <button type="button" class="filter-pill" data-asp-cat="Kesehatan" onclick="filterAspirasiCat('Kesehatan', this)">Kesehatan</button>
+            <button type="button" class="filter-pill" data-asp-cat="Bansos" onclick="filterAspirasiCat('Bansos', this)">Bansos</button>
+            <button type="button" class="filter-pill" data-asp-cat="UMKM" onclick="filterAspirasiCat('UMKM', this)">UMKM &amp; Ekonomi</button>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px;">
+          <span style="font-size:12px;font-weight:700;color:#64748b;">DAFTAR ASPIRASI</span>
+          <span id="aspirasiResultsCount" style="font-size:11px;font-weight:600;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:999px;">0 Data</span>
         </div>
 
         <div id="aspirasiDedicatedList"></div>
@@ -2509,6 +2596,8 @@ const AppState = {
   filterStatus: '',
   searchQuery: '',
   filterAspirasiCat: '',
+  filterAspirasiStatus: '',
+  searchAspirasiQuery: '',
   activeJalur: 'RELAWAN',
   isOnline: navigator.onLine
 };
@@ -2631,6 +2720,22 @@ function initMobileRealtimeReverb() {
     channel.bind('PendukungStatusUpdated', function (data) {
       console.log('Mobile Realtime PendukungStatusUpdated:', data);
       showToast('Status Verifikasi: ' + (data.nama || 'Data') + ' diubah jadi "' + data.new_status + '" oleh ' + (data.actor_name || 'Petugas'), 'success');
+      if (typeof loadAllData === 'function') {
+        try { loadAllData(); } catch (e) {}
+      }
+    });
+
+    channel.bind('AspirasiCreated', function (data) {
+      console.log('Mobile Realtime AspirasiCreated:', data);
+      showToast('Aspirasi Baru: ' + (data.topik || data.nama || 'Konstituen') + ' (' + (data.kategori || 'Infrastruktur') + ')', 'info');
+      if (typeof loadAllData === 'function') {
+        try { loadAllData(); } catch (e) {}
+      }
+    });
+
+    channel.bind('AspirasiStatusUpdated', function (data) {
+      console.log('Mobile Realtime AspirasiStatusUpdated:', data);
+      showToast('Status Aspirasi: ' + (data.topik || 'Aspirasi') + ' diubah ke "' + data.new_status + '"', 'success');
       if (typeof loadAllData === 'function') {
         try { loadAllData(); } catch (e) {}
       }
@@ -2800,6 +2905,30 @@ function setupEventListeners() {
       btnClearSearch.classList.remove('active');
       renderSupportersList();
       searchInput.focus();
+    });
+  }
+
+  // Input Pencarian Aspirasi Warga
+  const searchAspirasiInput = document.getElementById('searchAspirasiInput');
+  const btnClearAspirasiSearch = document.getElementById('btnClearAspirasiSearch');
+  if (searchAspirasiInput) {
+    searchAspirasiInput.addEventListener('input', (e) => {
+      AppState.searchAspirasiQuery = e.target.value.toLowerCase().trim();
+      if (btnClearAspirasiSearch) {
+        if (AppState.searchAspirasiQuery.length > 0) btnClearAspirasiSearch.classList.add('active');
+        else btnClearAspirasiSearch.classList.remove('active');
+      }
+      renderAspirasiDedicated();
+    });
+  }
+
+  if (btnClearAspirasiSearch) {
+    btnClearAspirasiSearch.addEventListener('click', () => {
+      if (searchAspirasiInput) searchAspirasiInput.value = '';
+      AppState.searchAspirasiQuery = '';
+      btnClearAspirasiSearch.classList.remove('active');
+      renderAspirasiDedicated();
+      if (searchAspirasiInput) searchAspirasiInput.focus();
     });
   }
 
@@ -3198,22 +3327,93 @@ function renderSupportersList() {
   }).join('');
 }
 
-// Render Halaman Khusus Aspirasi
+// ==========================================================================
+// HALAMAN 4: ASPIRASI WARGA (MODERN SaaS & TOUCH ERGONOMICS)
+// ==========================================================================
+
 function renderAspirasiDedicated() {
   const container = document.getElementById('aspirasiDedicatedList');
   if (!container) return;
 
-  let list = [...AppState.aspirasi];
+  // 4 KPI Counters Aspirasi Mobile
+  const totalAspirasi = (AppState.aspirasi || []).length;
+  let countMenunggu = 0;
+  let countAdvokasi = 0;
+  let countSelesai = 0;
+
+  (AppState.aspirasi || []).forEach(r => {
+    const st = (r.status || '').toLowerCase();
+    if (st.includes('menunggu') || st.includes('baru') || st.includes('pending') || !st) {
+      countMenunggu++;
+    } else if (st.includes('proses') || st.includes('tindak') || st.includes('advokasi')) {
+      countAdvokasi++;
+    } else if (st.includes('selesai') || st.includes('pokir') || st.includes('disetujui') || st.includes('valid')) {
+      countSelesai++;
+    } else {
+      countAdvokasi++;
+    }
+  });
+
+  const elTotal = document.getElementById('mobKpiAspirasiTotal');
+  if (elTotal) elTotal.textContent = totalAspirasi.toLocaleString('id-ID');
+  const elMenunggu = document.getElementById('mobKpiAspirasiMenunggu');
+  if (elMenunggu) elMenunggu.textContent = countMenunggu.toLocaleString('id-ID');
+  const elAdvokasi = document.getElementById('mobKpiAspirasiAdvokasi');
+  if (elAdvokasi) elAdvokasi.textContent = countAdvokasi.toLocaleString('id-ID');
+  const elSelesai = document.getElementById('mobKpiAspirasiSelesai');
+  if (elSelesai) elSelesai.textContent = countSelesai.toLocaleString('id-ID');
+
+  let list = [...(AppState.aspirasi || [])];
+
+  // Filter Kategori
   if (AppState.filterAspirasiCat) {
-    list = list.filter(a => (a.kategori || a.bidang || '').toLowerCase().includes(AppState.filterAspirasiCat.toLowerCase()));
+    list = list.filter(a => {
+      const kat = (a.kategori || a.bidang || '').toLowerCase();
+      return kat.includes(AppState.filterAspirasiCat.toLowerCase());
+    });
   }
+
+  // Filter Status
+  if (AppState.filterAspirasiStatus) {
+    const targetStatus = AppState.filterAspirasiStatus.toLowerCase();
+    list = list.filter(a => {
+      const st = (a.status || 'menunggu').toLowerCase();
+      if (targetStatus === 'menunggu') {
+        return st.includes('menunggu') || st.includes('baru') || st.includes('pending') || !st;
+      } else if (targetStatus === 'advokasi') {
+        return st.includes('advokasi') || st.includes('proses') || st.includes('tindak');
+      } else if (targetStatus === 'pokir') {
+        return st.includes('pokir');
+      } else if (targetStatus === 'selesai') {
+        return st.includes('selesai') || st.includes('disetujui') || st.includes('valid');
+      }
+      return true;
+    });
+  }
+
+  // Filter Pencarian Real-Time
+  if (AppState.searchAspirasiQuery) {
+    const q = AppState.searchAspirasiQuery.toLowerCase();
+    list = list.filter(a => {
+      const nama = (a.nama || a.pengusul || '').toLowerCase();
+      const topik = (a.topik || a.judul || '').toLowerCase();
+      const isi = (a.aspirasi || a.deskripsi || a.isi || '').toLowerCase();
+      const desa = (a.desa || '').toLowerCase();
+      const kec = (a.kecamatan || '').toLowerCase();
+      const hp = (a.hp || '').toLowerCase();
+      return nama.includes(q) || topik.includes(q) || isi.includes(q) || desa.includes(q) || kec.includes(q) || hp.includes(q);
+    });
+  }
+
+  const countBadge = document.getElementById('aspirasiResultsCount');
+  if (countBadge) countBadge.textContent = list.length + ' Data';
 
   if (list.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
         ${Icons.messageSquare}
-        <div class="empty-state-title">Belum ada aspirasi tercatat</div>
-        <div class="empty-state-desc">Gunakan tombol "Buat Aspirasi" untuk mendata kebutuhan warga.</div>
+        <div class="empty-state-title">Tidak ada data aspirasi</div>
+        <div class="empty-state-desc">Belum ada aspirasi warga yang cocok dengan pencarian atau filter yang dipilih.</div>
       </div>
     `;
     return;
@@ -3221,47 +3421,322 @@ function renderAspirasiDedicated() {
 
   container.innerHTML = list.map(a => {
     let badgeClass = 'pending';
-    let statusText = 'Ditinjau';
-    if (a.status === 'valid' || a.status === 'Disetujui') {
+    let statusText = 'Menunggu';
+    const st = (a.status || '').toLowerCase();
+    if (st.includes('selesai') || st.includes('disetujui')) {
       badgeClass = 'valid';
-      statusText = 'Tervalidasi';
-    } else if (a.status === 'pokir') {
+      statusText = 'Selesai';
+    } else if (st.includes('pokir')) {
       badgeClass = 'info';
       statusText = 'Masuk Pokir';
+    } else if (st.includes('advokasi') || st.includes('proses') || st.includes('tindak')) {
+      badgeClass = 'purple';
+      statusText = 'Advokasi';
+    } else {
+      badgeClass = 'pending';
+      statusText = 'Menunggu';
     }
 
+    const topik = a.topik || a.judul || a.aspirasi || 'Aspirasi Konstituen';
+    const pengusul = a.nama || a.pengusul || 'Warga';
+    const isi = a.aspirasi || a.deskripsi || a.isi || 'Kebutuhan warga desa yang diusulkan melalui kegiatan relawan.';
+    const kat = a.kategori || a.bidang || 'Infrastruktur';
+    const desa = a.desa || 'Patokan';
+    const kec = a.kecamatan || 'Kraksaan';
+    const hasHp = Boolean(a.hp);
+
     return `
-      <div class="touch-card">
+      <div class="touch-card" onclick="openAspirasiDetail(${a.id})">
         <div class="card-top-row">
-          <div class="card-avatar" style="background:#f0fdf4;color:#16a34a;">
+          <div class="card-avatar" style="background:#eff6ff;color:#2563eb;">
             ${Icons.messageSquare}
           </div>
           <div class="card-info">
-            <div class="card-name">${escapeHtml(a.topik || a.judul || 'Aspirasi Konstituen')}</div>
-            <div class="card-nik" style="font-family:inherit;">Pengusul: ${escapeHtml(a.pengusul || 'Warga')}</div>
+            <div class="card-name">${escapeHtml(topik)}</div>
+            <div class="card-nik" style="font-family:inherit;">Pengusul: <strong>${escapeHtml(pengusul)}</strong></div>
           </div>
           <span class="badge-status ${badgeClass}">${statusText}</span>
         </div>
-        <p style="font-size:13px;color:#334155;line-height:1.4;">
-          ${escapeHtml(a.deskripsi || a.isi || 'Kebutuhan warga desa yang diusulkan melalui kegiatan lapangan relawan.')}
+        <p style="font-size:13px;color:#334155;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+          ${escapeHtml(isi)}
         </p>
         <div class="card-details-row">
           <div class="card-detail-item">
             ${Icons.mapPin}
-            <span>${escapeHtml(a.desa || 'Patokan')}, ${escapeHtml(a.kecamatan || 'Kraksaan')}</span>
+            <span>${escapeHtml(desa)}, ${escapeHtml(kec)}</span>
           </div>
-          <span class="card-pill">Bidang: ${escapeHtml(a.kategori || a.bidang || 'Infrastruktur')}</span>
+          <span class="card-pill blue">${escapeHtml(kat)}</span>
+          ${hasHp ? `<span class="card-pill green">WA Ada</span>` : ''}
+        </div>
+        <div class="card-actions-row" onclick="event.stopPropagation()">
+          ${hasHp ? `
+            <button type="button" class="btn-wa-touch" style="height:36px;font-size:12px;" onclick="kirimWaUpdateAspirasi(${a.id})">
+              ${Icons.whatsapp} Kabar WA
+            </button>
+          ` : ''}
+          <button type="button" class="btn-outline-touch" style="flex:1;height:36px;font-size:12px;" onclick="openAspirasiDetail(${a.id})">
+            Detail &amp; Aksi
+          </button>
         </div>
       </div>
     `;
   }).join('');
 }
 
-function filterAspirasiCat(cat, btn) {
-  AppState.filterAspirasiCat = cat;
-  document.querySelectorAll('#page-aspirasi .filter-pill').forEach(b => b.classList.remove('active'));
+function clearAspirasiSearch() {
+  const input = document.getElementById('searchAspirasiInput');
+  const btn = document.getElementById('btnClearAspirasiSearch');
+  if (input) input.value = '';
+  if (btn) btn.classList.remove('active');
+  AppState.searchAspirasiQuery = '';
+  renderAspirasiDedicated();
+}
+
+function filterAspirasiStatus(status, btn) {
+  AppState.filterAspirasiStatus = status;
+  document.querySelectorAll('#page-aspirasi .filter-pill[data-asp-status]').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderAspirasiDedicated();
+}
+
+function filterAspirasiCat(cat, btn) {
+  AppState.filterAspirasiCat = cat;
+  document.querySelectorAll('#page-aspirasi .filter-pill[data-asp-cat]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAspirasiDedicated();
+}
+
+// Buka Bottom Sheet Detail Aspirasi
+function openAspirasiDetail(id) {
+  const a = (AppState.aspirasi || []).find(item => String(item.id) === String(id));
+  if (!a) {
+    showToast('Data aspirasi tidak ditemukan', 'warning');
+    return;
+  }
+
+  const topik = a.topik || a.judul || a.aspirasi || 'Aspirasi Warga';
+  const nama = a.nama || a.pengusul || 'Warga Konstituen';
+  const isi = a.aspirasi || a.deskripsi || a.isi || 'Tidak ada uraian rincian.';
+  const desa = a.desa || '-';
+  const kec = a.kecamatan || 'Kraksaan';
+  const kat = a.kategori || a.bidang || 'Infrastruktur';
+  const jalur = a.jalur || 'Relawan';
+  const tanggal = a.tanggal || a.created_at || 'Hari ini';
+  const phoneRaw = a.hp || '';
+  let cleanHp = phoneRaw.replace(/[^0-9]/g, '');
+  if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.substring(1);
+
+  const st = (a.status || 'Menunggu').toLowerCase();
+  let statusBadgeClass = 'pending';
+  let statusText = 'Menunggu Verifikasi';
+
+  if (st.includes('selesai') || st.includes('disetujui') || st.includes('valid')) {
+    statusBadgeClass = 'valid';
+    statusText = 'Selesai / Terealisasi';
+  } else if (st.includes('pokir')) {
+    statusBadgeClass = 'info';
+    statusText = 'Terekalasi ke Pokir APBD';
+  } else if (st.includes('advokasi') || st.includes('proses') || st.includes('tindak')) {
+    statusBadgeClass = 'purple';
+    statusText = 'Dalam Advokasi Lapangan';
+  }
+
+  const waActionBtn = cleanHp ? `
+    <button type="button" class="btn-wa-touch" style="width:100%;height:44px;" onclick="kirimWaUpdateAspirasi(${a.id})">
+      ${Icons.whatsapp} Kirim Kabar Perkembangan via WA
+    </button>
+  ` : `
+    <button type="button" class="btn-wa-touch" style="width:100%;height:44px;background:#94a3b8;" onclick="showToast('Nomor WhatsApp warga belum tercatat', 'info')">
+      ${Icons.whatsapp} WhatsApp (Nomor Belum Terdata)
+    </button>
+  `;
+
+  const content = `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span class="card-pill blue">${escapeHtml(kat)}</span>
+        <span class="badge-status ${statusBadgeClass}">${statusText}</span>
+      </div>
+      <div style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;margin-bottom:6px;">
+        ${escapeHtml(topik)}
+      </div>
+      <div style="font-size:12px;color:#64748b;">
+        Pengusul: <strong style="color:#0f172a;">${escapeHtml(nama)}</strong> &bull; ${escapeHtml(tanggal)}
+      </div>
+    </div>
+
+    <!-- Info Detail Grid -->
+    <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#64748b;">Wilayah</span>
+        <span style="font-weight:600;color:#0f172a;">${escapeHtml(desa)}, Kec. ${escapeHtml(kec)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#64748b;">Jalur Aspirasi</span>
+        <span style="font-weight:600;color:#16225e;">${escapeHtml(jalur)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#64748b;">Kontak HP/WA</span>
+        <span style="font-weight:600;color:#0f172a;">${phoneRaw ? escapeHtml(phoneRaw) : '-'}</span>
+      </div>
+      <div style="border-top:1px dashed #e2e8f0;padding-top:8px;margin-top:2px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:4px;">Uraian Keluhan &amp; Kebutuhan:</div>
+        <div style="font-size:13px;color:#334155;line-height:1.5;background:#f8fafc;padding:10px;border-radius:8px;border-left:3px solid #2563eb;">
+          "${escapeHtml(isi)}"
+        </div>
+      </div>
+    </div>
+
+    <!-- Aksi Cepat Lapangan -->
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${waActionBtn}
+
+      <button type="button" class="btn-outline-touch" style="width:100%;height:44px;background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;font-weight:700;" onclick="eskalasiAspirasiKePokir(${a.id})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:16px;height:16px;min-width:16px;min-height:16px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+        Eskalasi ke Usulan Pokir APBD
+      </button>
+
+      <!-- Update Status Tindak Lanjut -->
+      <div style="background:#f1f5f9;padding:10px;border-radius:10px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;">Ubah Status Aspirasi:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;background:#fffbeb;color:#b45309;border-color:#fde68a;" onclick="updateAspirasiStatus(${a.id}, 'Menunggu')">
+            Set Menunggu
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;background:#faf5ff;color:#7e22ce;border-color:#e9d5ff;" onclick="updateAspirasiStatus(${a.id}, 'Advokasi')">
+            Set Advokasi
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;" onclick="updateAspirasiStatus(${a.id}, 'Masuk Pokir')">
+            Set Masuk Pokir
+          </button>
+          <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;background:#f0fdf4;color:#15803d;border-color:#bbf7d0;" onclick="updateAspirasiStatus(${a.id}, 'Selesai')">
+            Tandai Selesai
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn-outline-touch" style="width:100%;height:40px;margin-top:2px;" onclick="closeBottomSheet()">
+        Tutup
+      </button>
+    </div>
+  `;
+
+  openBottomSheet('Detail Aspirasi Warga', content);
+}
+
+// Update Status Aspirasi ke Server API
+async function updateAspirasiStatus(id, newStatus) {
+  const asp = (AppState.aspirasi || []).find(a => String(a.id) === String(id));
+  if (!asp) return;
+
+  showToast('Memperbarui status aspirasi...', 'info');
+  try {
+    const res = await mobileApiCall('aspirasi.php?action=update-status', 'POST', { id, status: newStatus });
+    if (res.ok && res.data && res.data.success) {
+      asp.status = newStatus;
+      renderAspirasiDedicated();
+      closeBottomSheet();
+      showToast(`Status aspirasi berhasil diubah ke "${newStatus}"!`, 'success');
+
+      if (asp.hp) {
+        setTimeout(() => {
+          if (confirm(`Status aspirasi telah diperbarui ke "${newStatus}". Ingin kirim notifikasi kabar perkembangan ke WhatsApp warga (${asp.hp}) sekarang?`)) {
+            kirimWaUpdateAspirasi(id, newStatus);
+          }
+        }, 400);
+      }
+    } else {
+      asp.status = newStatus;
+      renderAspirasiDedicated();
+      closeBottomSheet();
+      showToast(`Status diubah secara lokal menjadi "${newStatus}"`, 'info');
+    }
+  } catch (err) {
+    showToast('Gagal update status: ' + err.message, 'warning');
+  }
+}
+
+// Kirim Kabar Perkembangan via WhatsApp
+function kirimWaUpdateAspirasi(id, customStatus) {
+  const asp = (AppState.aspirasi || []).find(a => String(a.id) === String(id));
+  if (!asp) {
+    showToast('Data aspirasi tidak ditemukan', 'warning');
+    return;
+  }
+
+  const rawHp = asp.hp || '';
+  let cleanHp = rawHp.replace(/[^0-9]/g, '');
+  if (cleanHp.startsWith('0')) {
+    cleanHp = '62' + cleanHp.substring(1);
+  }
+
+  const status = customStatus || asp.status || 'Ditindaklanjuti';
+  const nama = asp.nama || asp.pengusul || 'Bpk/Ibu Warga';
+  const keluhan = asp.aspirasi || asp.deskripsi || asp.isi || '-';
+  const desa = asp.desa || '-';
+  const kec = asp.kecamatan || '-';
+
+  let kalimatStatus = '';
+  const stLower = status.toLowerCase();
+  if (stLower.includes('selesai') || stLower.includes('disetujui')) {
+    kalimatStatus = 'Alhamdulillah, aspirasi panjenengan telah *SELESAI DIREALISASIKAN* melalui program advokasi dewan Gus Dim di lapangan.';
+  } else if (stLower.includes('pokir')) {
+    kalimatStatus = 'Aspirasi panjenengan telah *DIESKALASI KE USULAN POKIR APBD RESMI* untuk diperjuangkan dalam anggaran pembangunan daerah Kabupaten Probolinggo.';
+  } else if (stLower.includes('advokasi') || stLower.includes('tindak') || stLower.includes('proses')) {
+    kalimatStatus = 'Aspirasi panjenengan telah *DISETUJUI & SEDANG DALAM ADVOKASI LAPANGAN* oleh tim fraksi untuk dikoordinasikan dengan instansi/dinas terkait.';
+  } else {
+    kalimatStatus = 'Aspirasi panjenengan telah kami terima dan saat ini berstatus *' + status + '* dalam verifikasi serta telaah tim fraksi.';
+  }
+
+  const pesan = "Assalamu'alaikum Wr. Wb. Bpk/Ibu *" + nama + "*,\n\n" +
+    "Kami dari Tim Sahabat Gus Dim (Fraksi NasDem DPRD Kab. Probolinggo) menyampaikan kabar perkembangan aspirasi panjenengan:\n\n" +
+    "Aspirasi: *\"" + keluhan + "\"*\n" +
+    "Wilayah: Desa " + desa + ", Kec. " + kec + "\n" +
+    "Status Terkini: *" + status + "*\n\n" +
+    kalimatStatus + "\n\n" +
+    "Terima kasih atas partisipasi dan aspirasi panjenengan demi kemaslahatan bersama di Dapil Kraksaan Raya.\n\n" +
+    "Salam Hormat,\n" +
+    "*Gus Dim & Tim Fraksi NasDem*";
+
+  const waUrl = cleanHp ?
+    "https://wa.me/" + cleanHp + "?text=" + encodeURIComponent(pesan) :
+    "https://wa.me/?text=" + encodeURIComponent(pesan);
+
+  window.open(waUrl, '_blank');
+}
+
+// Jembatan Eskalasi Aspirasi ke Usulan Pokir APBD
+function eskalasiAspirasiKePokir(id) {
+  const asp = (AppState.aspirasi || []).find(a => String(a.id) === String(id));
+  if (!asp) {
+    showToast('Data aspirasi tidak ditemukan', 'warning');
+    return;
+  }
+
+  closeBottomSheet();
+
+  const shortTitle = (asp.topik || asp.judul || asp.aspirasi || 'Aspirasi Warga').substring(0, 55).trim();
+  const catMap = {
+    'Infrastruktur': 'Dinas PUPR',
+    'Pertanian': 'Dinas Pertanian',
+    'Pendidikan': 'Dinas Pendidikan',
+    'Kesehatan': 'Dinas Kesehatan',
+    'UMKM': 'Dinas Koperasi & UMKM',
+    'Bansos': 'Dinas Sosial'
+  };
+
+  const prefill = {
+    kegiatan: 'Advokasi: ' + shortTitle,
+    opd: catMap[asp.kategori] || 'Dinas PUPR',
+    anggaran: 50000000,
+    lokasi: (asp.desa ? 'Desa ' + asp.desa + ', ' : '') + 'Kec. ' + (asp.kecamatan || 'Kraksaan'),
+    uraian: 'Eskalasi dari aspirasi konstituen: ' + (asp.aspirasi || asp.deskripsi || asp.isi || '') + ' (Kanal Aspirasi Warga Dapil Kraksaan Raya)',
+    pengusulNama: asp.nama || asp.pengusul || '',
+    pengusulHp: asp.hp || ''
+  };
+
+  openPokirForm(prefill);
+  showToast('Form Usulan Pokir terisi otomatis dari data aspirasi warga', 'info');
 }
 
 // Buka Form Aspirasi Baru
@@ -3273,20 +3748,39 @@ function openAspirasiForm() {
         <input type="text" id="aspJudul" class="form-input-touch" placeholder="Contoh: Perbaikan Saluran Irigasi Tersier" required>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Nama Pengusul / Kelompok <span class="required-mark">*</span></label>
-        <input type="text" id="aspPengusul" class="form-input-touch" placeholder="Contoh: Kelompok Tani Rukun Makmur" required>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Nama Pengusul <span class="required-mark">*</span></label>
+          <input type="text" id="aspPengusul" class="form-input-touch" placeholder="Nama warga / Poktan" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp Pengusul</label>
+          <input type="tel" id="aspHp" class="form-input-touch" placeholder="08xxxxxxxxxx">
+        </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Bidang Kategori <span class="required-mark">*</span></label>
-        <select id="aspKategori" class="form-select-touch" required>
-          <option value="Infrastruktur">Infrastruktur &amp; Jalan</option>
-          <option value="Pertanian">Pertanian &amp; Irigasi</option>
-          <option value="Pendidikan">Pendidikan &amp; Pesantren</option>
-          <option value="Kesehatan">Kesehatan Masyarakat</option>
-          <option value="UMKM">UMKM &amp; Ekonomi Kreatif</option>
-        </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Bidang Kategori <span class="required-mark">*</span></label>
+          <select id="aspKategori" class="form-select-touch" required>
+            <option value="Infrastruktur">Infrastruktur (Jalan / Jembatan)</option>
+            <option value="Pertanian">Pertanian &amp; Irigasi</option>
+            <option value="Pendidikan">Pendidikan &amp; Beasiswa</option>
+            <option value="Kesehatan">Layanan Kesehatan</option>
+            <option value="Bansos">Bantuan Sosial &amp; Sembako</option>
+            <option value="UMKM">UMKM &amp; Ekonomi Kreatif</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jalur Penjaringan</label>
+          <select id="aspJalur" class="form-select-touch">
+            <option value="Relawan">Relawan Lapangan</option>
+            <option value="DPC Kecamatan">DPC Kecamatan</option>
+            <option value="DPRT Desa">DPRT Desa</option>
+            <option value="PIP">Aspirasi PIP</option>
+            <option value="KIP">Aspirasi KIP</option>
+          </select>
+        </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -3304,18 +3798,28 @@ function openAspirasiForm() {
             <option value="Patokan">Patokan</option>
             <option value="Semampir">Semampir</option>
             <option value="Kraksaan Wetan">Kraksaan Wetan</option>
+            <option value="Kandangjati Kulon">Kandangjati Kulon</option>
+            <option value="Kandangjati Wetan">Kandangjati Wetan</option>
+            <option value="Sidomukti">Sidomukti</option>
+            <option value="Kebonagung">Kebonagung</option>
+            <option value="Rondokuning">Rondokuning</option>
+            <option value="Asembagus">Asembagus</option>
+            <option value="Bulubrangsi">Bulubrangsi</option>
+            <option value="Kalisalam">Kalisalam</option>
+            <option value="Kregenan">Kregenan</option>
+            <option value="Tamansari">Tamansari</option>
           </select>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Uraian Kebutuhan &amp; Keluhan</label>
-        <textarea id="aspIsi" class="form-textarea-touch" placeholder="Jelaskan kebutuhan warga secara spesifik..." required></textarea>
+        <label class="form-label">Uraian Kebutuhan &amp; Keluhan Warga <span class="required-mark">*</span></label>
+        <textarea id="aspIsi" class="form-textarea-touch" placeholder="Jelaskan detail kebutuhan atau permasalahan warga secara spesifik..." required></textarea>
       </div>
 
       <div class="sticky-form-cta">
         <button type="submit" class="btn-primary-touch">
-          ${Icons.checkCircle} Kirim Aspirasi Warga
+          ${Icons.checkCircle} Kirim &amp; Simpan Aspirasi Warga
         </button>
       </div>
     </form>
@@ -3327,39 +3831,78 @@ function updateAspirasiDesa(kec) {
   const el = document.getElementById('aspDesa');
   if (!el) return;
   const data = DapilLocations[kec];
-  if (data) {
+  if (data && Array.isArray(data.desa)) {
     el.innerHTML = data.desa.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
   }
 }
 
-function handleAspirasiSubmit(e) {
+// Simpan Aspirasi Baru ke Server API MySQL
+async function handleAspirasiSubmit(e) {
   e.preventDefault();
-  const judul = document.getElementById('aspJudul').value.trim();
-  const pengusul = document.getElementById('aspPengusul').value.trim();
+  const topik = document.getElementById('aspJudul').value.trim();
+  const nama = document.getElementById('aspPengusul').value.trim();
+  const hp = (document.getElementById('aspHp')?.value || '').trim();
   const kategori = document.getElementById('aspKategori').value;
+  const jalur = (document.getElementById('aspJalur')?.value || 'Relawan');
   const kecamatan = document.getElementById('aspKecamatan').value;
   const desa = document.getElementById('aspDesa').value;
   const isi = document.getElementById('aspIsi').value.trim();
 
-  const newAsp = {
-    topik: judul,
-    pengusul,
+  if (!nama || !isi) {
+    showToast('Nama pengusul dan isi keluhan wajib diisi!', 'warning');
+    return;
+  }
+
+  showToast('Menyimpan aspirasi warga...', 'info');
+  const payload = {
+    topik,
+    nama,
+    hp,
     kategori,
+    jalur,
     kecamatan,
     desa,
-    isi,
-    status: 'pending',
-    created_at: new Date().toISOString()
+    aspirasi: isi
   };
 
-  AppState.aspirasi.unshift(newAsp);
-  calculateStats();
-  renderAspirasiDedicated();
-  closeBottomSheet();
-  showToast('Aspirasi warga berhasil dicatat!', 'success');
+  try {
+    const res = await mobileApiCall('aspirasi.php?action=add', 'POST', payload);
+    if (res.ok && res.data && res.data.success) {
+      const savedItem = res.data.item || {
+        id: Date.now(),
+        ...payload,
+        status: 'Baru',
+        tanggal: new Date().toLocaleDateString('id-ID')
+      };
+      AppState.aspirasi.unshift(savedItem);
+      calculateStats();
+      renderDashboardStats();
+      renderAspirasiDedicated();
+      closeBottomSheet();
+      showToast('Aspirasi warga berhasil dicatat dan disimpan ke server!', 'success');
+    } else {
+      const fallbackItem = {
+        id: Date.now(),
+        ...payload,
+        status: 'Baru',
+        tanggal: new Date().toLocaleDateString('id-ID')
+      };
+      AppState.aspirasi.unshift(fallbackItem);
+      calculateStats();
+      renderDashboardStats();
+      renderAspirasiDedicated();
+      closeBottomSheet();
+      showToast('Aspirasi tersimpan di perangkat (Mode Offline)', 'info');
+    }
+  } catch (err) {
+    showToast('Gagal mencatat aspirasi: ' + err.message, 'warning');
+  }
 }
 
-// Render Halaman Khusus Pokir & Reses
+// ==========================================================================
+// HALAMAN 5: RESES & POKIR APBD
+// ==========================================================================
+
 function renderPokirDedicated() {
   const container = document.getElementById('pokirDedicatedList');
   if (!container) return;
@@ -3392,14 +3935,14 @@ function renderPokirDedicated() {
             <span class="badge-status valid">APBD 2025</span>
           </div>
           <p style="font-size:13px;color:#334155;line-height:1.4;">
-            ${escapeHtml(p.uraian || p.keterangan || 'Program kerja prioritas DPRD untuk kemakmuran masyarakat Dapil.')}
+            ${escapeHtml(p.uraian || p.keterangan || p.deskripsi || 'Program kerja prioritas DPRD untuk kemakmuran masyarakat Dapil.')}
           </p>
           <div class="card-details-row">
             <div class="card-detail-item">
               ${Icons.mapPin}
               <span>${escapeHtml(p.lokasi || p.desa || 'Kecamatan Kraksaan')}</span>
             </div>
-            <span class="card-pill">OPD: ${escapeHtml(p.opd || 'Dinas PUPR')}</span>
+            <span class="card-pill">OPD: ${escapeHtml(p.opd || p.kategori || 'Dinas PUPR')}</span>
           </div>
         </div>
       `;
@@ -3450,38 +3993,69 @@ function switchResesSubTab(tab, btn) {
   renderPokirDedicated();
 }
 
-function openPokirForm() {
+// Buka Form Usulan Pokir APBD (Mendukung Prefill Otomatis dari Eskalasi Aspirasi)
+function openPokirForm(prefill = null) {
+  const defKegiatan = prefill ? escapeHtml(prefill.kegiatan || '') : '';
+  const defOpd = prefill ? (prefill.opd || 'Dinas PUPR') : 'Dinas PUPR';
+  const defAnggaran = prefill ? (prefill.anggaran || 50000000) : 150000000;
+  const defLokasi = prefill ? escapeHtml(prefill.lokasi || '') : '';
+  const defUraian = prefill ? escapeHtml(prefill.uraian || '') : '';
+  const defPengusul = prefill ? escapeHtml(prefill.pengusulNama || '') : '';
+  const defHp = prefill ? escapeHtml(prefill.pengusulHp || '') : '';
+
+  const opdList = [
+    { val: 'Dinas PUPR', label: 'Dinas Pekerjaan Umum & Tata Ruang' },
+    { val: 'Dinas Pertanian', label: 'Dinas Pertanian & Ketahanan Pangan' },
+    { val: 'Dinas Perhubungan', label: 'Dinas Perhubungan (PJU)' },
+    { val: 'Dinas Pendidikan', label: 'Dinas Pendidikan' },
+    { val: 'Dinas Kesehatan', label: 'Dinas Kesehatan' },
+    { val: 'Dinas Sosial', label: 'Dinas Sosial' },
+    { val: 'Dinas Koperasi & UMKM', label: 'Dinas Koperasi & Usaha Mikro' }
+  ];
+
+  const opdOptions = opdList.map(o => {
+    const sel = (o.val === defOpd) ? 'selected' : '';
+    return `<option value="${o.val}" ${sel}>${o.label}</option>`;
+  }).join('');
+
   const content = `
     <form onsubmit="handlePokirSubmit(event)">
       <div class="form-group">
         <label class="form-label">Nama Kegiatan Pokir <span class="required-mark">*</span></label>
-        <input type="text" id="pokKegiatan" class="form-input-touch" placeholder="Contoh: Pavingisasi Jalan Desa Poros" required>
+        <input type="text" id="pokKegiatan" class="form-input-touch" value="${defKegiatan}" placeholder="Contoh: Pavingisasi Jalan Desa Poros" required>
       </div>
 
       <div class="form-group">
         <label class="form-label">OPD / Dinas Penanggung Jawab <span class="required-mark">*</span></label>
         <select id="pokOpd" class="form-select-touch" required>
-          <option value="Dinas PUPR">Dinas Pekerjaan Umum &amp; Tata Ruang</option>
-          <option value="Dinas Pertanian">Dinas Pertanian &amp; Ketahanan Pangan</option>
-          <option value="Dinas Perhubungan">Dinas Perhubungan (PJU)</option>
-          <option value="Dinas Kesehatan">Dinas Kesehatan</option>
-          <option value="Dinas Koperasi & UMKM">Dinas Koperasi &amp; Usaha Mikro</option>
+          ${opdOptions}
         </select>
       </div>
 
       <div class="form-group">
         <label class="form-label">Estimasi Pagu Anggaran (Rp) <span class="required-mark">*</span></label>
-        <input type="number" id="pokAnggaran" class="form-input-touch" placeholder="Contoh: 150000000" step="5000000" required>
+        <input type="number" id="pokAnggaran" class="form-input-touch" value="${defAnggaran}" placeholder="Contoh: 150000000" step="1000000" required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Nama Pengusul</label>
+          <input type="text" id="pokPengusul" class="form-input-touch" value="${defPengusul}" placeholder="Nama warga / kelompok">
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp Pengusul</label>
+          <input type="tel" id="pokHp" class="form-input-touch" value="${defHp}" placeholder="08xxx">
+        </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Lokasi Wilayah Usulan</label>
-        <input type="text" id="pokLokasi" class="form-input-touch" placeholder="Contoh: Desa Kandangjati Wetan, Kraksaan" required>
+        <label class="form-label">Lokasi Wilayah Usulan <span class="required-mark">*</span></label>
+        <input type="text" id="pokLokasi" class="form-input-touch" value="${defLokasi}" placeholder="Contoh: Desa Kandangjati Wetan, Kraksaan" required>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Uraian Rencana Kerja</label>
-        <textarea id="pokUraian" class="form-textarea-touch" placeholder="Rincian manfaat program bagi warga..." required></textarea>
+        <label class="form-label">Uraian Rencana Kerja &amp; Manfaat <span class="required-mark">*</span></label>
+        <textarea id="pokUraian" class="form-textarea-touch" placeholder="Rincian manfaat program bagi warga..." required>${defUraian}</textarea>
       </div>
 
       <div class="sticky-form-cta">
@@ -3494,29 +4068,70 @@ function openPokirForm() {
   openBottomSheet('Formulir Pengajuan Usulan Pokir APBD', content);
 }
 
-function handlePokirSubmit(e) {
+// Simpan Pokir ke Server API
+async function handlePokirSubmit(e) {
   e.preventDefault();
   const kegiatan = document.getElementById('pokKegiatan').value.trim();
   const opd = document.getElementById('pokOpd').value;
-  const anggaran = document.getElementById('pokAnggaran').value;
+  const anggaran = Number(document.getElementById('pokAnggaran').value || 0);
   const lokasi = document.getElementById('pokLokasi').value.trim();
   const uraian = document.getElementById('pokUraian').value.trim();
+  const pengusulNama = (document.getElementById('pokPengusul')?.value || '').trim();
+  const pengusulHp = (document.getElementById('pokHp')?.value || '').trim();
 
   const newP = {
     judul: kegiatan,
     kegiatan,
     opd,
-    anggaran: Number(anggaran),
+    anggaran,
     lokasi,
     uraian,
-    status: 'Diajukan'
+    pengusulNama,
+    pengusulHp,
+    status: 'Diajukan',
+    status_tahap: 'Aspirasi Reses',
+    created_at: new Date().toISOString()
   };
 
-  AppState.pokir.unshift(newP);
-  calculateStats();
-  renderPokirDedicated();
-  closeBottomSheet();
-  showToast('Usulan Pokir berhasil didaftarkan!', 'success');
+  showToast('Menyimpan usulan Pokir ke server...', 'info');
+
+  try {
+    const res = await mobileApiCall('reses.php?action=add_pokir', 'POST', {
+      judul: kegiatan,
+      kategori: opd,
+      estimasiAnggaran: anggaran,
+      lokasiDetail: lokasi,
+      deskripsi: uraian,
+      pengusulNama: pengusulNama || 'Konstituen Dapil',
+      pengusulHp: pengusulHp
+    });
+
+    if (res.ok && res.data && res.data.success) {
+      newP.id = res.data.id || Date.now();
+      AppState.pokir.unshift(newP);
+      calculateStats();
+      renderDashboardStats();
+      renderPokirDedicated();
+      closeBottomSheet();
+      showToast('Usulan Pokir berhasil didaftarkan ke server!', 'success');
+    } else {
+      newP.id = Date.now();
+      AppState.pokir.unshift(newP);
+      calculateStats();
+      renderDashboardStats();
+      renderPokirDedicated();
+      closeBottomSheet();
+      showToast('Usulan Pokir tersimpan di perangkat (Mode Offline)', 'info');
+    }
+  } catch (err) {
+    newP.id = Date.now();
+    AppState.pokir.unshift(newP);
+    calculateStats();
+    renderDashboardStats();
+    renderPokirDedicated();
+    closeBottomSheet();
+    showToast('Usulan Pokir disimpan lokal', 'info');
+  }
 }
 
 // Render Peta Sebaran (GIS Mobile)
