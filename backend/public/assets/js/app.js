@@ -562,6 +562,10 @@ function kirimUcapanWa(hp, nama, jalur) {
   function doLogout() {
     google.script.run.logout(SESSION_TOKEN);
     localStorage.removeItem('dprd_token');
+    localStorage.removeItem('gusdim_active_page');
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname);
+    }
     SESSION_TOKEN = null;
     CURRENT_USER = null;
     document.getElementById('appScreen').style.display = 'none';
@@ -582,26 +586,72 @@ function kirimUcapanWa(hp, nama, jalur) {
     }
 
     if (CURRENT_USER.role !== 'Admin Ranting' && CURRENT_USER.role !== 'Superadmin') {
-      document.querySelector('[data-page="input"]').classList.add('disabled');
-      document.querySelector('[data-page="input"]').onclick = null;
+      const inputMenu = document.querySelector('[data-page="input"]');
+      if (inputMenu) {
+        inputMenu.classList.add('disabled');
+        inputMenu.onclick = null;
+      }
     }
 
     if (CURRENT_USER.role !== 'Superadmin') {
-      document.querySelector('[data-page="pengaturan"]').classList.add('disabled');
-      document.querySelector('[data-page="pengaturan"]').onclick = null;
+      const setMenu = document.querySelector('[data-page="pengaturan"]');
+      if (setMenu) {
+        setMenu.classList.add('disabled');
+        setMenu.onclick = null;
+      }
     }
 
-    loadDashboard();
+    // Deteksi target halaman terakhir dari URL Hash atau LocalStorage
+    let targetPage = 'dashboard';
+    const hash = (window.location.hash || '').replace('#', '').trim();
+    const allowedPages = ['dashboard', 'pendukung', 'reses', 'input', 'riwayat', 'pengaturan', 'profil', 'aspirasi', 'leaderboard'];
+
+    if (hash && allowedPages.includes(hash)) {
+      targetPage = hash;
+    } else {
+      const savedPage = localStorage.getItem('gusdim_active_page');
+      if (savedPage && allowedPages.includes(savedPage)) {
+        targetPage = savedPage;
+      }
+    }
+
+    // Role guard: cegah akses langsung jika role tidak berwenang
+    if (targetPage === 'input' && CURRENT_USER.role !== 'Admin Ranting' && CURRENT_USER.role !== 'Superadmin') {
+      targetPage = 'dashboard';
+    }
+    if (targetPage === 'pengaturan' && CURRENT_USER.role !== 'Superadmin') {
+      targetPage = 'dashboard';
+    }
+
+    showPage(targetPage, false);
   }
 
   // ============ NAVIGASI ============
-  function showPage(pageName) {
+  function showPage(pageName, updateHash) {
+    if (updateHash === undefined) updateHash = true;
+
+    const allowedPages = ['dashboard', 'pendukung', 'reses', 'input', 'riwayat', 'pengaturan', 'profil', 'aspirasi', 'leaderboard'];
+    if (!allowedPages.includes(pageName)) {
+      pageName = 'dashboard';
+    }
+
     document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
     const menuEl = document.querySelector('[data-page="' + pageName + '"]');
     if (menuEl) menuEl.classList.add('active');
 
     document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-    document.getElementById('page-' + pageName).classList.add('active');
+    const targetEl = document.getElementById('page-' + pageName);
+    if (targetEl) targetEl.classList.add('active');
+
+    // Sinkronisasi URL Hash & LocalStorage
+    if (updateHash) {
+      if (window.location.hash !== '#' + pageName) {
+        history.pushState(null, '', '#' + pageName);
+      }
+    }
+    try {
+      localStorage.setItem('gusdim_active_page', pageName);
+    } catch (e) {}
 
     const titles = {
       dashboard: 'Dashboard',
@@ -636,6 +686,15 @@ function kirimUcapanWa(hp, nama, jalur) {
     if (pageName === 'aspirasi') loadAspirasi();
     if (pageName === 'leaderboard') loadLeaderboard();
   }
+
+  // Dukungan tombol Back / Forward browser
+  window.addEventListener('popstate', function () {
+    const hash = (window.location.hash || '').replace('#', '').trim();
+    const allowedPages = ['dashboard', 'pendukung', 'reses', 'input', 'riwayat', 'pengaturan', 'profil', 'aspirasi', 'leaderboard'];
+    if (hash && allowedPages.includes(hash) && CURRENT_USER) {
+      showPage(hash, false);
+    }
+  });
 
   function switchTab(tabName) {
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));

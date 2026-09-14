@@ -2665,9 +2665,12 @@ function closeDrawer() {
 }
 
 // Navigasi Antar Halaman (10 Halaman Lengkap)
-function navigatePage(pageId) {
-  AppState.currentPage = pageId;
+function navigatePage(pageId, updateHash) {
+  if (updateHash === undefined) updateHash = true;
   closeDrawer();
+
+  const validPages = ['dashboard', 'pendukung', 'input', 'aspirasi', 'reses', 'peta', 'leaderboard', 'riwayat', 'pengaturan'];
+  if (!validPages.includes(pageId)) pageId = 'dashboard';
 
   // Switch Tab View
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -2675,6 +2678,16 @@ function navigatePage(pageId) {
   if (target) {
     target.classList.add('active');
   }
+
+  // Update Hash & LocalStorage
+  if (updateHash) {
+    if (window.location.hash !== '#' + pageId) {
+      history.pushState(null, '', '#' + pageId);
+    }
+  }
+  try {
+    localStorage.setItem('gusdim_mobile_active_page', pageId);
+  } catch (e) {}
 
   // Update Drawer Active State
   document.querySelectorAll('.drawer-menu-item[data-page]').forEach(item => {
