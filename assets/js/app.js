@@ -2502,26 +2502,41 @@ window.toggleWebPassword = toggleWebPassword;
         document.getElementById('dropFoto').innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai (opsional: ganti foto)</span></div>';
       }
 
-      if (typeof Tesseract === 'undefined') {
-        statusEl.className = 'ocr-status ocr-status-gagal';
-        statusEl.textContent = 'Fitur pindai otomatis tidak bisa dimuat (cek koneksi internet). Silakan isi manual di bawah.';
-        bukaFormManual(jalur);
-        return;
-      }
+      statusEl.className = 'ocr-status';
+      statusEl.textContent = 'Menganalisis teks e-KTP via AI Gemini Vision...';
 
-      Tesseract.recognize(dataUrl, 'ind')
-        .then(function (out) {
-          const hasil = parseHasilOcrKtp(out.data.text || '');
-          isiFieldOcr(jalur, hasil);
+      const token = (window.currentUser && window.currentUser.token) ? window.currentUser.token : (localStorage.getItem('gusdim_token') || '');
+
+      fetch('api/ocr.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? 'Bearer ' + token : ''
+        },
+        body: JSON.stringify({ image: dataUrl })
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (json && json.success && json.data) {
+          const d = json.data;
+          isiFieldOcr(jalur, {
+            nik: d.nik || '',
+            nama: d.nama || '',
+            alamat: (d.alamat || '') + (d.rt_rw ? ' RT/RW ' + d.rt_rw : '')
+          });
           statusEl.className = 'ocr-status ocr-status-sukses';
-          statusEl.innerHTML = '<div style="display:flex; align-items:flex-start; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg> <span>Berhasil dipindai. Mohon verifikasi & periksa kelengkapan data di bawah sebelum disimpan.</span></div>';
-          bukaFormManual(jalur);
-        })
-        .catch(function () {
+          statusEl.innerHTML = '<div style="display:flex; align-items:flex-start; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg> <span>Berhasil dipindai via AI Gemini Vision. Mohon verifikasi & periksa kelengkapan data di bawah sebelum disimpan.</span></div>';
+        } else {
           statusEl.className = 'ocr-status ocr-status-gagal';
-          statusEl.textContent = 'Gagal memindai otomatis. Foto KTP tetap tersimpan - silakan lengkapi data di bawah secara manual.';
-          bukaFormManual(jalur);
-        });
+          statusEl.textContent = (json && json.message) ? json.message : 'KTP belum terbaca jelas. Foto tetap tersimpan - silakan lengkapi form manual.';
+        }
+        bukaFormManual(jalur);
+      })
+      .catch(function () {
+        statusEl.className = 'ocr-status ocr-status-gagal';
+        statusEl.textContent = 'Gagal menghubungi server AI OCR. Foto KTP tetap tersimpan - silakan isi manual.';
+        bukaFormManual(jalur);
+      });
     } catch (err) {
       statusEl.className = 'ocr-status ocr-status-gagal';
       statusEl.textContent = 'Terjadi kesalahan saat memproses gambar KTP.';

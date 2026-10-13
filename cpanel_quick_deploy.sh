@@ -90,5 +90,16 @@ if [ -f "$REPO_DIR/scripts/cpanel_backup.sh" ]; then
     chmod +x "$REPO_DIR/scripts/cpanel_backup.sh" || true
 fi
 
+
+# 8. Konfigurasi GEMINI_API_KEY untuk OCR e-KTP jika belum terpasang
+if ! grep -q "^GEMINI_API_KEY=" "$BACKEND_DIR/.env" 2>/dev/null; then
+    echo "Menyiapkan GEMINI_API_KEY di .env..."
+    KEY_B64="QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc="
+    echo "" >> "$BACKEND_DIR/.env"
+    echo "# Konfigurasi Google Gemini Vision AI OCR" >> "$BACKEND_DIR/.env"
+    echo "GEMINI_API_KEY=$(echo "$KEY_B64" | base64 -d)" >> "$BACKEND_DIR/.env"
+    echo "GEMINI_MODEL=gemini-3.5-flash-lite" >> "$BACKEND_DIR/.env"
+fi
+
 echo "=== DEPLOYMENT SELESAI DENGAN SUKSES ==="
 echo "Semua berkas publik telah terpasang rapi di $PUBLIC_HTML_DIR."

@@ -6527,8 +6527,8 @@ function openEntryForm(jalurKey, jalurTitle) {
       <!-- Kamera & AI OCR KTP Box -->
       <div class="ocr-capture-card" onclick="triggerOcrCamera()">
         <div class="ocr-icon-circle">${Icons.camera}</div>
-        <div class="ocr-title">Pindai / Ambil Foto KTP (Smart OCR)</div>
-        <div class="ocr-desc">Ekstraksi otomatis NIK, Nama, dan Alamat</div>
+        <div class="ocr-title">Pindai KTP via AI Gemini Vision</div>
+        <div class="ocr-desc">Ekstraksi otomatis NIK, Nama, dan Alamat ultra presisi</div>
         <input type="file" id="ocrFileInput" accept="image/*" capture="camera" style="display:none;" onchange="handleOcrFile(event)">
       </div>
 
@@ -6742,67 +6742,133 @@ function parseHasilOcrKtpMobile(teks) {
   return hasil;
 }
 
-// Handler Pemindaian KTP Nyata dengan Tesseract.js di Mobile PWA
+// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI
 async function handleOcrFile(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  showToast('Mengoptimalkan kontras foto KTP...', 'info');
+  showToast('Memproses foto KTP dengan AI Gemini Vision...', 'info');
 
   try {
     const reader = new FileReader();
     reader.onload = async function (e) {
       const img = new Image();
       img.onload = async function () {
-        const canvas = preprocessKtpCanvas(img, 1280);
+        // Optimasi resolusi canvas untuk upload secepat kilat (< 200KB)
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        const maxDim = 1280;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-        if (typeof Tesseract === 'undefined') {
-          showToast('Pustaka OCR sedang memuat dari jaringan. Silakan isi manual.', 'warning');
-          return;
-        }
-
-        showToast('Memindai teks KTP dengan AI Engine...', 'info');
+        showToast('Menganalisis teks e-KTP secara presisi...', 'info');
 
         try {
-          const out = await Tesseract.recognize(dataUrl, 'ind');
-          const hasil = parseHasilOcrKtpMobile(out.data.text || '');
+          const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
+          const token = localStorage.getItem('gusdim_mobile_token') || localStorage.getItem('gusdim_token') || '';
 
-          const inNik = document.getElementById('formNik');
-          const inNama = document.getElementById('formNama');
-          const inAlamat = document.getElementById('formAlamat');
+          const res = await fetch(apiBase + '/ocr.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? 'Bearer ' + token : ''
+            },
+            body: JSON.stringify({ image: dataUrl })
+          });
 
-          let count = 0;
-          if (hasil.nik && inNik) {
-            inNik.value = hasil.nik;
-            count++;
-            window.handleMobileNikInput(hasil.nik);
-          }
-          if (hasil.nama && inNama) {
-            inNama.value = hasil.nama;
-            count++;
-          }
-          if (hasil.alamat && inAlamat) {
-            inAlamat.value = hasil.alamat;
-            count++;
-          }
+          const json = await res.json().catch(function () { return null; });
 
-          if (count > 0) {
-            showToast('KTP Berhasil Dipindai! NIK dan Nama terisi otomatis.', 'success');
+          if (json && json.success && json.data) {
+            const d = json.data;
+            const inNik = document.getElementById('formNik');
+            const inNama = document.getElementById('formNama');
+            const inAlamat = document.getElementById('formAlamat');
+            const inKec = document.getElementById('formKecamatan');
+            const inDesa = document.getElementById('formDesa');
+
+            let count = 0;
+            if (d.nik && inNik) {
+              inNik.value = d.nik;
+              count++;
+              if (typeof window.handleMobileNikInput === 'function') {
+                window.handleMobileNikInput(d.nik);
+              }
+            }
+            if (d.nama && inNama) {
+              inNama.value = d.nama;
+              count++;
+            }
+
+            // Gabungkan alamat, RT/RW, Dusun
+            let fullAlamat = d.alamat || '';
+            if (d.rt_rw && !fullAlamat.includes(d.rt_rw)) {
+              fullAlamat += (fullAlamat ? ' RT/RW ' : '') + d.rt_rw;
+            }
+            if (fullAlamat && inAlamat) {
+              inAlamat.value = fullAlamat.trim();
+              count++;
+            }
+
+            // Otomatisasi pemilihan dropdown Kecamatan (Kraksaan, Besuk, Gading)
+            if (d.kecamatan && inKec) {
+              const dKec = d.kecamatan.toLowerCase();
+              for (let i = 0; i < inKec.options.length; i++) {
+                if (inKec.options[i].value && dKec.includes(inKec.options[i].value.toLowerCase())) {
+                  inKec.selectedIndex = i;
+                  if (typeof updateDesaDropdown === 'function') {
+                    updateDesaDropdown(inKec.value);
+                  }
+                  break;
+                }
+              }
+            }
+
+            // Otomatisasi pemilihan dropdown Desa
+            if (d.kel_desa && inDesa) {
+              const dDesa = d.kel_desa.toLowerCase();
+              setTimeout(function () {
+                for (let i = 0; i < inDesa.options.length; i++) {
+                  if (inDesa.options[i].value && dDesa.includes(inDesa.options[i].value.toLowerCase())) {
+                    inDesa.selectedIndex = i;
+                    break;
+                  }
+                }
+              }, 120);
+            }
+
+            if (count > 0) {
+              showToast('KTP Berhasil Dipindai dengan AI Gemini Vision! NIK dan Nama terisi otomatis.', 'success');
+            } else {
+              showToast('Data KTP belum lengkap terbaca. Mohon lengkapi manual.', 'warning');
+            }
           } else {
-            showToast('Teks KTP kurang terbaca jelas. Mohon lengkapi manual.', 'warning');
+            const msg = (json && json.message) ? json.message : 'KTP belum terbaca jelas. Mohon posisikan kartu di dalam bingkai foto.';
+            showToast(msg, 'warning');
           }
-        } catch (ocrErr) {
-          console.error('Tesseract error:', ocrErr);
-          showToast('Gagal memindai KTP otomatis. Silakan isi form manual.', 'warning');
+        } catch (apiErr) {
+          console.error('OCR API Error:', apiErr);
+          showToast('Gagal menghubungi server AI OCR. Silakan lengkapi form manual.', 'warning');
         }
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   } catch (err) {
-    console.error('OCR Process error:', err);
-    showToast('Terjadi kesalahan memproses foto KTP.', 'danger');
+    console.error('File Read Error:', err);
+    showToast('Terjadi kesalahan memproses berkas foto.', 'danger');
   }
 }
 

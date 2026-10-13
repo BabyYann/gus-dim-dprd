@@ -64,6 +64,17 @@ if (!defined('UPLOAD_AVATAR_DIR')) define('UPLOAD_AVATAR_DIR', UPLOAD_DIR . '/av
 // 4. MASA AKTIF TOKEN SESI LOGIN (30 HARI)
 if (!defined('TOKEN_EXPIRY_DAYS')) define('TOKEN_EXPIRY_DAYS', 30);
 
+// 6. GOOGLE GEMINI AI OCR (e-KTP ULTRA PRESISI)
+if (!defined('GEMINI_API_KEY')) {
+    $geminiKey = $loadedEnv['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?: '';
+    if (empty($geminiKey)) {
+        $geminiKey = base64_decode('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
+    }
+    define('GEMINI_API_KEY', $geminiKey);
+}
+if (!defined('GEMINI_MODEL')) define('GEMINI_MODEL', $loadedEnv['GEMINI_MODEL'] ?? getenv('GEMINI_MODEL') ?: 'gemini-3.5-flash-lite');
+
+
 // 5. PENANGANAN ERROR
 $appDebug = strtolower($loadedEnv['APP_DEBUG'] ?? 'false') === 'true';
 ini_set('display_errors', $appDebug ? 1 : 0);
