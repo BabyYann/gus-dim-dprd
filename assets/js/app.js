@@ -503,27 +503,43 @@ function kirimUcapanWa(hp, nama, jalur) {
       const btnStyleKec = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;cursor:pointer;transition:all 0.15s ease;';
       const btnStyleFinal = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;cursor:pointer;transition:all 0.15s ease;';
       const btnStyleTolak = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;cursor:pointer;transition:all 0.15s ease;';
+      const btnStyleReset = 'display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;background:#f8fafc;color:#475569;border:1px solid #cbd5e1;cursor:pointer;transition:all 0.15s ease;';
 
       const iconCheck = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>';
       const iconShield = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>';
       const iconFinal = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>';
       const iconTolak = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      const iconReset = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>';
 
       let btnsHtml = '';
       if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
-        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Verif Desa</span></button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>';
+        if (curStatus === 'Final' || curStatus === 'Divalidasi Kecamatan') {
+          btnsHtml = '<div style="grid-column: span 2; padding:10px 12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; font-size:11.5px; color:#475569; text-align:center; font-weight:600;">Data telah disahkan oleh tingkat atas (' + curStatus + '). Untuk revisi data, hubungi Koordinator Kecamatan atau Superadmin.</div>';
+        } else {
+          btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Verif Desa</span></button>' +
+                     '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>' +
+                     (curStatus !== 'Diinput' ? '<button type="button" class="btn-verif-pill" onclick="updateStatusPendukungDariDesktop(\'Diinput\')" style="' + btnStyleReset + '; grid-column: span 2;">' + iconReset + '<span>Kembalikan ke Draf (Diinput)</span></button>' : '');
+        }
         verifBox.style.display = 'block';
       } else if (userRole === 'Koordinator Kecamatan') {
-        btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')" style="' + btnStyleKec + '">' + iconShield + '<span>Validasi Kec</span></button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')" style="' + btnStyleFinal + '">' + iconFinal + '<span>Tandai Final</span></button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + 'grid-column: span 2;">' + iconTolak + '<span>Tolak Data</span></button>';
+        if (curStatus === 'Final') {
+          btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')" style="' + btnStyleKec + '">' + iconShield + '<span>Buka Kunci (Validasi Kec)</span></button>' +
+                     '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Kembalikan ke Desa (Revisi)</span></button>' +
+                     '<button type="button" class="btn-verif-pill" onclick="updateStatusPendukungDariDesktop(\'Diinput\')" style="' + btnStyleReset + '">' + iconReset + '<span>Reset ke Draf Awal</span></button>' +
+                     '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>';
+        } else {
+          btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')" style="' + btnStyleKec + '">' + iconShield + '<span>Validasi Kec</span></button>' +
+                     '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')" style="' + btnStyleFinal + '">' + iconFinal + '<span>Tandai Final</span></button>' +
+                     '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Kembalikan ke Desa</span></button>' +
+                     '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>';
+        }
         verifBox.style.display = 'block';
       } else if (userRole === 'Superadmin') {
         btnsHtml = '<button type="button" class="btn-verif-pill btn-verif-desa" onclick="updateStatusPendukungDariDesktop(\'Diverifikasi Desa\')" style="' + btnStyleDesa + '">' + iconCheck + '<span>Verif Desa</span></button>' +
                    '<button type="button" class="btn-verif-pill btn-verif-kec" onclick="updateStatusPendukungDariDesktop(\'Divalidasi Kecamatan\')" style="' + btnStyleKec + '">' + iconShield + '<span>Validasi Kec</span></button>' +
                    '<button type="button" class="btn-verif-pill btn-verif-final" onclick="updateStatusPendukungDariDesktop(\'Final\')" style="' + btnStyleFinal + '">' + iconFinal + '<span>Tandai Final</span></button>' +
-                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>';
+                   '<button type="button" class="btn-verif-pill btn-verif-tolak" onclick="updateStatusPendukungDariDesktop(\'Ditolak\')" style="' + btnStyleTolak + '">' + iconTolak + '<span>Tolak Data</span></button>' +
+                   (curStatus !== 'Diinput' ? '<button type="button" class="btn-verif-pill" onclick="updateStatusPendukungDariDesktop(\'Diinput\')" style="' + btnStyleReset + '; grid-column: span 2;">' + iconReset + '<span>Reset Status ke Draf (Diinput)</span></button>' : '');
         verifBox.style.display = 'block';
       } else {
         verifBox.style.display = 'none';
@@ -2519,6 +2535,132 @@ window.toggleWebPassword = toggleWebPassword;
     return hasil;
   }
 
+  function ensureKtpScannerOverlay() {
+    if (document.getElementById('ktpScannerOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'ktpScannerOverlay';
+    overlay.className = 'ktp-scanner-overlay';
+    overlay.innerHTML = `
+      <div class="ktp-scanner-modal">
+        <div class="ktp-scanner-header">
+          <div class="ktp-scanner-brand">
+            <div class="ktp-scanner-radar-dot"></div>
+            <span class="ktp-scanner-title">AI Biometric OCR Scanner</span>
+          </div>
+          <button type="button" class="ktp-scanner-close-btn" onclick="closeKtpScannerModal()" title="Tutup">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="ktp-scanner-viewport" id="ktpScannerViewport">
+          <div class="scanner-corner corner-tl"></div>
+          <div class="scanner-corner corner-tr"></div>
+          <div class="scanner-corner corner-bl"></div>
+          <div class="scanner-corner corner-br"></div>
+          <div class="ktp-scanner-grid"></div>
+          <div class="scanner-laser" id="ktpScannerLaser"></div>
+          <div class="scanner-laser-glow" id="ktpScannerLaserGlow"></div>
+          <div class="scanner-target-tag scanner-target-nik"><span>TARGET NIK</span></div>
+          <div class="scanner-target-tag scanner-target-face"><span>BIOMETRIK</span></div>
+          <img id="ktpScannerImg" class="ktp-scanner-img" src="" alt="Pratinjau KTP">
+          <div class="ktp-scanner-success-badge" id="ktpScannerSuccessBadge">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span style="font-weight:800; font-size:13px; letter-spacing:0.3px;">e-KTP TERVERIFIKASI</span>
+          </div>
+        </div>
+        <div class="ktp-scanner-body">
+          <div class="ktp-scanner-status-row">
+            <span class="ktp-scanner-status-text" id="ktpScannerStatusText">Menginisialisasi pemindai...</span>
+            <span class="ktp-scanner-percent" id="ktpScannerPercent">0%</span>
+          </div>
+          <div class="ktp-scanner-sub" id="ktpScannerSubText">Menghubungkan ke AI Gemini Vision Engine</div>
+          <div class="ktp-scanner-progress-track">
+            <div class="ktp-scanner-progress-bar" id="ktpScannerProgressBar"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  function openKtpScannerModal(imgSrc) {
+    ensureKtpScannerOverlay();
+    const overlay = document.getElementById('ktpScannerOverlay');
+    const viewport = document.getElementById('ktpScannerViewport');
+    const img = document.getElementById('ktpScannerImg');
+    const bar = document.getElementById('ktpScannerProgressBar');
+    const percent = document.getElementById('ktpScannerPercent');
+    const status = document.getElementById('ktpScannerStatusText');
+    const sub = document.getElementById('ktpScannerSubText');
+
+    if (viewport) viewport.classList.remove('scan-success');
+    if (img) img.src = imgSrc || '';
+    if (bar) bar.style.width = '15%';
+    if (percent) percent.textContent = '15%';
+    if (status) status.textContent = 'Mengoptimalkan Citra & Resolusi e-KTP...';
+    if (sub) sub.textContent = 'Kompresi presisi tinggi untuk respon kilat';
+    if (overlay) overlay.classList.add('active');
+  }
+
+  function updateKtpScannerProgress(p, statusText, subText) {
+    const bar = document.getElementById('ktpScannerProgressBar');
+    const percent = document.getElementById('ktpScannerPercent');
+    const status = document.getElementById('ktpScannerStatusText');
+    const sub = document.getElementById('ktpScannerSubText');
+
+    if (bar) bar.style.width = p + '%';
+    if (percent) percent.textContent = p + '%';
+    if (status && statusText) status.textContent = statusText;
+    if (sub && subText) sub.textContent = subText;
+  }
+
+  function finishKtpScannerModal(success, message, callback) {
+    const overlay = document.getElementById('ktpScannerOverlay');
+    const viewport = document.getElementById('ktpScannerViewport');
+    const bar = document.getElementById('ktpScannerProgressBar');
+    const percent = document.getElementById('ktpScannerPercent');
+    const status = document.getElementById('ktpScannerStatusText');
+    const sub = document.getElementById('ktpScannerSubText');
+
+    if (success) {
+      if (bar) bar.style.width = '100%';
+      if (percent) percent.textContent = '100%';
+      if (status) status.textContent = 'Ekstraksi Selesai!';
+      if (sub) sub.textContent = message || 'Data e-KTP berhasil diekstrak';
+      if (viewport) viewport.classList.add('scan-success');
+
+      setTimeout(() => {
+        if (overlay) overlay.classList.remove('active');
+        if (typeof callback === 'function') callback();
+      }, 450);
+    } else {
+      if (status) status.textContent = 'Pemindaian Belum Optimal';
+      if (sub) sub.textContent = message || 'Lengkapi form secara manual';
+      setTimeout(() => {
+        if (overlay) overlay.classList.remove('active');
+        if (typeof callback === 'function') callback();
+      }, 800);
+    }
+  }
+
+  function closeKtpScannerModal() {
+    const overlay = document.getElementById('ktpScannerOverlay');
+    if (overlay) overlay.classList.remove('active');
+  }
+
+  function highlightOcrInput(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.classList.remove('ocr-field-glow');
+    void el.offsetWidth;
+    el.classList.add('ocr-field-glow');
+  }
+
+  window.closeKtpScannerModal = closeKtpScannerModal;
+  window.openKtpScannerModal = openKtpScannerModal;
+  window.updateKtpScannerProgress = updateKtpScannerProgress;
+  window.finishKtpScannerModal = finishKtpScannerModal;
+  window.highlightOcrInput = highlightOcrInput;
+
   function isiFieldOcr(jalur, hasil) {
     const peta = {
       DPC: { nik: 'dpcNik', nama: 'dpcNama', alamat: 'dpcAlamat' },
@@ -2533,20 +2675,33 @@ window.toggleWebPassword = toggleWebPassword;
       const el = document.getElementById(f.nik); 
       if (el) { 
         el.value = hasil.nik; 
+        highlightOcrInput(f.nik);
         if (typeof window.handleWebNikInput === 'function') {
           window.handleWebNikInput(hasil.nik, 'feedback-' + f.nik);
         }
       } 
     }
-    if (hasil.nama) { const el = document.getElementById(f.nama); if (el) el.value = hasil.nama; }
-    if (hasil.alamat) { const el = document.getElementById(f.alamat); if (el) el.value = hasil.alamat; }
+    if (hasil.nama) { 
+      const el = document.getElementById(f.nama); 
+      if (el) { 
+        el.value = hasil.nama; 
+        highlightOcrInput(f.nama);
+      } 
+    }
+    if (hasil.alamat) { 
+      const el = document.getElementById(f.alamat); 
+      if (el) { 
+        el.value = hasil.alamat; 
+        highlightOcrInput(f.alamat);
+      } 
+    }
   }
 
-  /** Kompresi gambar client-side untuk mempercepat upload & menghindari limit post_max_size */
+  /** Kompresi gambar client-side ultra cepat untuk respon instan OCR */
   function compressImageFile(file, maxWidth, maxHeight, quality) {
-    maxWidth = maxWidth || 1280;
-    maxHeight = maxHeight || 1280;
-    quality = quality || 0.82;
+    maxWidth = maxWidth || 1024;
+    maxHeight = maxHeight || 1024;
+    quality = quality || 0.80;
     return new Promise(function (resolve) {
       if (!file || !file.type || !file.type.startsWith('image/')) {
         resolve(null);
@@ -2590,15 +2745,19 @@ window.toggleWebPassword = toggleWebPassword;
   async function prosesPindaiKtp(file, jalur) {
     if (!file) return;
     const statusEl = document.getElementById('ocrStatus-' + jalur);
-    statusEl.style.display = 'block';
-    statusEl.className = 'ocr-status ocr-status-proses';
-    statusEl.innerHTML = '<span class="spinner"></span> Mengoptimalkan gambar & memindai KTP...';
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.className = 'ocr-status ocr-status-proses';
+      statusEl.innerHTML = '<span class="spinner"></span> Mengoptimalkan gambar & memindai KTP...';
+    }
 
     try {
-      const compressed = await compressImageFile(file, 1280, 1280, 0.82);
+      const compressed = await compressImageFile(file, 1024, 1024, 0.80);
       if (!compressed) {
-        statusEl.className = 'ocr-status ocr-status-gagal';
-        statusEl.textContent = 'File gambar tidak dapat dibaca. Silakan pilih foto lain.';
+        if (statusEl) {
+          statusEl.className = 'ocr-status ocr-status-gagal';
+          statusEl.textContent = 'File gambar tidak dapat dibaca. Silakan pilih foto lain.';
+        }
         bukaFormManual(jalur);
         return;
       }
@@ -2610,32 +2769,39 @@ window.toggleWebPassword = toggleWebPassword;
       // Foto hasil pindai otomatis dipakai sebagai Foto KTP, dan Foto Penerima jika belum ada foto lain
       ktpBase64Data = base64;
       ktpMimeType = mime;
-      document.getElementById('previewKtp').src = dataUrl;
-      document.getElementById('previewKtp').style.display = 'block';
-      document.getElementById('dropKtp').classList.add('has-file');
-      document.getElementById('dropKtp').innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai KTP</span></div>';
+      const prevKtp = document.getElementById('previewKtp');
+      if (prevKtp) { prevKtp.src = dataUrl; prevKtp.style.display = 'block'; }
+      const dropKtp = document.getElementById('dropKtp');
+      if (dropKtp) {
+        dropKtp.classList.add('has-file');
+        dropKtp.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai KTP</span></div>';
+      }
 
       if (!fotoBase64Data) {
         fotoBase64Data = base64;
         fotoMimeType = mime;
-        document.getElementById('previewFoto').src = dataUrl;
-        document.getElementById('previewFoto').style.display = 'block';
-        document.getElementById('dropFoto').classList.add('has-file');
-        document.getElementById('dropFoto').innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai (opsional: ganti foto)</span></div>';
+        const prevFoto = document.getElementById('previewFoto');
+        if (prevFoto) { prevFoto.src = dataUrl; prevFoto.style.display = 'block'; }
+        const dropFoto = document.getElementById('dropFoto');
+        if (dropFoto) {
+          dropFoto.classList.add('has-file');
+          dropFoto.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai (opsional: ganti foto)</span></div>';
+        }
       }
 
-            statusEl.className = 'ocr-status';
-      statusEl.textContent = 'Menganalisis teks e-KTP via AI Gemini Vision...';
+      // Aktifkan High-Tech Scanner HUD Animasi
+      openKtpScannerModal(dataUrl);
+      updateKtpScannerProgress(25, 'Citra KTP Dioptimalkan', 'Memindai bidang NIK dan Nama...');
 
       const token = (window.currentUser && window.currentUser.token) ? window.currentUser.token : (localStorage.getItem('gusdim_token') || '');
 
-      // Jalankan dengan failover otomatis ke Direct Cloud jika backend cPanel timeout
       (async function() {
         let extractedData = null;
 
         try {
+          updateKtpScannerProgress(55, 'Target Terkunci: Deteksi e-KTP...', 'Menganalisis teks via AI Gemini Vision Engine');
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const timeoutId = setTimeout(() => controller.abort(), 6500);
 
           const res = await fetch('api/ocr.php', {
             method: 'POST',
@@ -2655,12 +2821,12 @@ window.toggleWebPassword = toggleWebPassword;
             }
           }
         } catch (e) {
-          console.warn('Backend OCR error, fallback ke Direct Cloud:', e);
+          console.warn('Backend OCR timeout/error, beralih ke Direct Cloud:', e);
         }
 
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
-            statusEl.textContent = 'Menghubungkan langsung ke AI Cloud Engine...';
+            updateKtpScannerProgress(75, 'Menghubungkan AI Cloud Backup...', 'Memproses langsung ke Gemini Vision');
             extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
           } catch (e) {
             console.error('Direct Cloud failed:', e);
@@ -2678,18 +2844,33 @@ window.toggleWebPassword = toggleWebPassword;
             nama: d.nama || '',
             alamat: (d.alamat || '') + (d.rt_rw ? ' RT/RW ' + d.rt_rw : '')
           });
-          statusEl.className = 'ocr-status ocr-status-sukses';
-          statusEl.innerHTML = '<div style="display:flex; align-items:flex-start; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg> <span>Berhasil dipindai via AI Gemini Vision. Mohon verifikasi & periksa kelengkapan data di bawah sebelum disimpan.</span></div>';
+
+          if (statusEl) {
+            statusEl.className = 'ocr-status ocr-status-sukses';
+            statusEl.innerHTML = '<div style="display:flex; align-items:flex-start; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg> <span>Berhasil dipindai via AI Gemini Vision. Mohon verifikasi & periksa kelengkapan data di bawah sebelum disimpan.</span></div>';
+          }
+
+          finishKtpScannerModal(true, 'Data e-KTP berhasil diekstrak dan diisi otomatis', () => {
+            bukaFormManual(jalur);
+          });
         } else {
-          statusEl.className = 'ocr-status ocr-status-gagal';
-          statusEl.textContent = 'KTP belum terbaca jelas. Foto tetap tersimpan - silakan lengkapi form manual.';
+          if (statusEl) {
+            statusEl.className = 'ocr-status ocr-status-gagal';
+            statusEl.textContent = 'KTP belum terbaca jelas. Foto tetap tersimpan - silakan lengkapi form manual.';
+          }
+          finishKtpScannerModal(false, 'KTP belum terbaca jelas. Silakan lengkapi form manual.', () => {
+            bukaFormManual(jalur);
+          });
         }
-        bukaFormManual(jalur);
       })();
     } catch (err) {
-      statusEl.className = 'ocr-status ocr-status-gagal';
-      statusEl.textContent = 'Terjadi kesalahan saat memproses gambar KTP.';
-      bukaFormManual(jalur);
+      if (statusEl) {
+        statusEl.className = 'ocr-status ocr-status-gagal';
+        statusEl.textContent = 'Terjadi kesalahan saat memproses gambar KTP.';
+      }
+      finishKtpScannerModal(false, 'Terjadi kesalahan saat memproses gambar KTP.', () => {
+        bukaFormManual(jalur);
+      });
     }
   }
 

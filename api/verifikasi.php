@@ -124,26 +124,11 @@ switch ($action) {
             json_response(['success' => false, 'message' => 'Data tidak lengkap.'], 400);
         }
 
-        // Cek wewenang status sesuai Role
-        $role = $user['role'];
-        $allowed = false;
-        if ($role === 'Superadmin') {
-            $allowed = true;
-        } else if ($role === 'Koordinator Kecamatan' && in_array($newStatus, ['Divalidasi Kecamatan', 'Final', 'Ditolak'])) {
-            $allowed = true;
-        } else if (($role === 'Koordinator Desa' || $role === 'Admin Ranting') && in_array($newStatus, ['Diverifikasi Desa', 'Ditolak'])) {
-            $allowed = true;
-        }
-
-        if (!$allowed) {
-            json_response(['success' => false, 'message' => "Role '{$role}' tidak berwenang mengubah status menjadi '{$newStatus}'."], 403);
-        }
-
-        // Ambil data pendukung untuk pengecekan wilayah
+        // Ambil data pendukung untuk pengecekan wewenang dan wilayah
         $item = null;
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("SELECT id, nama, jalur, kecamatan, desa FROM pendukung WHERE id = :id LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, nama, jalur, kecamatan, desa, status FROM pendukung WHERE id = :id LIMIT 1");
             $stmt->execute(['id' => $id]);
             $item = $stmt->fetch();
         } else {
@@ -158,6 +143,36 @@ switch ($action) {
 
         if (!$item) {
             json_response(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+        }
+
+        // Cek wewenang status sesuai Role (Skema A: Fleksibel Berjenjang dengan Mekanisme Buka Kunci)
+        $role = $user['role'];
+        $currentStatus = $item['status'] ?? 'Diinput';
+        $allowed = false;
+
+        if ($role === 'Superadmin') {
+            // Superadmin memiliki wewenang penuh atas semua status kapan saja
+            $allowed = true;
+        } else if ($role === 'Koordinator Kecamatan') {
+            // Korcam bisa validasi, finalkan, tolak, dan membuka kunci/revisi ke Desa atau Draf Diinput
+            if (in_array($newStatus, ['Divalidasi Kecamatan', 'Final', 'Diverifikasi Desa', 'Diinput', 'Ditolak'])) {
+                $allowed = true;
+            }
+        } else if ($role === 'Koordinator Desa' || $role === 'Admin Ranting') {
+            // Kordes hanya bisa memverifikasi/menolak/reset draf data jika BELUM disahkan Korcam/Superadmin
+            if (in_array($currentStatus, ['Divalidasi Kecamatan', 'Final'])) {
+                json_response([
+                    'success' => false,
+                    'message' => "Data sudah berstatus '{$currentStatus}'. Hanya Koordinator Kecamatan atau Superadmin yang berwenang membuka kunci / merevisi data ini."
+                ], 403);
+            }
+            if (in_array($newStatus, ['Diverifikasi Desa', 'Diinput', 'Ditolak'])) {
+                $allowed = true;
+            }
+        }
+
+        if (!$allowed) {
+            json_response(['success' => false, 'message' => "Role '{$role}' tidak berwenang mengubah status menjadi '{$newStatus}'."], 403);
         }
 
         // Territorial Guard: Pastikan akun hanya bekerja pada wilayahnya

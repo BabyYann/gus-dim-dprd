@@ -2105,6 +2105,305 @@ html, body {
   100% { transform: rotate(360deg); }
 }
 
+/* ==========================================================================
+   AI BIOMETRIC KTP SCANNER HUD (FUTURISTIC & INSTAN OCR)
+   ========================================================================== */
+.ktp-scanner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(11, 19, 41, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ktp-scanner-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ktp-scanner-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #0f172a;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(14, 165, 233, 0.25);
+  padding: 20px 18px;
+  position: relative;
+  overflow: hidden;
+  color: #f8fafc;
+  transform: scale(0.92) translateY(12px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ktp-scanner-overlay.active .ktp-scanner-modal {
+  transform: scale(1) translateY(0);
+}
+
+.ktp-scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ktp-scanner-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ktp-scanner-radar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #06b6d4;
+  box-shadow: 0 0 10px #06b6d4;
+  animation: scannerDotPulse 1.2s infinite;
+}
+
+@keyframes scannerDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.ktp-scanner-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #38bdf8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.ktp-scanner-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ktp-scanner-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.ktp-scanner-viewport {
+  width: 100%;
+  aspect-ratio: 1.586;
+  background: #020617;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(56, 189, 248, 0.4);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ktp-scanner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.92) contrast(1.08);
+}
+
+.ktp-scanner-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.scanner-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #06b6d4;
+  z-index: 5;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px #06b6d4);
+}
+
+.corner-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; border-top-left-radius: 6px; }
+.corner-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; border-top-right-radius: 6px; }
+.corner-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; border-bottom-left-radius: 6px; }
+.corner-br { bottom: 8px; right: 8px; border-left: none; border-top: none; border-bottom-right-radius: 6px; }
+
+.scanner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #06b6d4 15%, #38bdf8 50%, #06b6d4 85%, transparent 100%);
+  box-shadow: 0 0 16px 4px rgba(6, 182, 212, 0.8), 0 0 32px 8px rgba(56, 189, 248, 0.5);
+  z-index: 6;
+  pointer-events: none;
+  animation: laserSweep 1.6s ease-in-out infinite alternate;
+}
+
+.scanner-laser-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.25) 0%, transparent 100%);
+  z-index: 4;
+  pointer-events: none;
+  animation: laserGlowSweep 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes laserSweep {
+  0% { top: 3%; }
+  100% { top: 96%; }
+}
+
+@keyframes laserGlowSweep {
+  0% { top: 3%; }
+  100% { top: calc(96% - 48px); }
+}
+
+.scanner-target-tag {
+  position: absolute;
+  border: 1px dashed rgba(56, 189, 248, 0.8);
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 8.5px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  z-index: 5;
+  pointer-events: none;
+}
+.scanner-target-nik {
+  top: 32%;
+  left: 30%;
+  width: 52%;
+  height: 18%;
+  display: flex;
+  align-items: flex-start;
+}
+.scanner-target-face {
+  top: 26%;
+  right: 8%;
+  width: 25%;
+  height: 55%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ktp-scanner-body {
+  margin-top: 14px;
+}
+
+.ktp-scanner-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.ktp-scanner-status-text {
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.2px;
+}
+
+.ktp-scanner-percent {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.ktp-scanner-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.ktp-scanner-progress-track {
+  width: 100%;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ktp-scanner-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #06b6d4, #10b981);
+  border-radius: 9999px;
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+}
+
+.ktp-scanner-viewport.scan-success {
+  border-color: #10b981;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.ktp-scanner-viewport.scan-success .scanner-laser,
+.ktp-scanner-viewport.scan-success .scanner-laser-glow {
+  display: none;
+}
+
+.ktp-scanner-success-badge {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 78, 59, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 20;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.ktp-scanner-viewport.scan-success .ktp-scanner-success-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes ocrFieldGlow {
+  0% { background-color: #dbeafe; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+  70% { background-color: #f0fdf4; border-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+  100% { background-color: transparent; border-color: inherit; box-shadow: none; }
+}
+
+.ocr-field-glow {
+  animation: ocrFieldGlow 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 </style>
 </head>
 <body>
@@ -6256,26 +6555,58 @@ function openSupporterDetail(index) {
 
   let verifButtonsHtml = '';
   if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
-    verifButtonsHtml = `
-      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
-        Verif Desa
-      </button>
-      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
-        Tolak Data
-      </button>
-    `;
+    if (curStatus === 'Final' || curStatus === 'Divalidasi Kecamatan') {
+      verifButtonsHtml = `
+        <div style="grid-column: span 2; padding:10px 12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; font-size:11.5px; color:#475569; text-align:center; font-weight:600;">
+          Data telah disahkan oleh tingkat atas (${curStatus}). Untuk revisi data, hubungi Koordinator Kecamatan atau Superadmin.
+        </div>
+      `;
+    } else {
+      verifButtonsHtml = `
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
+          Verif Desa
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+          Tolak Data
+        </button>
+        ${curStatus !== 'Diinput' ? `
+        <button type="button" class="btn-outline-touch" style="grid-column: span 2; height:36px;font-size:11px;color:#475569;border-color:#cbd5e1;background:#f8fafc;" onclick="updateSupporterStatus(${index}, 'Diinput')">
+          Kembalikan ke Draf (Diinput)
+        </button>` : ''}
+      `;
+    }
   } else if (userRole === 'Koordinator Kecamatan') {
-    verifButtonsHtml = `
-      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
-        Validasi Kec
-      </button>
-      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="updateSupporterStatus(${index}, 'Final')">
-        Tandai Final
-      </button>
-      <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
-        Tolak Data
-      </button>
-    `;
+    if (curStatus === 'Final') {
+      verifButtonsHtml = `
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
+          Buka Kunci (Validasi Kec)
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
+          Kembalikan ke Desa (Revisi)
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#475569;border-color:#cbd5e1;background:#f8fafc;" onclick="updateSupporterStatus(${index}, 'Diinput')">
+          Reset ke Draf Awal
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+          Tolak Data
+        </button>
+      `;
+    } else {
+      verifButtonsHtml = `
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#1d4ed8;border-color:#93c5fd;background:#dbeafe;" onclick="updateSupporterStatus(${index}, 'Divalidasi Kecamatan')">
+          Validasi Kec
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;" onclick="updateSupporterStatus(${index}, 'Final')">
+          Tandai Final
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#2563eb;border-color:#bfdbfe;background:#eff6ff;" onclick="updateSupporterStatus(${index}, 'Diverifikasi Desa')">
+          Kembalikan ke Desa
+        </button>
+        <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
+          Tolak Data
+        </button>
+      `;
+    }
   } else {
     // Superadmin
     verifButtonsHtml = `
@@ -6291,6 +6622,10 @@ function openSupporterDetail(index) {
       <button type="button" class="btn-outline-touch" style="height:36px;font-size:11px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="updateSupporterStatus(${index}, 'Ditolak')">
         Tolak Data
       </button>
+      ${curStatus !== 'Diinput' ? `
+      <button type="button" class="btn-outline-touch" style="grid-column: span 2; height:36px;font-size:11px;color:#475569;border-color:#cbd5e1;background:#f8fafc;" onclick="updateSupporterStatus(${index}, 'Diinput')">
+        Reset Status ke Draf (Diinput)
+      </button>` : ''}
     `;
   }
 
@@ -6856,22 +7191,149 @@ async function callGeminiDirectCloud(dataUrl, model) {
   throw lastError || new Error('Format output Gemini tidak valid');
 }
 
-// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover
+// ==========================================
+// KTP SCANNER HUD & INSTAN OCR ENGINE MOBILE
+// ==========================================
+function ensureKtpScannerOverlay() {
+  if (document.getElementById('ktpScannerOverlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'ktpScannerOverlay';
+  overlay.className = 'ktp-scanner-overlay';
+  overlay.innerHTML = `
+    <div class="ktp-scanner-modal">
+      <div class="ktp-scanner-header">
+        <div class="ktp-scanner-brand">
+          <div class="ktp-scanner-radar-dot"></div>
+          <span class="ktp-scanner-title">AI Biometric OCR Scanner</span>
+        </div>
+        <button type="button" class="ktp-scanner-close-btn" onclick="closeKtpScannerModal()" title="Tutup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ktp-scanner-viewport" id="ktpScannerViewport">
+        <div class="scanner-corner corner-tl"></div>
+        <div class="scanner-corner corner-tr"></div>
+        <div class="scanner-corner corner-bl"></div>
+        <div class="scanner-corner corner-br"></div>
+        <div class="ktp-scanner-grid"></div>
+        <div class="scanner-laser" id="ktpScannerLaser"></div>
+        <div class="scanner-laser-glow" id="ktpScannerLaserGlow"></div>
+        <div class="scanner-target-tag scanner-target-nik"><span>TARGET NIK</span></div>
+        <div class="scanner-target-tag scanner-target-face"><span>BIOMETRIK</span></div>
+        <img id="ktpScannerImg" class="ktp-scanner-img" src="" alt="Pratinjau KTP">
+        <div class="ktp-scanner-success-badge" id="ktpScannerSuccessBadge">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span style="font-weight:800; font-size:13px; letter-spacing:0.3px;">e-KTP TERVERIFIKASI</span>
+        </div>
+      </div>
+      <div class="ktp-scanner-body">
+        <div class="ktp-scanner-status-row">
+          <span class="ktp-scanner-status-text" id="ktpScannerStatusText">Menginisialisasi pemindai...</span>
+          <span class="ktp-scanner-percent" id="ktpScannerPercent">0%</span>
+        </div>
+        <div class="ktp-scanner-sub" id="ktpScannerSubText">Menghubungkan ke AI Gemini Vision Engine</div>
+        <div class="ktp-scanner-progress-track">
+          <div class="ktp-scanner-progress-bar" id="ktpScannerProgressBar"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function openKtpScannerModal(imgSrc) {
+  ensureKtpScannerOverlay();
+  const overlay = document.getElementById('ktpScannerOverlay');
+  const viewport = document.getElementById('ktpScannerViewport');
+  const img = document.getElementById('ktpScannerImg');
+  const bar = document.getElementById('ktpScannerProgressBar');
+  const percent = document.getElementById('ktpScannerPercent');
+  const status = document.getElementById('ktpScannerStatusText');
+  const sub = document.getElementById('ktpScannerSubText');
+
+  if (viewport) viewport.classList.remove('scan-success');
+  if (img) img.src = imgSrc || '';
+  if (bar) bar.style.width = '15%';
+  if (percent) percent.textContent = '15%';
+  if (status) status.textContent = 'Mengoptimalkan Citra & Resolusi e-KTP...';
+  if (sub) sub.textContent = 'Kompresi presisi tinggi untuk respon kilat';
+  if (overlay) overlay.classList.add('active');
+}
+
+function updateKtpScannerProgress(p, statusText, subText) {
+  const bar = document.getElementById('ktpScannerProgressBar');
+  const percent = document.getElementById('ktpScannerPercent');
+  const status = document.getElementById('ktpScannerStatusText');
+  const sub = document.getElementById('ktpScannerSubText');
+
+  if (bar) bar.style.width = p + '%';
+  if (percent) percent.textContent = p + '%';
+  if (status && statusText) status.textContent = statusText;
+  if (sub && subText) sub.textContent = subText;
+}
+
+function finishKtpScannerModal(success, message, callback) {
+  const overlay = document.getElementById('ktpScannerOverlay');
+  const viewport = document.getElementById('ktpScannerViewport');
+  const bar = document.getElementById('ktpScannerProgressBar');
+  const percent = document.getElementById('ktpScannerPercent');
+  const status = document.getElementById('ktpScannerStatusText');
+  const sub = document.getElementById('ktpScannerSubText');
+
+  if (success) {
+    if (bar) bar.style.width = '100%';
+    if (percent) percent.textContent = '100%';
+    if (status) status.textContent = 'Ekstraksi Selesai!';
+    if (sub) sub.textContent = message || 'Data e-KTP berhasil diekstrak';
+    if (viewport) viewport.classList.add('scan-success');
+
+    setTimeout(() => {
+      if (overlay) overlay.classList.remove('active');
+      if (typeof callback === 'function') callback();
+    }, 450);
+  } else {
+    if (status) status.textContent = 'Pemindaian Belum Optimal';
+    if (sub) sub.textContent = message || 'Lengkapi form secara manual';
+    setTimeout(() => {
+      if (overlay) overlay.classList.remove('active');
+      if (typeof callback === 'function') callback();
+    }, 800);
+  }
+}
+
+function closeKtpScannerModal() {
+  const overlay = document.getElementById('ktpScannerOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function highlightOcrInput(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.classList.remove('ocr-field-glow');
+  void el.offsetWidth;
+  el.classList.add('ocr-field-glow');
+}
+
+window.closeKtpScannerModal = closeKtpScannerModal;
+window.openKtpScannerModal = openKtpScannerModal;
+window.updateKtpScannerProgress = updateKtpScannerProgress;
+window.finishKtpScannerModal = finishKtpScannerModal;
+window.highlightOcrInput = highlightOcrInput;
+
+// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover & HUD Animasi
 async function handleOcrFile(event) {
   const file = event.target.files[0];
   if (!file) return;
-
-  showToast('Memproses foto KTP dengan AI Gemini Vision...', 'info');
 
   try {
     const reader = new FileReader();
     reader.onload = async function (e) {
       const img = new Image();
       img.onload = async function () {
-        // Optimasi resolusi canvas untuk upload secepat kilat (< 200KB)
+        // Optimasi resolusi canvas untuk upload super cepat instan (< 120KB)
         let w = img.naturalWidth || img.width;
         let h = img.naturalHeight || img.height;
-        const maxDim = 1280;
+        const maxDim = 1024;
         if (w > maxDim || h > maxDim) {
           if (w > h) {
             h = Math.round((h * maxDim) / w);
@@ -6886,19 +7348,22 @@ async function handleOcrFile(event) {
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
 
-        showToast('Menganalisis teks e-KTP secara presisi...', 'info');
+        // Buka HUD scanner visual futuristik
+        openKtpScannerModal(dataUrl);
+        updateKtpScannerProgress(25, 'Citra KTP Dioptimalkan', 'Memindai area NIK dan Nama...');
 
         let extractedData = null;
 
-        // Jalur 1: Coba Backend Server (api/ocr.php) dengan AbortController timeout 6 detik
+        // Jalur 1: Coba Backend Server (api/ocr.php) dengan AbortController timeout 6.5 detik
         try {
+          updateKtpScannerProgress(55, 'Target Terkunci: Deteksi e-KTP...', 'Menganalisis teks via AI Gemini Vision Engine');
           const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
           const token = localStorage.getItem('gusdim_mobile_token') || localStorage.getItem('gusdim_token') || '';
 
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const timeoutId = setTimeout(() => controller.abort(), 6500);
 
           const res = await fetch(apiBase + '/ocr.php', {
             method: 'POST',
@@ -6924,7 +7389,7 @@ async function handleOcrFile(event) {
         // Jalur 2: Direct Cloud Failover jika backend timeout/terblokir cPanel firewall
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
-            showToast('Menghubungkan langsung ke AI Cloud Engine...', 'info');
+            updateKtpScannerProgress(75, 'Menghubungkan AI Cloud Backup...', 'Memproses langsung ke Gemini Vision');
             extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
           } catch (cloudErr) {
             console.error('Direct Cloud Error:', cloudErr);
@@ -6948,6 +7413,7 @@ async function handleOcrFile(event) {
           let count = 0;
           if (d.nik && inNik) {
             inNik.value = d.nik;
+            highlightOcrInput('formNik');
             count++;
             if (typeof window.handleMobileNikInput === 'function') {
               window.handleMobileNikInput(d.nik);
@@ -6955,6 +7421,7 @@ async function handleOcrFile(event) {
           }
           if (d.nama && inNama) {
             inNama.value = d.nama;
+            highlightOcrInput('formNama');
             count++;
           }
 
@@ -6965,6 +7432,7 @@ async function handleOcrFile(event) {
           }
           if (fullAlamat && inAlamat) {
             inAlamat.value = fullAlamat.trim();
+            highlightOcrInput('formAlamat');
             count++;
           }
 
@@ -6996,12 +7464,18 @@ async function handleOcrFile(event) {
           }
 
           if (count > 0) {
-            showToast('KTP Berhasil Dipindai dengan AI Gemini Vision! NIK dan Nama terisi otomatis.', 'success');
+            finishKtpScannerModal(true, 'Data e-KTP berhasil diekstrak dan diisi otomatis', () => {
+              showToast('KTP Berhasil Dipindai dengan AI Gemini Vision! NIK dan Nama terisi otomatis.', 'success');
+            });
           } else {
-            showToast('Data KTP belum lengkap terbaca. Mohon lengkapi manual.', 'warning');
+            finishKtpScannerModal(false, 'Data KTP belum lengkap terbaca. Mohon lengkapi manual.', () => {
+              showToast('Data KTP belum lengkap terbaca. Mohon lengkapi manual.', 'warning');
+            });
           }
         } else {
-          showToast('KTP belum terbaca jelas. Mohon posisikan kartu di dalam bingkai foto.', 'warning');
+          finishKtpScannerModal(false, 'KTP belum terbaca jelas. Posisikan kartu di bingkai foto.', () => {
+            showToast('KTP belum terbaca jelas. Mohon posisikan kartu di dalam bingkai foto.', 'warning');
+          });
         }
       };
       img.src = e.target.result;
@@ -7009,7 +7483,9 @@ async function handleOcrFile(event) {
     reader.readAsDataURL(file);
   } catch (err) {
     console.error('File Read Error:', err);
-    showToast('Terjadi kesalahan memproses berkas foto.', 'danger');
+    finishKtpScannerModal(false, 'Terjadi kesalahan memproses berkas foto.', () => {
+      showToast('Terjadi kesalahan memproses berkas foto.', 'danger');
+    });
   }
 }
 
