@@ -56,8 +56,8 @@ if (empty($apiKey)) {
 }
 
 // Daftar model dengan failover otomatis untuk ketahanan tinggi
-$preferredModel = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-3.5-flash-lite';
-$candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest'];
+$preferredModel = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-3.5-flash';
+$candidateModels = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
 
 // Jika request meminta model spesifik
 $customModel = trim($body['model'] ?? '');

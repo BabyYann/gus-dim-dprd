@@ -468,9 +468,9 @@
         <div class="form-group">
           <label class="form-label">Model AI Gemini</label>
           <select id="selectModel" class="form-select">
-            <option value="gemini-3.5-flash-lite" selected>gemini-3.5-flash-lite (Default - Super Cepat)</option>
-            <option value="gemini-3.5-flash">gemini-3.5-flash (Presisi Maksimal)</option>
-            <option value="gemini-flash-latest">gemini-flash-latest</option>
+            <option value="gemini-3.5-flash" selected>gemini-3.5-flash (Utama - Terbukti Berhasil 100%)</option>
+            <option value="gemini-flash-latest">gemini-flash-latest (Stabil)</option>
+            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Alternatif)</option>
           </select>
         </div>
 
@@ -835,37 +835,54 @@
       }
     };
 
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
+    const candidateModels = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
+    const uniqueModels = [...new Set(candidateModels)];
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    let success = false;
+    for (const m of uniqueModels) {
+      logMsg('Mencoba model: ' + m + '...', 'info');
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent?key=' + encodeURIComponent(apiKey);
 
-    const elapsed = Math.round(performance.now() - startTime);
-    logMsg('Respons dari Google AI Studio diterima: Status ' + res.status + ' (' + elapsed + ' ms)', res.ok ? 'success' : 'error');
-
-    const json = await res.json().catch(e => null);
-    document.getElementById('rawJsonViewer').textContent = JSON.stringify(json, null, 2);
-
-    if (res.ok && json && json.candidates && json.candidates[0] && json.candidates[0].content) {
-      const rawText = json.candidates[0].content.parts[0].text;
-      let parsed = null;
       try {
-        parsed = JSON.parse(rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
-      } catch (e) {
-        logMsg('Gagal parsing output teks Gemini ke objek JSON: ' + e.message, 'error');
-      }
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (parsed) {
-        renderResults(parsed, elapsed);
-        logMsg('SUKSES DIRECT CLOUD: Ekstraksi berhasil langsung dari browser!', 'success');
+        const elapsed = Math.round(performance.now() - startTime);
+        logMsg('Model ' + m + ' merespons: Status ' + res.status + ' (' + elapsed + ' ms)', res.ok ? 'success' : 'warn');
+
+        const json = await res.json().catch(e => null);
+        document.getElementById('rawJsonViewer').textContent = JSON.stringify(json, null, 2);
+
+        if (res.ok && json && json.candidates && json.candidates[0] && json.candidates[0].content) {
+          const rawText = json.candidates[0].content.parts[0].text;
+          let parsed = null;
+          try {
+            parsed = JSON.parse(rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+          } catch (e) {
+            logMsg('Gagal parsing output teks Gemini ke objek JSON: ' + e.message, 'error');
+          }
+
+          if (parsed) {
+            renderResults(parsed, elapsed);
+            logMsg('SUKSES DIRECT CLOUD: Ekstraksi berhasil menggunakan ' + m + '!', 'success');
+            success = true;
+            break;
+          }
+        } else {
+          const errMsg = (json && json.error && json.error.message) ? json.error.message : ('HTTP ' + res.status);
+          logMsg('Model ' + m + ' mengalami kendala: ' + errMsg + '. Mencoba model alternatif...', 'warn');
+        }
+      } catch (netErr) {
+        logMsg('Koneksi model ' + m + ' gagal: ' + netErr.message, 'warn');
       }
-    } else {
-      const errMsg = (json && json.error && json.error.message) ? json.error.message : 'Permintaan ke Google API gagal.';
-      logMsg('ERROR GOOGLE API: ' + errMsg, 'error');
-      alert('Error Google API: ' + errMsg);
+    }
+
+    if (!success) {
+      logMsg('Semua model Gemini mengalami kendala. Periksa koneksi internet atau kuota API.', 'error');
+      alert('Ekstraksi Direct Cloud gagal setelah mencoba model alternatif.');
     }
   }
 

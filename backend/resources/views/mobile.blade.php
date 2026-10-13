@@ -6744,7 +6744,7 @@ function parseHasilOcrKtpMobile(teks) {
 
 // Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
 async function callGeminiDirectCloud(dataUrl, model) {
-  model = model || 'gemini-3.5-flash-lite';
+  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
   const rawBase64 = dataUrl.split(',')[1];
   const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
   const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
@@ -6783,25 +6783,31 @@ async function callGeminiDirectCloud(dataUrl, model) {
     }
   };
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    throw new Error('Google API direct HTTP ' + res.status);
+  let lastError = null;
+  const uniqueModels = [...new Set(models)];
+  for (const m of uniqueModels) {
+    try {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent?key=' + encodeURIComponent(apiKey);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        lastError = new Error('Model ' + m + ' HTTP ' + res.status);
+        continue;
+      }
+      const json = await res.json();
+      if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
+        const rawText = json.candidates[0].content.parts[0].text;
+        const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+        return JSON.parse(cleanText);
+      }
+    } catch (err) {
+      lastError = err;
+    }
   }
-
-  const json = await res.json();
-  if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
-    const rawText = json.candidates[0].content.parts[0].text;
-    const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-    return JSON.parse(cleanText);
-  }
-  throw new Error('Format output Gemini tidak valid');
+  throw lastError || new Error('Format output Gemini tidak valid');
 }
 
 // Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover
@@ -6873,7 +6879,7 @@ async function handleOcrFile(event) {
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
             showToast('Menghubungkan langsung ke AI Cloud Engine...', 'info');
-            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash-lite');
+            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
           } catch (cloudErr) {
             console.error('Direct Cloud Error:', cloudErr);
           }
@@ -6982,11 +6988,39 @@ window.handleMobileNikInput = function(nik) {
     return;
   }
 
+  // NIK Auto-Decoder Cerdas: Ekstrak Jenis Kelamin & Tanggal Lahir
+  let day = parseInt(cleaned.substring(6, 8), 10);
+  let jk = 'Laki-Laki';
+  if (day > 40) {
+    jk = 'Perempuan';
+    day = day - 40;
+  }
+  const month = cleaned.substring(8, 10);
+  const yearShort = cleaned.substring(10, 12);
+  const yearFull = (parseInt(yearShort, 10) > 30 ? '19' : '20') + yearShort;
+  const tglLahirStr = (day < 10 ? '0' : '') + day + '-' + month + '-' + yearFull;
+
+  // Deteksi otomatis Kecamatan Dapil dari kode NIK jika sesuai
+  const kecCode = cleaned.substring(0, 6);
+  const inKec = document.getElementById('formKecamatan');
+  if (inKec) {
+    if (kecCode === '351324' && inKec.value !== 'Kraksaan') {
+      inKec.value = 'Kraksaan';
+      if (typeof updateDesaDropdown === 'function') updateDesaDropdown('Kraksaan');
+    } else if (kecCode === '351319' && inKec.value !== 'Besuk') {
+      inKec.value = 'Besuk';
+      if (typeof updateDesaDropdown === 'function') updateDesaDropdown('Besuk');
+    } else if ((kecCode === '351321' || kecCode === '351309' || kecCode === '351310') && inKec.value !== 'Gading') {
+      inKec.value = 'Gading';
+      if (typeof updateDesaDropdown === 'function') updateDesaDropdown('Gading');
+    }
+  }
+
   fb.style.display = 'block';
   fb.style.background = 'rgba(56, 189, 248, 0.12)';
   fb.style.color = '#38bdf8';
   fb.style.border = '1px solid rgba(56, 189, 248, 0.3)';
-  fb.innerHTML = 'Memeriksa ketersediaan NIK...';
+  fb.innerHTML = 'NIK Valid (' + jk + ', ' + tglLahirStr + '). Memeriksa ketersediaan...';
 
   _mobileNikTimer = setTimeout(function () {
     const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
@@ -7005,7 +7039,7 @@ window.handleMobileNikInput = function(nik) {
           fb.style.background = 'rgba(34, 197, 94, 0.15)';
           fb.style.color = '#4ade80';
           fb.style.border = '1px solid rgba(34, 197, 94, 0.35)';
-          fb.innerHTML = 'NIK valid (16 digit) & belum terdaftar di sistem.';
+          fb.innerHTML = 'NIK valid (' + jk + ', lahir ' + tglLahirStr + ') & belum terdaftar di sistem.';
         }
       })
       .catch(function () {

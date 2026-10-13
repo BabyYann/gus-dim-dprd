@@ -1,6 +1,6 @@
 // Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
 async function callGeminiDirectCloud(dataUrl, model) {
-  model = model || 'gemini-3.5-flash-lite';
+  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
   const rawBase64 = dataUrl.split(',')[1];
   const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
   const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
@@ -39,25 +39,31 @@ async function callGeminiDirectCloud(dataUrl, model) {
     }
   };
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    throw new Error('Google API direct HTTP ' + res.status);
+  let lastError = null;
+  const uniqueModels = [...new Set(models)];
+  for (const m of uniqueModels) {
+    try {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent?key=' + encodeURIComponent(apiKey);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        lastError = new Error('Model ' + m + ' HTTP ' + res.status);
+        continue;
+      }
+      const json = await res.json();
+      if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
+        const rawText = json.candidates[0].content.parts[0].text;
+        const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+        return JSON.parse(cleanText);
+      }
+    } catch (err) {
+      lastError = err;
+    }
   }
-
-  const json = await res.json();
-  if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
-    const rawText = json.candidates[0].content.parts[0].text;
-    const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-    return JSON.parse(cleanText);
-  }
-  throw new Error('Format output Gemini tidak valid');
+  throw lastError || new Error('Format output Gemini tidak valid');
 }
 
 /**
@@ -2601,7 +2607,7 @@ window.toggleWebPassword = toggleWebPassword;
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
             statusEl.textContent = 'Menghubungkan langsung ke AI Cloud Engine...';
-            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash-lite');
+            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
           } catch (e) {
             console.error('Direct Cloud failed:', e);
           }
