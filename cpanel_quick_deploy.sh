@@ -85,5 +85,10 @@ cp -ru "$BACKEND_DIR/public/." "$PUBLIC_HTML_DIR/"
 cp -f "$BACKEND_DIR/public/index.php" "$PUBLIC_HTML_DIR/index.php"
 cp -f "$BACKEND_DIR/public/.htaccess" "$PUBLIC_HTML_DIR/.htaccess"
 
+# 7. Pastikan skrip backup memiliki izin eksekusi
+if [ -f "$REPO_DIR/scripts/cpanel_backup.sh" ]; then
+    chmod +x "$REPO_DIR/scripts/cpanel_backup.sh" || true
+fi
+
 echo "=== DEPLOYMENT SELESAI DENGAN SUKSES ==="
 echo "Semua berkas publik telah terpasang rapi di $PUBLIC_HTML_DIR."

@@ -2310,27 +2310,86 @@ window.toggleWebPassword = toggleWebPassword;
     input.click();
   }
 
+  function bersihkanKarakterNik(str) {
+    if (!str) return '';
+    return str
+      .replace(/[OoQq]/g, '0')
+      .replace(/[IiLl|!j]/g, '1')
+      .replace(/[Zz]/g, '2')
+      .replace(/[Ee]/g, '3')
+      .replace(/[Aa]/g, '4')
+      .replace(/[Ss$]/g, '5')
+      .replace(/[b]/g, '6')
+      .replace(/[Tt]/g, '7')
+      .replace(/[B]/g, '8')
+      .replace(/[g]/g, '9')
+      .replace(/[^0-9]/g, '');
+  }
+
   function parseHasilOcrKtp(teks) {
-    const lines = teks.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    const rawLines = teks.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
     const hasil = { nik: '', nama: '', alamat: '' };
 
-    const nikMatch = teks.replace(/\s+/g, ' ').match(/\b\d{16}\b/);
-    if (nikMatch) hasil.nik = nikMatch[0];
+    // 1. Ekstraksi NIK dengan koreksi karakter ambigu
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i];
+      if (/nik/i.test(line)) {
+        const cleaned = bersihkanKarakterNik(line);
+        if (cleaned.length >= 16) {
+          hasil.nik = cleaned.substring(0, 16);
+          break;
+        } else if (rawLines[i + 1]) {
+          const nextCleaned = bersihkanKarakterNik(rawLines[i + 1]);
+          if (nextCleaned.length >= 16) {
+            hasil.nik = nextCleaned.substring(0, 16);
+            break;
+          }
+        }
+      }
+    }
 
-    for (let i = 0; i < lines.length; i++) {
-      if (/nama/i.test(lines[i])) {
-        const sama = lines[i].match(/nama\s*[:\-]?\s*(.+)/i);
-        if (sama && sama[1] && sama[1].trim().length > 2) hasil.nama = sama[1].trim();
-        else if (lines[i + 1]) hasil.nama = lines[i + 1].trim();
+    if (!hasil.nik) {
+      const match16 = teks.replace(/\s+/g, ' ').match(/\b\d{16}\b/);
+      if (match16) {
+        hasil.nik = match16[0];
+      } else {
+        for (let i = 0; i < rawLines.length; i++) {
+          const c = bersihkanKarakterNik(rawLines[i]);
+          if (c.length === 16) {
+            hasil.nik = c;
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Ekstraksi Nama
+    for (let i = 0; i < rawLines.length; i++) {
+      if (/nama/i.test(rawLines[i])) {
+        const sama = rawLines[i].match(/nama\s*[:=\-]?\s*(.+)/i);
+        if (sama && sama[1] && sama[1].trim().length > 2) {
+          hasil.nama = sama[1].replace(/^[^a-zA-Z]+/, '').trim();
+        } else if (rawLines[i + 1]) {
+          hasil.nama = rawLines[i + 1].replace(/^[^a-zA-Z]+/, '').trim();
+        }
         break;
       }
     }
 
-    for (let i = 0; i < lines.length; i++) {
-      if (/alamat/i.test(lines[i])) {
-        const sama = lines[i].match(/alamat\s*[:\-]?\s*(.+)/i);
-        if (sama && sama[1] && sama[1].trim().length > 2) hasil.alamat = sama[1].trim();
-        else if (lines[i + 1]) hasil.alamat = lines[i + 1].trim();
+    // 3. Ekstraksi Alamat
+    for (let i = 0; i < rawLines.length; i++) {
+      if (/alamat/i.test(rawLines[i])) {
+        const sama = rawLines[i].match(/alamat\s*[:=\-]?\s*(.+)/i);
+        let almt = '';
+        if (sama && sama[1] && sama[1].trim().length > 2) {
+          almt = sama[1].replace(/^[^a-zA-Z0-9]+/, '').trim();
+        } else if (rawLines[i + 1]) {
+          almt = rawLines[i + 1].replace(/^[^a-zA-Z0-9]+/, '').trim();
+        }
+        if (rawLines[i + 1] && /rt|rw|dusun|desa/i.test(rawLines[i + 1])) {
+          almt += ' ' + rawLines[i + 1].trim();
+        }
+        hasil.alamat = almt;
         break;
       }
     }
@@ -2348,7 +2407,15 @@ window.toggleWebPassword = toggleWebPassword;
     };
     const f = peta[jalur];
     if (!f) return;
-    if (hasil.nik) { const el = document.getElementById(f.nik); if (el) el.value = hasil.nik; }
+    if (hasil.nik) { 
+      const el = document.getElementById(f.nik); 
+      if (el) { 
+        el.value = hasil.nik; 
+        if (typeof window.handleWebNikInput === 'function') {
+          window.handleWebNikInput(hasil.nik, 'feedback-' + f.nik);
+        }
+      } 
+    }
     if (hasil.nama) { const el = document.getElementById(f.nama); if (el) el.value = hasil.nama; }
     if (hasil.alamat) { const el = document.getElementById(f.alamat); if (el) el.value = hasil.alamat; }
   }
@@ -2461,6 +2528,59 @@ window.toggleWebPassword = toggleWebPassword;
       bukaFormManual(jalur);
     }
   }
+
+  
+  // Validasi Anti-Duplikasi NIK Real-Time Web
+  let _webNikTimers = {};
+  window.handleWebNikInput = function (nik, feedbackId) {
+    const fb = document.getElementById(feedbackId);
+    if (!fb) return;
+    clearTimeout(_webNikTimers[feedbackId]);
+
+    const cleaned = (nik || '').replace(/\D/g, '');
+    if (cleaned.length < 16) {
+      if (cleaned.length > 0) {
+        fb.style.display = 'block';
+        fb.style.background = '#f1f5f9';
+        fb.style.color = '#64748b';
+        fb.style.border = '1px solid #cbd5e1';
+        fb.innerHTML = 'Ketik 16 digit NIK (' + cleaned.length + '/16 angka)';
+      } else {
+        fb.style.display = 'none';
+      }
+      return;
+    }
+
+    fb.style.display = 'block';
+    fb.style.background = '#f8fafc';
+    fb.style.color = '#0284c7';
+    fb.style.border = '1px solid #bae6fd';
+    fb.innerHTML = 'Memeriksa ketersediaan NIK di database...';
+
+    _webNikTimers[feedbackId] = setTimeout(function () {
+      fetch('api/pendukung.php?action=check-nik&nik=' + encodeURIComponent(cleaned))
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.exists && data.data) {
+            const d = data.data;
+            fb.style.display = 'block';
+            fb.style.background = '#fef3c7';
+            fb.style.color = '#92400e';
+            fb.style.border = '1px solid #fde68a';
+            fb.innerHTML = '<strong>Perhatian:</strong> NIK ini sudah terdaftar atas nama <strong>' + (d.nama || '') + '</strong> (Jalur ' + (d.jalur || '') + ' - ' + (d.desa || '') + ') oleh petugas <em>' + (d.input_by_user_name || 'Petugas Lapangan') + '</em>' + (d.tanggal ? ' pada ' + d.tanggal : '') + '.';
+          } else {
+            fb.style.display = 'block';
+            fb.style.background = '#dcfce7';
+            fb.style.color = '#166534';
+            fb.style.border = '1px solid #bbf7d0';
+            fb.innerHTML = 'NIK valid (16 digit) dan belum terdaftar di sistem.';
+          }
+        })
+        .catch(function () {
+          fb.style.display = 'none';
+        });
+    }, 350);
+  };
 
   async function previewFile(input, previewId, dropId) {
     const file = input.files[0];

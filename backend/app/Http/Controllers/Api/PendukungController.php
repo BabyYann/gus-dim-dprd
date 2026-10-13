@@ -50,10 +50,22 @@ class PendukungController extends Controller
             return response()->json(['exists' => false]);
         }
 
-        $ada = Pendukung::where('nik', $nik)->first(['id', 'nama', 'jalur', 'kecamatan', 'desa']);
+        $ada = Pendukung::where('nik', $nik)->first(['id', 'nama', 'jalur', 'kecamatan', 'desa', 'input_by_user_name', 'created_at']);
+        $formatted = null;
+        if ($ada) {
+            $formatted = [
+                'id' => $ada->id,
+                'nama' => $ada->nama,
+                'jalur' => $ada->jalur,
+                'kecamatan' => $ada->kecamatan,
+                'desa' => $ada->desa,
+                'input_by_user_name' => $ada->input_by_user_name ?: 'Petugas Lapangan',
+                'tanggal' => $ada->created_at ? $ada->created_at->format('d/m/Y') : date('d/m/Y')
+            ];
+        }
         return response()->json([
             'exists' => (bool)$ada,
-            'data' => $ada
+            'data' => $formatted
         ]);
     }
 

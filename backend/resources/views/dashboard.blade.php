@@ -778,7 +778,7 @@
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Lengkap (Sesuai KTP) <span style="color:#ef4444;">*</span></label><input type="text" id="dpcNama" placeholder="Contoh: Mochamad Hasan"></div>
-                      <div class="form-group"><label>NIK (16 Digit Angka) <span style="color:#ef4444;">*</span></label><input type="text" id="dpcNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
+                      <div class="form-group"><label>NIK (16 Digit Angka) <span style="color:#ef4444;">*</span></label><input type="text" id="dpcNik" maxlength="16" placeholder="3513xxxxxxxxxxxx" oninput="handleWebNikInput(this.value, 'feedback-dpcNik')"><div id="feedback-dpcNik" class="nik-feedback-box" style="display:none; font-size:12px; margin-top:5px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div></div>
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nomor WhatsApp / HP <span style="color:#ef4444;">*</span></label><input type="text" id="dpcHp" placeholder="08xxxxxxxxxx"></div>
@@ -847,7 +847,7 @@
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Lengkap (Sesuai KTP) <span style="color:#ef4444;">*</span></label><input type="text" id="dprtNama" placeholder="Sesuai KTP"></div>
-                      <div class="form-group"><label>NIK (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="dprtNik" maxlength="16" placeholder="3513xxxxxxxxxxxx"></div>
+                      <div class="form-group"><label>NIK (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="dprtNik" maxlength="16" placeholder="3513xxxxxxxxxxxx" oninput="handleWebNikInput(this.value, 'feedback-dprtNik')"><div id="feedback-dprtNik" class="nik-feedback-box" style="display:none; font-size:12px; margin-top:5px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div></div>
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>No. WhatsApp / HP <span style="color:#ef4444;">*</span></label><input type="text" id="dprtHp" placeholder="08xxxxxxxxxx"></div>
@@ -914,7 +914,7 @@
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Lengkap Siswa <span style="color:#ef4444;">*</span></label><input type="text" id="pipNamaAnak" placeholder="Nama siswa penerima"></div>
-                      <div class="form-group"><label>NIK Siswa (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="pipNikAnak" maxlength="16" placeholder="16 digit NIK siswa"></div>
+                      <div class="form-group"><label>NIK Siswa (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="pipNikAnak" maxlength="16" placeholder="16 digit NIK siswa" oninput="handleWebNikInput(this.value, 'feedback-pipNikAnak')"><div id="feedback-pipNikAnak" class="nik-feedback-box" style="display:none; font-size:12px; margin-top:5px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div></div>
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Sekolah / Madrasah <span style="color:#ef4444;">*</span></label><input type="text" id="pipNamaSekolah" placeholder="Contoh: SMPN 1 Kraksaan"></div>
@@ -1007,7 +1007,7 @@
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Mahasiswa <span style="color:#ef4444;">*</span></label><input type="text" id="kipNamaAnak" placeholder="Nama lengkap mahasiswa"></div>
-                      <div class="form-group"><label>NIK Mahasiswa (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="kipNikAnak" maxlength="16" placeholder="16 digit NIK"></div>
+                      <div class="form-group"><label>NIK Mahasiswa (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="kipNikAnak" maxlength="16" placeholder="16 digit NIK" oninput="handleWebNikInput(this.value, 'feedback-kipNikAnak')"><div id="feedback-kipNikAnak" class="nik-feedback-box" style="display:none; font-size:12px; margin-top:5px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div></div>
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Perguruan Tinggi / Kampus <span style="color:#ef4444;">*</span></label><input type="text" id="kipNamaKampus" placeholder="Contoh: Universitas Nurul Jadid / Unej"></div>
@@ -1127,7 +1127,7 @@
                     </div>
                     <div class="form-row">
                       <div class="form-group"><label>Nama Lengkap Anggota <span style="color:#ef4444;">*</span></label><input type="text" id="rlwNamaAnggota" placeholder="Nama lengkap sesuai KTP"></div>
-                      <div class="form-group"><label>NIK Anggota (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="rlwNikAnggota" maxlength="16" placeholder="16 digit NIK"></div>
+                      <div class="form-group"><label>NIK Anggota (16 Digit) <span style="color:#ef4444;">*</span></label><input type="text" id="rlwNikAnggota" maxlength="16" placeholder="16 digit NIK" oninput="handleWebNikInput(this.value, 'feedback-rlwNikAnggota')"><div id="feedback-rlwNikAnggota" class="nik-feedback-box" style="display:none; font-size:12px; margin-top:5px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div></div>
                     </div>
                     <div class="form-group"><label>Nomor WhatsApp / HP Anggota <span style="color:#ef4444;">*</span></label><input type="text" id="rlwHpAnggota" placeholder="08xxxxxxxxxx"></div>
                     <div class="form-group"><label>Alamat Domisili Lengkap</label><textarea id="rlwAlamatAnggota" rows="2" placeholder="Nama jalan, RT/RW, Dusun"></textarea></div>

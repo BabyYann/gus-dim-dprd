@@ -46,6 +46,7 @@
   <script src="assets/js/pusher.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
 /* Strict Global SVG Containment */
 svg {
@@ -6381,7 +6382,8 @@ function openEntryForm(jalurKey, jalurTitle) {
       <!-- Form Inputs -->
       <div class="form-group">
         <label class="form-label">NIK (Nomor Induk Kependudukan) <span class="required-mark">*</span></label>
-        <input type="tel" id="formNik" class="form-input-touch" maxlength="16" placeholder="16 digit NIK KTP" required>
+        <input type="tel" id="formNik" class="form-input-touch" maxlength="16" placeholder="16 digit NIK KTP" required oninput="handleMobileNikInput(this.value)">
+        <div id="nikFeedbackMobile" style="display:none; font-size:12px; margin-top:6px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div>
       </div>
 
       <div class="form-group">

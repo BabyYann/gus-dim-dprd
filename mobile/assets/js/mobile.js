@@ -2983,7 +2983,8 @@ function openEntryForm(jalurKey, jalurTitle) {
       <!-- Form Inputs -->
       <div class="form-group">
         <label class="form-label">NIK (Nomor Induk Kependudukan) <span class="required-mark">*</span></label>
-        <input type="tel" id="formNik" class="form-input-touch" maxlength="16" placeholder="16 digit NIK KTP" required>
+        <input type="tel" id="formNik" class="form-input-touch" maxlength="16" placeholder="16 digit NIK KTP" required oninput="handleMobileNikInput(this.value)">
+        <div id="nikFeedbackMobile" style="display:none; font-size:12px; margin-top:6px; padding:6px 10px; border-radius:6px; line-height:1.4;"></div>
       </div>
 
       <div class="form-group">
@@ -3057,27 +3058,246 @@ function triggerOcrCamera() {
   if (input) input.click();
 }
 
-function handleOcrFile(event) {
+// Fungsi Pra-Pemrosesan Kontras Gambar KTP untuk Akurasi OCR Tinggi
+function preprocessKtpCanvas(img, maxWidth) {
+  maxWidth = maxWidth || 1400;
+  let w = img.naturalWidth || img.width;
+  let h = img.naturalHeight || img.height;
+  if (w > maxWidth) {
+    h = Math.round((h * maxWidth) / w);
+    w = maxWidth;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+
+  try {
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      // Grayscale luminance
+      const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      // Kontras tinggi: pertegas tulisan gelap, bersihkan latar belakang KTP
+      let val = lum;
+      if (val < 115) {
+        val = Math.max(0, val * 0.7);
+      } else {
+        val = Math.min(255, val * 1.25);
+      }
+      d[i] = val;
+      d[i + 1] = val;
+      d[i + 2] = val;
+    }
+    ctx.putImageData(imgData, 0, 0);
+  } catch (e) {
+    console.warn('Canvas filter pass skipped:', e);
+  }
+  return canvas;
+}
+
+function bersihkanKarakterNikMobile(str) {
+  if (!str) return '';
+  return str
+    .replace(/[OoQq]/g, '0')
+    .replace(/[IiLl|!j]/g, '1')
+    .replace(/[Zz]/g, '2')
+    .replace(/[Ee]/g, '3')
+    .replace(/[Aa]/g, '4')
+    .replace(/[Ss$]/g, '5')
+    .replace(/[b]/g, '6')
+    .replace(/[Tt]/g, '7')
+    .replace(/[B]/g, '8')
+    .replace(/[g]/g, '9')
+    .replace(/[^0-9]/g, '');
+}
+
+function parseHasilOcrKtpMobile(teks) {
+  const rawLines = teks.split('\n').map(l => l.trim()).filter(Boolean);
+  const hasil = { nik: '', nama: '', alamat: '' };
+
+  // 1. Ekstraksi NIK
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i];
+    if (/nik/i.test(line)) {
+      const cleaned = bersihkanKarakterNikMobile(line);
+      if (cleaned.length >= 16) {
+        hasil.nik = cleaned.substring(0, 16);
+        break;
+      } else if (rawLines[i + 1]) {
+        const nextCleaned = bersihkanKarakterNikMobile(rawLines[i + 1]);
+        if (nextCleaned.length >= 16) {
+          hasil.nik = nextCleaned.substring(0, 16);
+          break;
+        }
+      }
+    }
+  }
+
+  if (!hasil.nik) {
+    const match16 = teks.replace(/\s+/g, ' ').match(/\b\d{16}\b/);
+    if (match16) {
+      hasil.nik = match16[0];
+    } else {
+      for (let i = 0; i < rawLines.length; i++) {
+        const c = bersihkanKarakterNikMobile(rawLines[i]);
+        if (c.length === 16) {
+          hasil.nik = c;
+          break;
+        }
+      }
+    }
+  }
+
+  // 2. Ekstraksi Nama
+  for (let i = 0; i < rawLines.length; i++) {
+    if (/nama/i.test(rawLines[i])) {
+      const sama = rawLines[i].match(/nama\s*[:=\-]?\s*(.+)/i);
+      if (sama && sama[1] && sama[1].trim().length > 2) {
+        hasil.nama = sama[1].replace(/^[^a-zA-Z]+/, '').trim();
+      } else if (rawLines[i + 1]) {
+        hasil.nama = rawLines[i + 1].replace(/^[^a-zA-Z]+/, '').trim();
+      }
+      break;
+    }
+  }
+
+  // 3. Ekstraksi Alamat
+  for (let i = 0; i < rawLines.length; i++) {
+    if (/alamat/i.test(rawLines[i])) {
+      const sama = rawLines[i].match(/alamat\s*[:=\-]?\s*(.+)/i);
+      let almt = '';
+      if (sama && sama[1] && sama[1].trim().length > 2) {
+        almt = sama[1].replace(/^[^a-zA-Z0-9]+/, '').trim();
+      } else if (rawLines[i + 1]) {
+        almt = rawLines[i + 1].replace(/^[^a-zA-Z0-9]+/, '').trim();
+      }
+      if (rawLines[i + 1] && /rt|rw|dusun|desa/i.test(rawLines[i + 1])) {
+        almt += ' ' + rawLines[i + 1].trim();
+      }
+      hasil.alamat = almt;
+      break;
+    }
+  }
+
+  return hasil;
+}
+
+// Handler Pemindaian KTP Nyata dengan Tesseract.js di Mobile PWA
+async function handleOcrFile(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  showToast('Memindai KTP via Smart AI OCR...', 'info');
+  showToast('Mengoptimalkan kontras foto KTP...', 'info');
 
-  setTimeout(() => {
-    const randomNik = '3513' + Math.floor(100000000000 + Math.random() * 900000000000);
-    const sampleNames = ['Siti Rohmah', 'Muhammad Khoirul', 'Dewi Susilawati', 'Hasan Basri', 'Abdul Mukti'];
-    const chosenName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+  try {
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      const img = new Image();
+      img.onload = async function () {
+        const canvas = preprocessKtpCanvas(img, 1280);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-    const inNik = document.getElementById('formNik');
-    const inNama = document.getElementById('formNama');
-    const inAlamat = document.getElementById('formAlamat');
+        if (typeof Tesseract === 'undefined') {
+          showToast('Pustaka OCR sedang memuat dari jaringan. Silakan isi manual.', 'warning');
+          return;
+        }
 
-    if (inNik) inNik.value = randomNik;
-    if (inNama) inNama.value = chosenName;
-    if (inAlamat) inAlamat.value = 'RT 03 RW 02 Dusun Melati';
+        showToast('Memindai teks KTP dengan AI Engine...', 'info');
 
-    showToast('KTP Berhasil Dipindai! NIK dan Nama terisi otomatis.', 'success');
-  }, 1000);
+        try {
+          const out = await Tesseract.recognize(dataUrl, 'ind');
+          const hasil = parseHasilOcrKtpMobile(out.data.text || '');
+
+          const inNik = document.getElementById('formNik');
+          const inNama = document.getElementById('formNama');
+          const inAlamat = document.getElementById('formAlamat');
+
+          let count = 0;
+          if (hasil.nik && inNik) {
+            inNik.value = hasil.nik;
+            count++;
+            handleMobileNikInput(hasil.nik);
+          }
+          if (hasil.nama && inNama) {
+            inNama.value = hasil.nama;
+            count++;
+          }
+          if (hasil.alamat && inAlamat) {
+            inAlamat.value = hasil.alamat;
+            count++;
+          }
+
+          if (count > 0) {
+            showToast('KTP Berhasil Dipindai! NIK dan Nama terisi otomatis.', 'success');
+          } else {
+            showToast('Teks KTP kurang terbaca jelas. Mohon lengkapi manual.', 'warning');
+          }
+        } catch (ocrErr) {
+          console.error('Tesseract error:', ocrErr);
+          showToast('Gagal memindai KTP otomatis. Silakan isi form manual.', 'warning');
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('OCR Process error:', err);
+    showToast('Terjadi kesalahan memproses foto KTP.', 'danger');
+  }
+}
+
+// Validasi Anti-Duplikasi NIK Real-Time Mobile
+let _mobileNikTimer = null;
+function handleMobileNikInput(nik) {
+  const fb = document.getElementById('nikFeedbackMobile');
+  if (!fb) return;
+  clearTimeout(_mobileNikTimer);
+
+  const cleaned = (nik || '').replace(/\D/g, '');
+  if (cleaned.length < 16) {
+    if (cleaned.length > 0) {
+      fb.style.display = 'block';
+      fb.style.background = 'rgba(255,255,255,0.06)';
+      fb.style.color = '#94a3b8';
+      fb.style.border = '1px solid rgba(255,255,255,0.1)';
+      fb.innerHTML = 'Ketik 16 digit NIK (' + cleaned.length + '/16)';
+    } else {
+      fb.style.display = 'none';
+    }
+    return;
+  }
+
+  fb.style.display = 'block';
+  fb.style.background = 'rgba(56, 189, 248, 0.12)';
+  fb.style.color = '#38bdf8';
+  fb.style.border = '1px solid rgba(56, 189, 248, 0.3)';
+  fb.innerHTML = 'Memeriksa ketersediaan NIK...';
+
+  _mobileNikTimer = setTimeout(() => {
+    fetch('./api/pendukung.php?action=check-nik&nik=' + encodeURIComponent(cleaned))
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.exists && data.data) {
+          const d = data.data;
+          fb.style.display = 'block';
+          fb.style.background = 'rgba(245, 158, 11, 0.15)';
+          fb.style.color = '#fbbf24';
+          fb.style.border = '1px solid rgba(245, 158, 11, 0.35)';
+          fb.innerHTML = '<strong>Perhatian:</strong> NIK sudah terdaftar atas nama <strong>' + (d.nama || '') + '</strong> (' + (d.desa || '') + ') oleh petugas <em>' + (d.input_by_user_name || 'Petugas') + '</em>' + (d.tanggal ? ' pada ' + d.tanggal : '') + '.';
+        } else {
+          fb.style.display = 'block';
+          fb.style.background = 'rgba(34, 197, 94, 0.15)';
+          fb.style.color = '#4ade80';
+          fb.style.border = '1px solid rgba(34, 197, 94, 0.35)';
+          fb.innerHTML = 'NIK valid (16 digit) & belum terdaftar di sistem.';
+        }
+      })
+      .catch(() => {
+        fb.style.display = 'none';
+      });
+  }, 350);
 }
 
 function lockGpsPosition() {

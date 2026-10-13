@@ -319,7 +319,7 @@ switch ($action) {
         $ada = null;
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("SELECT id, nama, jalur, kecamatan, desa FROM pendukung WHERE nik = :nik LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, nama, jalur, kecamatan, desa, input_by_user_name, DATE_FORMAT(created_at, '%d/%m/%Y') as tanggal FROM pendukung WHERE nik = :nik LIMIT 1");
             $stmt->execute(['nik' => $nik]);
             $ada = $stmt->fetch();
         } else {
@@ -327,6 +327,7 @@ switch ($action) {
             foreach ($data['pendukung'] ?? [] as $item) {
                 if ($item['nik'] === $nik) {
                     $ada = $item;
+                    $ada['tanggal'] = date('d/m/Y', strtotime($item['created_at'] ?? 'now'));
                     break;
                 }
             }
