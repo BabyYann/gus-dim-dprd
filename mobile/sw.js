@@ -1,18 +1,25 @@
-const CACHE_NAME = 'gusdim-mobile-cache-v13';
+const CACHE_NAME = 'gusdim-mobile-cache-v20';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './assets/css/mobile.css',
   './assets/js/mobile.js',
-  './assets/icons/gus-dim.png'
+  './assets/icons/gus-dim.png',
+  './assets/img/header-bg.png',
+  './assets/img/thumb-kraksaan.png',
+  './assets/img/thumb-besuk.png',
+  './assets/img/thumb-gading.png',
+  './assets/img/map-sebaran.png',
+  './assets/img/banner-promo.png'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+      return cache.addAll(STATIC_ASSETS).catch(() => {});
+    })
   );
 });
 
@@ -55,38 +62,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Navigasi Dokumen HTML: Selalu Network First agar kode terbaru langsung aktif
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/') || url.pathname.includes('/mobile')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const copy = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(event.request).then((cached) => cached || caches.match('./index.html'));
-        })
-    );
-    return;
-  }
-
-  // 3. Aset Statis (CSS, JS, Gambar): Stale-While-Revalidate
+  // 2. Seluruh Request (Navigasi HTML & Aset Statis): Network First agar UI terbaru langsung tampil
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return networkResponse;
-      }).catch(() => cachedResponse);
-
-      return cachedResponse || fetchPromise;
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cached) => cached || caches.match('./index.html'));
+      })
   );
 });

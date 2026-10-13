@@ -39,6 +39,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gus Dim Mobile">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="assets/icons/gus-dim.png">
   <link rel="icon" type="image/png" href="assets/icons/gus-dim.png">
@@ -4099,16 +4102,35 @@ document.addEventListener('DOMContentLoaded', () => {
   initHorizontalSwipeFilters();
 });
 
-// PWA Service Worker Registration
+// PWA Service Worker Registration & Auto-Update
 function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
+      navigator.serviceWorker.register('./sw.js?v=20')
         .then(reg => {
           console.log('ServiceWorker PWA Aktif:', reg.scope);
           reg.update();
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  newWorker.postMessage({ action: 'skipWaiting' });
+                  window.location.reload();
+                }
+              });
+            }
+          });
         })
         .catch(err => console.log('ServiceWorker Gagal:', err));
+    });
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
     });
   }
 }
