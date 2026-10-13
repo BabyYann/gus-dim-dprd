@@ -5691,10 +5691,10 @@ function openAddOperatorModal() {
       <div class="form-group">
         <label class="form-label" style="font-size:12px;">Peran (Role)</label>
         <select id="addOpRole" class="form-input-touch">
-          <option value="Admin Ranting">Admin Ranting (Desa)</option>
-          <option value="Koordinator Desa">Koordinator Desa (Kordes)</option>
-          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam)</option>
-          <option value="Relawan">Relawan Lapangan</option>
+          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam - DPC)</option>
+          <option value="Koordinator Desa">Koordinator Desa (Kordes - DPRT)</option>
+          <option value="Admin Ranting">Admin Ranting Desa</option>
+          <option value="Relawan">Relawan Saksi / Lapangan</option>
         </select>
       </div>
       <div class="form-group">
@@ -5779,9 +5779,36 @@ function openManageOperatorModal(id, nama) {
           Simpan Sandi Baru
         </button>
       </div>
+
+      <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+        <label class="form-label" style="font-size:12px;margin-bottom:6px;color:#dc2626;">Hapus Akun Petugas</label>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:38px;font-size:12px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="deleteOperatorMobile(${id}, '${escapeHtml(nama)}')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Hapus Akun Permanen
+        </button>
+      </div>
     </div>
   `;
   openBottomSheet('Kelola Akun Petugas', content);
+}
+
+async function deleteOperatorMobile(id, nama) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus akun petugas "${nama}" secara permanen? Akun yang dihapus tidak dapat dipulihkan.`)) {
+    return;
+  }
+  showToast('Menghapus akun petugas...', 'info');
+  try {
+    const res = await mobileApiCall('users.php?action=delete', 'POST', { id: id });
+    if (res.ok && res.data && res.data.success) {
+      showToast(res.data.message || 'Akun petugas berhasil dihapus permanen.', 'success');
+      closeBottomSheet();
+      loadAllData();
+    } else {
+      const msg = (res.data && res.data.message) ? res.data.message : 'Gagal menghapus akun.';
+      showToast(msg, 'warning');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan.', 'warning');
+  }
 }
 
 async function toggleOperatorStatusMobile(id, newStatus) {
@@ -6397,18 +6424,37 @@ async function updateSupporterStatus(index, newStatus) {
   }
 }
 
-function deleteSupporter(index) {
+async function deleteSupporter(index) {
   const item = AppState.supporters[index];
   if (!item) return;
 
-  if (confirm(`Yakin ingin menghapus data pendukung ${item.nama}?`)) {
-    AppState.supporters.splice(index, 1);
-    calculateStats();
-    renderDashboardStats();
-    renderSupportersList();
-    closeBottomSheet();
-    showToast('Data pendukung berhasil dihapus.', 'info');
+  if (!confirm(`Yakin ingin menghapus data pendukung "${item.nama || ''}" secara permanen? Data yang telah dihapus tidak dapat dipulihkan.`)) {
+    return;
   }
+
+  const targetId = item.id || item.rowNumber;
+  if (targetId) {
+    showToast('Menghapus data pendukung...', 'info');
+    try {
+      const res = await mobileApiCall('pendukung.php?action=delete', 'POST', { id: targetId });
+      if (!res.ok || (res.data && !res.data.success)) {
+        const msg = (res.data && res.data.message) ? res.data.message : 'Gagal menghapus data dari server.';
+        showToast(msg, 'warning');
+        return;
+      }
+    } catch (e) {
+      console.error('Delete supporter error:', e);
+      showToast('Terjadi kesalahan jaringan saat menghapus.', 'warning');
+      return;
+    }
+  }
+
+  AppState.supporters.splice(index, 1);
+  calculateStats();
+  renderDashboardStats();
+  renderSupportersList();
+  closeBottomSheet();
+  showToast('Data pendukung berhasil dihapus permanen.', 'success');
 }
 
 // Buka Formulir Entri 5 Jalur
@@ -7406,9 +7452,10 @@ function openCreateOperatorSheet(index) {
       <div class="form-group" style="margin-bottom:10px;">
         <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:4px;display:block;">Role / Kewenangan:</label>
         <select id="mOpRole" class="form-input-touch">
-          <option value="Koordinator Desa" ${defRole === 'Koordinator Desa' ? 'selected' : ''}>Koordinator Desa (Kordes)</option>
-          <option value="Koordinator Kecamatan" ${defRole === 'Koordinator Kecamatan' ? 'selected' : ''}>Koordinator Kecamatan (Korcam)</option>
-          <option value="Admin Ranting" ${defRole === 'Admin Ranting' ? 'selected' : ''}>Admin Ranting</option>
+          <option value="Koordinator Kecamatan" ${defRole === 'Koordinator Kecamatan' ? 'selected' : ''}>Koordinator Kecamatan (Korcam - DPC)</option>
+          <option value="Koordinator Desa" ${defRole === 'Koordinator Desa' ? 'selected' : ''}>Koordinator Desa (Kordes - DPRT)</option>
+          <option value="Admin Ranting" ${defRole === 'Admin Ranting' ? 'selected' : ''}>Admin Ranting Desa</option>
+          <option value="Relawan" ${defRole === 'Relawan' ? 'selected' : ''}>Relawan Saksi / Lapangan</option>
         </select>
       </div>
 

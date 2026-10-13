@@ -232,6 +232,18 @@ function makeApiRunner(handlers) {
       fetchApi('users.php?action=reset-password', 'POST', { rowNumber, newPassword })
         .then(res => handlers.success && handlers.success(res))
         .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
+    },
+    deleteUser(tokenOrId, maybeId) {
+      const id = (maybeId !== undefined) ? maybeId : tokenOrId;
+      fetchApi('users.php?action=delete', 'POST', { id: id })
+        .then(res => handlers.success && handlers.success(res))
+        .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
+    },
+    deletePendukung(tokenOrId, maybeId) {
+      const id = (maybeId !== undefined) ? maybeId : tokenOrId;
+      fetchApi('pendukung.php?action=delete', 'POST', { id: id })
+        .then(res => handlers.success && handlers.success(res))
+        .catch(err => handlers.failure ? handlers.failure(err) : console.error(err));
     }
   };
   return runner;
@@ -524,6 +536,25 @@ function kirimUcapanWa(hp, nama, jalur) {
       btnUbah.style.display = 'none';
     }
 
+    const btnHapus = document.getElementById('btnHapusPendukungDariDetail');
+    if (btnHapus) {
+      let canHapus = false;
+      if (userRole === 'Superadmin') {
+        canHapus = true;
+      } else if (userRole === 'Koordinator Kecamatan') {
+        const uKec = CURRENT_USER ? (CURRENT_USER.kecamatan || '').trim().toLowerCase() : '';
+        const rKec = (r.kecamatan || '').trim().toLowerCase();
+        if (!uKec || uKec === rKec) canHapus = true;
+      } else if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
+        const uDesa = CURRENT_USER ? (CURRENT_USER.desa || '').trim().toLowerCase() : '';
+        const rDesa = (r.desa || '').trim().toLowerCase();
+        if (!uDesa || uDesa === rDesa) canHapus = true;
+      } else if (CURRENT_USER && (r.userInput === CURRENT_USER.nama || r.input_by_user_name === CURRENT_USER.nama)) {
+        canHapus = true;
+      }
+      btnHapus.style.display = canHapus ? 'inline-flex' : 'none';
+    }
+
     const btnWa = document.getElementById('btnChatWa');
     const nomorWa = formatNomorWa(r.hp);
     if (nomorWa) {
@@ -593,6 +624,39 @@ function kirimUcapanWa(hp, nama, jalur) {
     } catch (err) {
       console.error('Gagal update status verifikasi:', err);
       alert('Terjadi kesalahan jaringan atau server saat memperbarui status.');
+    }
+  };
+
+  window.hapusPendukungDariDesktopModal = async function () {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+    const targetId = r.id || r.rowNumber;
+    if (!targetId) {
+      alert('ID data pendukung tidak valid.');
+      return;
+    }
+
+    if (!confirm('Apakah Anda yakin ingin menghapus data pendukung "' + (r.nama || 'ID #' + targetId) + '" secara permanen? Data yang telah dihapus tidak dapat dikembalikan.')) {
+      return;
+    }
+
+    try {
+      const res = await fetchApi('pendukung.php?action=delete', 'POST', { id: targetId });
+      if (res && res.success) {
+        alert(res.message || 'Data pendukung berhasil dihapus permanen.');
+        closeModal('modalDetailOrang');
+        if (typeof loadRiwayat === 'function') {
+          try { loadRiwayat(); } catch (e) {}
+        }
+        if (typeof loadDashboardData === 'function') {
+          try { loadDashboardData(); } catch (e) {}
+        }
+      } else {
+        alert('Gagal: ' + (res.message || 'Terjadi kesalahan saat menghapus data.'));
+      }
+    } catch (err) {
+      console.error('Gagal hapus pendukung:', err);
+      alert('Terjadi kesalahan jaringan atau server saat menghapus data.');
     }
   };
 
@@ -813,14 +877,7 @@ window.toggleWebPassword = toggleWebPassword;
       document.getElementById('userAvatar').textContent = CURRENT_USER.nama.charAt(0).toUpperCase();
     }
 
-    if (CURRENT_USER.role !== 'Admin Ranting' && CURRENT_USER.role !== 'Superadmin') {
-      const inputMenu = document.querySelector('[data-page="input"]');
-      if (inputMenu) {
-        inputMenu.classList.add('disabled');
-        inputMenu.onclick = null;
-      }
-    }
-
+    // Menu Pengaturan hanya untuk Superadmin
     if (CURRENT_USER.role !== 'Superadmin') {
       const setMenu = document.querySelector('[data-page="pengaturan"]');
       if (setMenu) {
@@ -843,10 +900,7 @@ window.toggleWebPassword = toggleWebPassword;
       }
     }
 
-    // Role guard: cegah akses langsung jika role tidak berwenang
-    if (targetPage === 'input' && CURRENT_USER.role !== 'Admin Ranting' && CURRENT_USER.role !== 'Superadmin') {
-      targetPage = 'dashboard';
-    }
+    // Role guard: Pengaturan hanya untuk Superadmin
     if (targetPage === 'pengaturan' && CURRENT_USER.role !== 'Superadmin') {
       targetPage = 'dashboard';
     }
@@ -3023,6 +3077,7 @@ window.toggleWebPassword = toggleWebPassword;
         '<td>' +
           '<button class="btn-aksi btn-toggle" onclick="toggleUserStatus(' + u.rowNumber + ',\'' + toggleTarget + '\')">' + toggleLabel + '</button>' +
           '<button class="btn-aksi btn-reset" onclick=\'openModalResetPassword(' + u.rowNumber + ',"' + u.nama.replace(/"/g,'') + '")\'>Reset Password</button>' +
+          '<button class="btn-aksi" style="background:#dc2626;color:#ffffff;border:none;margin-left:4px;" onclick=\'hapusUser(' + u.rowNumber + ',"' + u.nama.replace(/"/g,'') + '")\'>Hapus</button>' +
         '</td>' +
         '</tr>';
     });
@@ -3094,6 +3149,26 @@ window.toggleWebPassword = toggleWebPassword;
       })
       .resetUserPassword(SESSION_TOKEN, resetPasswordRowNumber, newPassword);
   }
+
+  function hapusUser(rowNumber, nama) {
+    if (!confirm('Apakah Anda yakin ingin menghapus akun pengguna "' + nama + '" secara permanen? Akun yang dihapus tidak dapat dipulihkan.')) {
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.success) {
+          alert(res.message || 'Akun pengguna berhasil dihapus.');
+          loadUsersList();
+        } else {
+          alert('Gagal: ' + (res.message || 'Terjadi kesalahan'));
+        }
+      })
+      .withFailureHandler(function (err) {
+        alert('Gagal menghapus akun pengguna: ' + err.message);
+      })
+      .deleteUser(SESSION_TOKEN, rowNumber);
+  }
+  window.hapusUser = hapusUser;
 
 
   // =========================================================================

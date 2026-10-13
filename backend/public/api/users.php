@@ -402,6 +402,47 @@ switch ($action) {
         ]);
         break;
 
+    case 'delete':
+        $targetId = (int)($body['id'] ?? ($body['rowNumber'] ?? ($_GET['id'] ?? 0)));
+        if (!$targetId) {
+            json_response(['success' => false, 'message' => 'ID pengguna tidak valid.'], 400);
+        }
+
+        if ($targetId === (int)$user['id']) {
+            json_response(['success' => false, 'message' => 'Anda tidak dapat menghapus akun Anda sendiri.'], 400);
+        }
+
+        $deletedName = '';
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            $stmt = $pdo->prepare("SELECT nama FROM users WHERE id = :id LIMIT 1");
+            $stmt->execute(['id' => $targetId]);
+            $uRow = $stmt->fetch();
+            $deletedName = $uRow ? $uRow['nama'] : "ID #{$targetId}";
+
+            $stmtDel = $pdo->prepare("DELETE FROM users WHERE id = :id");
+            $stmtDel->execute(['id' => $targetId]);
+        } else {
+            $data = Database::getJsonData();
+            foreach ($data['users'] as $k => $u) {
+                if ((int)$u['id'] === $targetId) {
+                    $deletedName = $u['nama'] ?? "ID #{$targetId}";
+                    unset($data['users'][$k]);
+                    break;
+                }
+            }
+            $data['users'] = array_values($data['users']);
+            Database::saveJsonData($data);
+        }
+
+        log_activity($user['id'], $user['nama'], 'Hapus Pengguna', (string)$targetId, "Menghapus akun pengguna: {$deletedName}");
+
+        json_response([
+            'success' => true,
+            'message' => "Akun pengguna '{$deletedName}' berhasil dihapus permanen."
+        ]);
+        break;
+
     default:
         json_response(['error' => 'Aksi tidak valid'], 400);
 }

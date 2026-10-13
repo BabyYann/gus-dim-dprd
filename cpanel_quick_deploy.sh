@@ -98,7 +98,7 @@ if ! grep -q "^GEMINI_API_KEY=" "$BACKEND_DIR/.env" 2>/dev/null; then
     echo "" >> "$BACKEND_DIR/.env"
     echo "# Konfigurasi Google Gemini Vision AI OCR" >> "$BACKEND_DIR/.env"
     echo "GEMINI_API_KEY=$(echo "$KEY_B64" | base64 -d)" >> "$BACKEND_DIR/.env"
-    echo "GEMINI_MODEL=gemini-3.5-flash-lite" >> "$BACKEND_DIR/.env"
+    echo "GEMINI_MODEL=gemini-3.5-flash" >> "$BACKEND_DIR/.env"
 fi
 
 echo "=== DEPLOYMENT SELESAI DENGAN SUKSES ==="

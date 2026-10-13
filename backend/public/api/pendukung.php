@@ -338,6 +338,116 @@ switch ($action) {
         ]);
         break;
 
+    case 'delete':
+        $targetId = (int)($body['id'] ?? ($body['rowNumber'] ?? ($_GET['id'] ?? 0)));
+        if (!$targetId) {
+            json_response(['success' => false, 'message' => 'ID data pendukung tidak valid.'], 400);
+        }
+
+        $userRole = $user['role'] ?? '';
+        $userKec = trim($user['kecamatan'] ?? '');
+        $userDesa = trim($user['desa'] ?? '');
+        $userId = (int)($user['id'] ?? 0);
+        $userNama = $user['nama'] ?? '';
+
+        $deletedName = '';
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            $stmt = $pdo->prepare("SELECT id, nama, kecamatan, desa, input_by_user_name FROM pendukung WHERE id = :id LIMIT 1");
+            $stmt->execute(['id' => $targetId]);
+            $pRow = $stmt->fetch();
+            if (!$pRow) {
+                json_response(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+            }
+
+            // Validasi hak akses teritorial & kepemilikan data
+            $canDelete = false;
+            if ($userRole === 'Superadmin') {
+                $canDelete = true;
+            } else if ($userRole === 'Koordinator Kecamatan') {
+                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                    $canDelete = true;
+                }
+            } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
+                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                    $canDelete = true;
+                }
+            } else {
+                if (!empty($pRow['input_by_user_name']) && $pRow['input_by_user_name'] === $userNama) {
+                    $canDelete = true;
+                }
+            }
+
+            if (!$canDelete) {
+                json_response(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki wewenang menghapus data di luar wilayah tugas Anda.'], 403);
+            }
+
+            $deletedName = $pRow['nama'];
+
+            $stmtDel = $pdo->prepare("DELETE FROM pendukung WHERE id = :id");
+            $stmtDel->execute(['id' => $targetId]);
+
+            // Hapus juga operator terkait jika ada pendukung_id
+            $stmtOp = $pdo->prepare("DELETE FROM users WHERE pendukung_id = :id");
+            $stmtOp->execute(['id' => $targetId]);
+        } else {
+            $data = Database::getJsonData();
+            $foundIndex = -1;
+            $pRow = null;
+            foreach ($data['pendukung'] as $k => $p) {
+                if ((int)$p['id'] === $targetId) {
+                    $foundIndex = $k;
+                    $pRow = $p;
+                    break;
+                }
+            }
+            if ($foundIndex === -1 || !$pRow) {
+                json_response(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+            }
+
+            // Validasi hak akses teritorial & kepemilikan data
+            $canDelete = false;
+            if ($userRole === 'Superadmin') {
+                $canDelete = true;
+            } else if ($userRole === 'Koordinator Kecamatan') {
+                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                    $canDelete = true;
+                }
+            } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
+                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                    $canDelete = true;
+                }
+            } else {
+                if (!empty($pRow['input_by_user_name']) && $pRow['input_by_user_name'] === $userNama) {
+                    $canDelete = true;
+                }
+            }
+
+            if (!$canDelete) {
+                json_response(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki wewenang menghapus data di luar wilayah tugas Anda.'], 403);
+            }
+
+            $deletedName = $pRow['nama'] ?? "ID #{$targetId}";
+            unset($data['pendukung'][$foundIndex]);
+            $data['pendukung'] = array_values($data['pendukung']);
+
+            foreach ($data['users'] as $uk => $u) {
+                if ((int)($u['pendukung_id'] ?? 0) === $targetId) {
+                    unset($data['users'][$uk]);
+                }
+            }
+            $data['users'] = array_values($data['users']);
+            Database::saveJsonData($data);
+        }
+
+        log_activity($userId, $userNama, 'Hapus Pendukung', (string)$targetId, "Menghapus data pendukung: {$deletedName}");
+
+        json_response([
+            'success' => true,
+            'message' => "Data pendukung '{$deletedName}' berhasil dihapus permanen."
+        ]);
+        break;
+
     default:
         json_response(['error' => 'Aksi tidak dikenali'], 400);
 }

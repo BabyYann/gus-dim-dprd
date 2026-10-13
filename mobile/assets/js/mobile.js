@@ -2365,10 +2365,10 @@ function openAddOperatorModal() {
       <div class="form-group">
         <label class="form-label" style="font-size:12px;">Peran (Role)</label>
         <select id="addOpRole" class="form-input-touch">
-          <option value="Admin Ranting">Admin Ranting (Desa)</option>
-          <option value="Koordinator Desa">Koordinator Desa (Kordes)</option>
-          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam)</option>
-          <option value="Relawan">Relawan Lapangan</option>
+          <option value="Koordinator Kecamatan">Koordinator Kecamatan (Korcam - DPC)</option>
+          <option value="Koordinator Desa">Koordinator Desa (Kordes - DPRT)</option>
+          <option value="Admin Ranting">Admin Ranting Desa</option>
+          <option value="Relawan">Relawan Saksi / Lapangan</option>
         </select>
       </div>
       <div class="form-group">
@@ -2456,9 +2456,40 @@ function openManageOperatorModal(id, nama) {
           Simpan Sandi Baru
         </button>
       </div>
+
+      <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+        <label class="form-label" style="font-size:12px;margin-bottom:6px;color:#dc2626;">Hapus Akun Petugas</label>
+        <button type="button" class="btn-outline-touch" style="width:100%;height:38px;font-size:12px;color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="deleteOperatorMobile(${id}, '${escapeHtml(nama)}')">
+          ${Icons.trash} Hapus Akun Permanen
+        </button>
+      </div>
     </div>
   `;
   openBottomSheet('Kelola Akun Petugas', content);
+}
+
+async function deleteOperatorMobile(id, nama) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus akun petugas "${nama}" secara permanen? Akun yang dihapus tidak dapat dipulihkan.`)) {
+    return;
+  }
+  showToast('Menghapus akun petugas...', 'info');
+  try {
+    const res = await fetch('./api/users.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id })
+    }).then(r => r.json()).catch(() => null);
+
+    if (res && res.success) {
+      showToast(res.message || 'Akun petugas berhasil dihapus permanen.', 'success');
+      closeBottomSheet();
+      loadAllData();
+    } else {
+      showToast((res && res.message) ? res.message : 'Gagal menghapus akun.', 'warning');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan.', 'warning');
+  }
 }
 
 async function toggleOperatorStatusMobile(id, newStatus) {
@@ -3034,26 +3065,83 @@ function openSupporterDetail(index) {
   openBottomSheet('Detail Pendukung Konstituen', content);
 }
 
-function verifySupporter(index) {
-  if (AppState.supporters[index]) {
-    AppState.supporters[index].status = 'valid';
-    calculateStats();
-    renderDashboardStats();
-    renderSupportersList();
-    closeBottomSheet();
-    showToast('Status pendukung telah diverifikasi!', 'success');
+async function verifySupporter(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+  const targetId = item.id || item.rowNumber;
+  const u = AppState.user;
+  const role = u ? u.role : '';
+
+  let newStatus = 'Final';
+  if (role === 'Koordinator Desa' || role === 'Admin Ranting') {
+    newStatus = 'Diverifikasi Desa';
+  } else if (role === 'Koordinator Kecamatan') {
+    newStatus = 'Divalidasi Kecamatan';
+  } else if (role === 'Superadmin') {
+    newStatus = 'Final';
   }
+
+  showToast('Memperbarui status verifikasi...', 'info');
+  if (targetId) {
+    try {
+      const res = await fetch('./api/verifikasi.php?action=update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: targetId, rowNumber: targetId, newStatus: newStatus, catatan: 'Verifikasi via Mobile PWA' })
+      }).then(r => r.json()).catch(() => null);
+
+      if (res && !res.success) {
+        showToast((res && res.message) ? res.message : 'Gagal memperbarui status di server.', 'warning');
+        return;
+      }
+    } catch (e) {
+      console.error('Verify supporter error:', e);
+    }
+  }
+
+  item.status = newStatus;
+  calculateStats();
+  renderDashboardStats();
+  renderSupportersList();
+  closeBottomSheet();
+  showToast(`Status pendukung diubah menjadi: ${newStatus}`, 'success');
 }
 
-function deleteSupporter(index) {
-  if (confirm('Yakin ingin menghapus data pendukung ini?')) {
-    AppState.supporters.splice(index, 1);
-    calculateStats();
-    renderDashboardStats();
-    renderSupportersList();
-    closeBottomSheet();
-    showToast('Data pendukung dihapus.', 'info');
+async function deleteSupporter(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+  const name = item.nama || 'ini';
+  if (!confirm(`Yakin ingin menghapus data pendukung "${name}" secara permanen? Data yang telah dihapus tidak dapat dipulihkan.`)) {
+    return;
   }
+
+  showToast('Menghapus data pendukung...', 'info');
+  const targetId = item.id || item.rowNumber;
+  if (targetId) {
+    try {
+      const res = await fetch('./api/pendukung.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: targetId })
+      }).then(r => r.json()).catch(() => null);
+
+      if (res && !res.success) {
+        showToast((res && res.message) ? res.message : 'Gagal menghapus data dari server.', 'warning');
+        return;
+      }
+    } catch (e) {
+      console.error('Delete supporter error:', e);
+      showToast('Terjadi kesalahan jaringan saat menghapus.', 'warning');
+      return;
+    }
+  }
+
+  AppState.supporters.splice(index, 1);
+  calculateStats();
+  renderDashboardStats();
+  renderSupportersList();
+  closeBottomSheet();
+  showToast('Data pendukung berhasil dihapus permanen.', 'success');
 }
 
 // Buka Formulir Entri 5 Jalur
