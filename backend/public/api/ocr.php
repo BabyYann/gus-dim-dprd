@@ -2,9 +2,12 @@
 /**
  * API OCR e-KTP Ultra Presisi berbasis Google Gemini Vision AI
  * Sistem Informasi Pemenangan Terpadu Gus Dim Dapil Kraksaan Raya
+ * Dilengkapi Diagnostik & Analisis Akar Masalah Real-Time
  */
 
 require_once dirname(__DIR__) . '/config/helpers.php';
+
+$startTime = microtime(true);
 
 // Pastikan request adalah POST
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -39,14 +42,29 @@ if (empty($base64Data)) {
     json_response(['success' => false, 'message' => 'Data gambar KTP kosong.'], 400);
 }
 
-$apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
+// Prioritaskan API Key custom dari request uji coba jika disediakan
+$apiKey = trim($body['api_key'] ?? '');
 if (empty($apiKey)) {
-    json_response(['success' => false, 'message' => 'GEMINI_API_KEY belum dikonfigurasi di server.'], 500);
+    $apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
+}
+
+if (empty($apiKey)) {
+    json_response([
+        'success' => false,
+        'message' => 'GEMINI_API_KEY belum dikonfigurasi di server. Silakan masukkan API key Anda pada form pengujian.'
+    ], 500);
 }
 
 // Daftar model dengan failover otomatis untuk ketahanan tinggi
 $preferredModel = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-3.5-flash-lite';
-$candidateModels = array_unique([$preferredModel, 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest']);
+$candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest'];
+
+// Jika request meminta model spesifik
+$customModel = trim($body['model'] ?? '');
+if (!empty($customModel)) {
+    array_unshift($candidateModels, $customModel);
+}
+$candidateModels = array_values(array_unique($candidateModels));
 
 $prompt = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
         . "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
@@ -90,8 +108,9 @@ $payload = json_encode([
     ]
 ]);
 
-$lastError = '';
+$attempts = [];
 $geminiResponse = null;
+$successfulModel = '';
 
 foreach ($candidateModels as $model) {
     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($apiKey);
@@ -104,7 +123,7 @@ foreach ($candidateModels as $model) {
         'Content-Type: application/json',
         'User-Agent: GusDim-OCR-Engine/1.0'
     ]);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 
@@ -113,13 +132,19 @@ foreach ($candidateModels as $model) {
     $curlErr = curl_error($ch);
     curl_close($ch);
 
+    $attempts[] = [
+        'model' => $model,
+        'http_code' => $httpCode,
+        'error' => $curlErr ?: null
+    ];
+
     if ($httpCode === 200 && !empty($responseRaw)) {
-        $geminiResponse = json_decode($responseRaw, true);
-        if (!empty($geminiResponse['candidates'][0]['content']['parts'][0]['text'])) {
+        $parsed = json_decode($responseRaw, true);
+        if (!empty($parsed['candidates'][0]['content']['parts'][0]['text'])) {
+            $geminiResponse = $parsed;
+            $successfulModel = $model;
             break; // Berhasil
         }
-    } else {
-        $lastError = "Model {$model} gagal (HTTP {$httpCode}): " . ($curlErr ?: substr($responseRaw, 0, 150));
     }
 }
 
@@ -127,7 +152,8 @@ if (!$geminiResponse || empty($geminiResponse['candidates'][0]['content']['parts
     json_response([
         'success' => false,
         'message' => 'Gagal memproses gambar melalui AI Vision. Pastikan foto KTP terlihat jelas dan coba lagi.',
-        'detail' => $lastError
+        'attempts' => $attempts,
+        'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
     ], 502);
 }
 
@@ -145,7 +171,10 @@ if (!is_array($extracted) || empty($extracted['is_ktp']) || empty($extracted['ni
     if (is_array($extracted) && isset($extracted['is_ktp']) && $extracted['is_ktp'] === false) {
         json_response([
             'success' => false,
-            'message' => 'Gambar yang dipindai tidak terdeteksi sebagai e-KTP Indonesia. Mohon posisikan kartu KTP di dalam bingkai foto dengan jelas.'
+            'message' => 'Gambar yang dipindai tidak terdeteksi sebagai e-KTP Indonesia. Mohon posisikan kartu KTP di dalam bingkai foto dengan jelas.',
+            'raw_output' => $textOutput,
+            'model_used' => $successfulModel,
+            'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
         ]);
     }
 }
@@ -205,6 +234,16 @@ $user = get_auth_user();
 if ($user) {
     log_activity($user['id'] ?? null, $user['nama'] ?? 'Petugas', 'OCR_KTP', $nikMurni ?: null, 'Pemindaian KTP AI Gemini Vision: ' . ($extracted['nama'] ?? ''));
 }
+
+// Tambahkan informasi diagnostik akar masalah
+$extracted['diagnostics'] = [
+    'model_used' => $successfulModel,
+    'execution_time_ms' => round((microtime(true) - $startTime) * 1000),
+    'image_mime' => $mimeType,
+    'image_payload_kb' => round(strlen($base64Data) * 0.75 / 1024, 2),
+    'raw_output' => $textOutput,
+    'attempts' => $attempts
+];
 
 json_response([
     'success' => true,

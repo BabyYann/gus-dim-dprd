@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lab Uji Coba &amp; Diagnostik OCR KTP - Gus Dim Dapil Kraksaan Raya</title>
+  <style>
+    :root {
+      --bg-body: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-alt: #334155;
+      --border-color: #334155;
+      --border-focus: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      padding: 16px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Header Nav */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title-area h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: -0.3px;
+    }
+
+    .title-area p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .badge-env {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      background: var(--bg-card-alt);
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Upload Area */
+    .upload-zone {
+      border: 2px dashed #475569;
+      border-radius: 10px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--border-focus);
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .upload-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card-alt);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #475569;
+    }
+
+    /* Preview Box */
+    .preview-box {
+      margin-top: 14px;
+      display: none;
+      background: #090d16;
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid #1e293b;
+    }
+
+    .preview-img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      border-radius: 6px;
+      display: block;
+      background: #000;
+    }
+
+    .preview-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* Settings Form */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--border-focus);
+    }
+
+    .form-help {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Main Scan Button */
+    .btn-scan {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      transition: all 0.2s;
+      margin-top: 14px;
+    }
+
+    .btn-scan:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-scan:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Results Table */
+    .res-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .res-table tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .res-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .res-table td {
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    .res-table td.col-key {
+      width: 35%;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .res-table td.col-val {
+      width: 65%;
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    .nik-highlight {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      color: #38bdf8;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .status-badge.new {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.exists {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* Terminal Console */
+    .console-card {
+      margin-top: 16px;
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .console-header {
+      background: #111827;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .console-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .console-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .console-tab.active {
+      background: #1e293b;
+      color: #38bdf8;
+    }
+
+    .console-body {
+      padding: 12px;
+      height: 240px;
+      overflow-y: auto;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .log-line {
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .log-time {
+      color: #64748b;
+      margin-right: 6px;
+    }
+
+    .log-info { color: #38bdf8; }
+    .log-success { color: #34d399; }
+    .log-warn { color: #fbbf24; }
+    .log-error { color: #f87171; }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="title-area">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <h1>LAB UJI COBA &amp; DIAGNOSTIK OCR KTP</h1>
+        <span class="badge-env">Lingkungan Terisolasi</span>
+      </div>
+      <p>Alat Bedah Akar Masalah Pemindaian e-KTP Indonesia berbasis AI Vision</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="mobile/" class="btn-back">Buka Mobile PWA</a>
+      <a href="Index.html" class="btn-back">Buka Web Dashboard</a>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Panel Kiri: Input Gambar & Pengaturan -->
+    <div class="card">
+      <div class="card-title">
+        <span>1. Sumber Foto e-KTP</span>
+        <span id="labelStatusFile" style="font-size:11px;color:var(--text-muted);">Belum ada foto</span>
+      </div>
+
+      <div class="upload-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" style="margin-bottom:8px;"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        <div style="font-weight:600;color:#cbd5e1;font-size:13px;">Ketuk untuk memilih foto atau seret ke sini</div>
+        <div style="font-size:11px;color:#64748b;margin-top:4px;">Mendukung JPG, PNG, WEBP (maks 15 MB)</div>
+      </div>
+
+      <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+      <input type="file" id="cameraInput" accept="image/*" capture="camera" style="display:none;" onchange="handleFileSelect(event)">
+
+      <div class="upload-actions">
+        <button type="button" class="btn-action" onclick="document.getElementById('cameraInput').click()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          Ambil dari Kamera
+        </button>
+        <button type="button" class="btn-action" onclick="document.getElementById('fileInput').click()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          Pilih dari Galeri
+        </button>
+      </div>
+
+      <!-- Preview -->
+      <div id="previewBox" class="preview-box">
+        <img id="previewImg" class="preview-img" alt="Pratinjau KTP">
+        <div class="preview-meta">
+          <span id="previewDimensions">-</span>
+          <span id="previewSize">-</span>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div style="margin-top:16px;border-top:1px solid var(--border-color);padding-top:14px;">
+        <div class="card-title">2. Konfigurasi Diagnostik</div>
+
+        <div class="form-group">
+          <label class="form-label">Jalur Eksekusi Uji Coba</label>
+          <select id="selectMode" class="form-select" onchange="toggleModeSettings()">
+            <option value="backend" selected>Mode A: Melalui Server Backend (api/ocr.php)</option>
+            <option value="direct">Mode B: Langsung Browser ke Google Gemini API (Direct Cloud)</option>
+          </select>
+          <div class="form-help">Mode A menguji integrasi cPanel. Mode B menguji langsung ke Google untuk isolasi masalah.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Model AI Gemini</label>
+          <select id="selectModel" class="form-select">
+            <option value="gemini-3.5-flash-lite" selected>gemini-3.5-flash-lite (Default - Super Cepat)</option>
+            <option value="gemini-3.5-flash">gemini-3.5-flash (Presisi Maksimal)</option>
+            <option value="gemini-flash-latest">gemini-flash-latest</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="groupApiKey" style="display:none;">
+          <label class="form-label">Kunci API Gemini (Opsional untuk override)</label>
+          <input type="text" id="inputApiKey" class="form-input" placeholder="Kosongkan untuk menggunakan kunci default server">
+          <div class="form-help">Otomatis menggunakan kunci default jika dikosongkan.</div>
+        </div>
+
+        <button type="button" id="btnExecute" class="btn-scan" onclick="executeOcrTest()" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Mulai Bedah &amp; Pindai KTP Sekarang
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel Kanan: Hasil Ekstraksi Presisi -->
+    <div class="card">
+      <div class="card-title">
+        <span>3. Hasil Ekstraksi Terstruktur</span>
+        <span id="execBadge" class="badge-env" style="display:none;">0 ms</span>
+      </div>
+
+      <div id="resultEmptyState" style="text-align:center;padding:40px 10px;color:var(--text-muted);">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" style="margin-bottom:10px;"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        <div style="font-weight:600;font-size:13px;">Belum Ada Hasil Pindaian</div>
+        <div style="font-size:12px;margin-top:4px;">Silakan pilih foto KTP dan klik tombol Mulai Bedah di sebelah kiri.</div>
+      </div>
+
+      <div id="resultContent" style="display:none;">
+        <table class="res-table">
+          <tr>
+            <td class="col-key">NIK (16 Digit)</td>
+            <td class="col-val">
+              <span id="resNik" class="nik-highlight">-</span>
+              <div id="resNikStatus"></div>
+            </td>
+          </tr>
+          <tr>
+            <td class="col-key">Status Duplikasi</td>
+            <td class="col-val" id="resDuplicateStatus">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Nama Lengkap</td>
+            <td class="col-val" id="resNama">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Tempat/Tgl Lahir</td>
+            <td class="col-val" id="resTtl">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Jenis Kelamin</td>
+            <td class="col-val" id="resGender">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Alamat / Dusun</td>
+            <td class="col-val" id="resAlamat">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">RT / RW</td>
+            <td class="col-val" id="resRtRw">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Desa / Kelurahan</td>
+            <td class="col-val" id="resDesa">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Kecamatan</td>
+            <td class="col-val" id="resKecamatan">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Agama</td>
+            <td class="col-val" id="resAgama">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Status Kawin</td>
+            <td class="col-val" id="resStatus">-</td>
+          </tr>
+          <tr>
+            <td class="col-key">Pekerjaan</td>
+            <td class="col-val" id="resPekerjaan">-</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal Konsol Diagnostik & Analisis Akar Masalah -->
+  <div class="console-card">
+    <div class="console-header">
+      <div class="console-tabs">
+        <button type="button" class="console-tab active" onclick="switchConsoleTab('logs', this)">Log Diagnostik</button>
+        <button type="button" class="console-tab" onclick="switchConsoleTab('json', this)">Raw JSON Response</button>
+        <button type="button" class="console-tab" onclick="switchConsoleTab('payload', this)">Info Payload</button>
+      </div>
+      <button type="button" onclick="clearConsoleLogs()" style="background:transparent;border:none;color:#64748b;font-size:11px;cursor:pointer;">Bersihkan Log</button>
+    </div>
+
+    <div id="tabLogs" class="console-body">
+      <div class="log-line"><span class="log-time">[00:00:00]</span> <span class="log-info">Lab Uji Coba OCR KTP siap digunakan. Pilih foto KTP untuk memulai diagnostik.</span></div>
+    </div>
+
+    <div id="tabJson" class="console-body" style="display:none;">
+      <pre id="rawJsonViewer">// Respons JSON mentah akan muncul di sini setelah pemindaian selesai.</pre>
+    </div>
+
+    <div id="tabPayload" class="console-body" style="display:none;">
+      <pre id="payloadViewer">// Informasi payload request akan muncul di sini.</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentFile = null;
+  let currentDataUrl = '';
+  let currentImageMeta = { width: 0, height: 0, originalSize: 0, compressedSize: 0 };
+
+  const DEFAULT_KEY_B64 = 'QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=';
+
+  function logMsg(msg, type = 'info') {
+    const box = document.getElementById('tabLogs');
+    const now = new Date();
+    const timeStr = '[' + now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0') + ']';
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.innerHTML = '<span class="log-time">' + timeStr + '</span> <span class="log-' + type + '">' + msg + '</span>';
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function clearConsoleLogs() {
+    document.getElementById('tabLogs').innerHTML = '';
+    logMsg('Log dibersihkan.', 'info');
+  }
+
+  function switchConsoleTab(tabName, btn) {
+    document.querySelectorAll('.console-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tabLogs').style.display = (tabName === 'logs') ? 'block' : 'none';
+    document.getElementById('tabJson').style.display = (tabName === 'json') ? 'block' : 'none';
+    document.getElementById('tabPayload').style.display = (tabName === 'payload') ? 'block' : 'none';
+  }
+
+  function toggleModeSettings() {
+    const mode = document.getElementById('selectMode').value;
+    const groupKey = document.getElementById('groupApiKey');
+    if (mode === 'direct') {
+      groupKey.style.display = 'block';
+      logMsg('Beralih ke Mode B: Permintaan langsung dari browser ke Google Cloud Gemini API.', 'warn');
+    } else {
+      groupKey.style.display = 'none';
+      logMsg('Beralih ke Mode A: Permintaan melalui backend server (api/ocr.php).', 'info');
+    }
+  }
+
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    processSelectedFile(file);
+  }
+
+  // Drag and Drop
+  const dropArea = document.getElementById('dropArea');
+  ['dragenter', 'dragover'].forEach(name => {
+    dropArea.addEventListener(name, (e) => { e.preventDefault(); dropArea.classList.add('dragover'); }, false);
+  });
+  ['dragleave', 'drop'].forEach(name => {
+    dropArea.addEventListener(name, (e) => { e.preventDefault(); dropArea.classList.remove('dragover'); }, false);
+  });
+  dropArea.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const file = dt.files[0];
+    if (file) processSelectedFile(file);
+  });
+
+  function processSelectedFile(file) {
+    currentFile = file;
+    currentImageMeta.originalSize = file.size;
+    logMsg('Berkas dipilih: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB, type: ' + file.type + ')', 'info');
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        currentImageMeta.width = img.naturalWidth || img.width;
+        currentImageMeta.height = img.naturalHeight || img.height;
+
+        // Downscale kanvas untuk efisiensi transfer data (< 250 KB)
+        const maxDim = 1280;
+        let w = currentImageMeta.width;
+        let h = currentImageMeta.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        currentDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        currentImageMeta.compressedSize = Math.round((currentDataUrl.length * 0.75));
+
+        document.getElementById('previewImg').src = currentDataUrl;
+        document.getElementById('previewBox').style.display = 'block';
+        document.getElementById('previewDimensions').textContent = 'Dimensi: ' + currentImageMeta.width + 'x' + currentImageMeta.height + ' px (Resized: ' + w + 'x' + h + ')';
+        document.getElementById('previewSize').textContent = 'Ukuran: ' + (currentImageMeta.originalSize / 1024).toFixed(1) + ' KB -> Payload: ' + (currentImageMeta.compressedSize / 1024).toFixed(1) + ' KB';
+
+        document.getElementById('labelStatusFile').textContent = file.name;
+        document.getElementById('btnExecute').disabled = false;
+
+        logMsg('Foto berhasil diproses di kanvas. Siap dikirim ke AI Engine.', 'success');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function executeOcrTest() {
+    if (!currentDataUrl) {
+      alert('Pilih foto KTP terlebih dahulu.');
+      return;
+    }
+
+    const mode = document.getElementById('selectMode').value;
+    const model = document.getElementById('selectModel').value;
+    const customKey = document.getElementById('inputApiKey').value.trim();
+    const btn = document.getElementById('btnExecute');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-block;animation:ptrSpin 0.7s linear infinite;">&#9696;</span> Memproses dengan AI Gemini Vision...';
+
+    const startTime = performance.now();
+    logMsg('--- MEMULAI UJI COBA OCR KTP (' + mode.toUpperCase() + ') ---', 'info');
+    logMsg('Target Model AI: ' + model, 'info');
+
+    // Update Payload Tab
+    document.getElementById('payloadViewer').textContent = JSON.stringify({
+      mode: mode,
+      model: model,
+      image_meta: currentImageMeta,
+      data_url_sample: currentDataUrl.substring(0, 100) + '...'
+    }, null, 2);
+
+    try {
+      if (mode === 'backend') {
+        await executeBackendMode(model, customKey, startTime);
+      } else {
+        await executeDirectCloudMode(model, customKey, startTime);
+      }
+    } catch (err) {
+      logMsg('FATAL ERROR: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Mulai Bedah &amp; Pindai KTP Sekarang';
+    }
+  }
+
+  // Mode A: Via Backend (api/ocr.php)
+  async function executeBackendMode(model, customKey, startTime) {
+    logMsg('Mengirim HTTP POST ke endpoint backend: api/ocr.php...', 'info');
+
+    const res = await fetch('api/ocr.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image: currentDataUrl,
+        model: model,
+        api_key: customKey || undefined
+      })
+    });
+
+    const elapsed = Math.round(performance.now() - startTime);
+    logMsg('Respons HTTP diterima: Status ' + res.status + ' (' + elapsed + ' ms)', res.ok ? 'success' : 'error');
+
+    const json = await res.json().catch(e => {
+      logMsg('Gagal mem-parsing JSON dari server: ' + e.message, 'error');
+      return null;
+    });
+
+    document.getElementById('rawJsonViewer').textContent = JSON.stringify(json, null, 2);
+
+    if (json && json.success && json.data) {
+      renderResults(json.data, elapsed);
+      logMsg('SUKSES: Data e-KTP berhasil diekstrak dengan presisi tinggi!', 'success');
+      if (json.data.diagnostics) {
+        logMsg('Diagnostik: Model ' + json.data.diagnostics.model_used + ', Waktu server ' + json.data.diagnostics.execution_time_ms + ' ms', 'info');
+      }
+    } else {
+      const msg = (json && json.message) ? json.message : 'Pemindaian gagal.';
+      logMsg('GAGAL: ' + msg, 'warn');
+      if (json && json.detail) logMsg('Detail Error: ' + json.detail, 'error');
+      alert('Hasil: ' + msg);
+    }
+  }
+
+  // Mode B: Langsung dari browser ke Google Cloud Gemini API
+  async function executeDirectCloudMode(model, customKey, startTime) {
+    let apiKey = customKey;
+    if (!apiKey) {
+      try {
+        apiKey = atob(DEFAULT_KEY_B64);
+      } catch (e) {
+        apiKey = '';
+      }
+    }
+
+    if (!apiKey) {
+      logMsg('Kunci API tidak ditemukan untuk pengujian direct cloud.', 'error');
+      alert('Masukkan kunci Gemini API di kolom pengaturan.');
+      return;
+    }
+
+    logMsg('Memanggil Google Cloud Gemini API langsung dari browser (bypassing backend)...', 'info');
+
+    const rawBase64 = currentDataUrl.split(',')[1];
+    const mimeType = currentDataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+
+    const promptText = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
+      + "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
+      + "Format keluaran WAJIB HANYA JSON murni (valid JSON tanpa tanda kutip markdown) dengan struktur objek: "
+      + "{"
+      + "\"is_ktp\": true, "
+      + "\"nik\": \"16 digit angka NIK murni\", "
+      + "\"nama\": \"Nama lengkap warga\", "
+      + "\"tempat_tgl_lahir\": \"Tempat dan tanggal lahir\", "
+      + "\"jenis_kelamin\": \"LAKI-LAKI atau PEREMPUAN\", "
+      + "\"alamat\": \"Alamat jalan atau dusun\", "
+      + "\"rt_rw\": \"Nomor RT dan RW misal 003/002\", "
+      + "\"kel_desa\": \"Nama desa atau kelurahan\", "
+      + "\"kecamatan\": \"Nama kecamatan\", "
+      + "\"agama\": \"Agama\", "
+      + "\"status_perkawinan\": \"Status perkawinan\", "
+      + "\"pekerjaan\": \"Pekerjaan\""
+      + "} "
+      + "Pedoman penting: "
+      + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
+      + "2. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
+
+    const payload = {
+      contents: [{
+        parts: [
+          { text: promptText },
+          { inline_data: { mime_type: mimeType, data: rawBase64 } }
+        ]
+      }],
+      generationConfig: {
+        response_mime_type: 'application/json',
+        temperature: 0.1
+      }
+    };
+
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const elapsed = Math.round(performance.now() - startTime);
+    logMsg('Respons dari Google AI Studio diterima: Status ' + res.status + ' (' + elapsed + ' ms)', res.ok ? 'success' : 'error');
+
+    const json = await res.json().catch(e => null);
+    document.getElementById('rawJsonViewer').textContent = JSON.stringify(json, null, 2);
+
+    if (res.ok && json && json.candidates && json.candidates[0] && json.candidates[0].content) {
+      const rawText = json.candidates[0].content.parts[0].text;
+      let parsed = null;
+      try {
+        parsed = JSON.parse(rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+      } catch (e) {
+        logMsg('Gagal parsing output teks Gemini ke objek JSON: ' + e.message, 'error');
+      }
+
+      if (parsed) {
+        renderResults(parsed, elapsed);
+        logMsg('SUKSES DIRECT CLOUD: Ekstraksi berhasil langsung dari browser!', 'success');
+      }
+    } else {
+      const errMsg = (json && json.error && json.error.message) ? json.error.message : 'Permintaan ke Google API gagal.';
+      logMsg('ERROR GOOGLE API: ' + errMsg, 'error');
+      alert('Error Google API: ' + errMsg);
+    }
+  }
+
+  function renderResults(data, elapsedMs) {
+    document.getElementById('resultEmptyState').style.display = 'none';
+    document.getElementById('resultContent').style.display = 'block';
+
+    const badge = document.getElementById('execBadge');
+    badge.style.display = 'inline-block';
+    badge.textContent = elapsedMs + ' ms';
+
+    // NIK
+    const nik = (data.nik || '').replace(/\\D/g, '');
+    document.getElementById('resNik').textContent = nik || '-';
+
+    const nikStatusEl = document.getElementById('resNikStatus');
+    if (nik.length === 16) {
+      nikStatusEl.innerHTML = '<span class="status-badge new">Valid 16 Digit Angka</span>';
+    } else if (nik.length > 0) {
+      nikStatusEl.innerHTML = '<span class="status-badge exists">Kurang dari 16 digit (' + nik.length + '/16)</span>';
+    } else {
+      nikStatusEl.innerHTML = '';
+    }
+
+    // Status Duplikasi
+    const dupEl = document.getElementById('resDuplicateStatus');
+    if (data.exists && data.existing_data) {
+      const d = data.existing_data;
+      dupEl.innerHTML = '<span class="status-badge exists">Sudah Terdaftar</span><div style="font-size:11px;color:#fbbf24;margin-top:2px;">Atas nama <strong>' + (d.nama || '') + '</strong> (Jalur ' + (d.jalur || '') + ' - ' + (d.desa || '') + ') oleh petugas <em>' + (d.input_by_user_name || 'Petugas') + '</em>' + (d.tanggal ? ' pada ' + d.tanggal : '') + '</div>';
+    } else {
+      dupEl.innerHTML = '<span class="status-badge new">Tersedia (Belum Terdaftar di Sistem)</span>';
+    }
+
+    document.getElementById('resNama').textContent = data.nama || '-';
+    document.getElementById('resTtl').textContent = data.tempat_tgl_lahir || '-';
+    document.getElementById('resGender').textContent = data.jenis_kelamin || '-';
+    document.getElementById('resAlamat').textContent = data.alamat || '-';
+    document.getElementById('resRtRw').textContent = data.rt_rw || '-';
+    document.getElementById('resDesa').textContent = data.kel_desa || '-';
+    document.getElementById('resKecamatan').textContent = data.kecamatan || '-';
+    document.getElementById('resAgama').textContent = data.agama || '-';
+    document.getElementById('resStatus').textContent = data.status_perkawinan || '-';
+    document.getElementById('resPekerjaan').textContent = data.pekerjaan || '-';
+  }
+</script>
+
+</body>
+</html>
