@@ -123,18 +123,22 @@ foreach ($candidateModels as $model) {
         'Content-Type: application/json',
         'User-Agent: GusDim-OCR-Engine/1.0'
     ]);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 
     $responseRaw = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr = curl_error($ch);
+    $curlErrNo = curl_errno($ch);
     curl_close($ch);
 
     $attempts[] = [
         'model' => $model,
         'http_code' => $httpCode,
+        'curl_errno' => $curlErrNo,
         'error' => $curlErr ?: null
     ];
 
@@ -145,6 +149,9 @@ foreach ($candidateModels as $model) {
             $successfulModel = $model;
             break; // Berhasil
         }
+    } elseif ($curlErrNo === 7 || $curlErrNo === 28) {
+        // Hentikan loop jika terjadi timeout / blokir jaringan di hosting
+        break;
     }
 }
 

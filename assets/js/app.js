@@ -1,3 +1,65 @@
+// Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
+async function callGeminiDirectCloud(dataUrl, model) {
+  model = model || 'gemini-3.5-flash-lite';
+  const rawBase64 = dataUrl.split(',')[1];
+  const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+  const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
+
+  const promptText = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
+    + "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
+    + "Format keluaran WAJIB HANYA JSON murni (valid JSON tanpa tanda kutip markdown) dengan struktur objek: "
+    + "{"
+    + "\"is_ktp\": true, "
+    + "\"nik\": \"16 digit angka NIK murni\", "
+    + "\"nama\": \"Nama lengkap warga\", "
+    + "\"tempat_tgl_lahir\": \"Tempat dan tanggal lahir\", "
+    + "\"jenis_kelamin\": \"LAKI-LAKI atau PEREMPUAN\", "
+    + "\"alamat\": \"Alamat jalan atau dusun\", "
+    + "\"rt_rw\": \"Nomor RT dan RW misal 003/002\", "
+    + "\"kel_desa\": \"Nama desa atau kelurahan\", "
+    + "\"kecamatan\": \"Nama kecamatan\", "
+    + "\"agama\": \"Agama\", "
+    + "\"status_perkawinan\": \"Status perkawinan\", "
+    + "\"pekerjaan\": \"Pekerjaan\""
+    + "} "
+    + "Pedoman penting: "
+    + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
+    + "2. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
+
+  const payload = {
+    contents: [{
+      parts: [
+        { text: promptText },
+        { inline_data: { mime_type: mimeType, data: rawBase64 } }
+      ]
+    }],
+    generationConfig: {
+      response_mime_type: 'application/json',
+      temperature: 0.1
+    }
+  };
+
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    throw new Error('Google API direct HTTP ' + res.status);
+  }
+
+  const json = await res.json();
+  if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
+    const rawText = json.candidates[0].content.parts[0].text;
+    const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    return JSON.parse(cleanText);
+  }
+  throw new Error('Format output Gemini tidak valid');
+}
+
 /**
  * ================================================================
  * REST API ADAPTER & BRIDGE UNTUK SISTEM GUS DIM (cPanel / PHP 8)
@@ -2502,23 +2564,55 @@ window.toggleWebPassword = toggleWebPassword;
         document.getElementById('dropFoto').innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:6px; color:#16a34a; font-weight:600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>Tersimpan dari hasil pindai (opsional: ganti foto)</span></div>';
       }
 
-      statusEl.className = 'ocr-status';
+            statusEl.className = 'ocr-status';
       statusEl.textContent = 'Menganalisis teks e-KTP via AI Gemini Vision...';
 
       const token = (window.currentUser && window.currentUser.token) ? window.currentUser.token : (localStorage.getItem('gusdim_token') || '');
 
-      fetch('api/ocr.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? 'Bearer ' + token : ''
-        },
-        body: JSON.stringify({ image: dataUrl })
-      })
-      .then(function (res) { return res.json(); })
-      .then(function (json) {
-        if (json && json.success && json.data) {
-          const d = json.data;
+      // Jalankan dengan failover otomatis ke Direct Cloud jika backend cPanel timeout
+      (async function() {
+        let extractedData = null;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+          const res = await fetch('api/ocr.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? 'Bearer ' + token : ''
+            },
+            body: JSON.stringify({ image: dataUrl }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const json = await res.json().catch(() => null);
+            if (json && json.success && json.data) {
+              extractedData = json.data;
+            }
+          }
+        } catch (e) {
+          console.warn('Backend OCR error, fallback ke Direct Cloud:', e);
+        }
+
+        if (!extractedData && typeof callGeminiDirectCloud === 'function') {
+          try {
+            statusEl.textContent = 'Menghubungkan langsung ke AI Cloud Engine...';
+            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash-lite');
+          } catch (e) {
+            console.error('Direct Cloud failed:', e);
+          }
+        }
+
+        if (extractedData) {
+          const d = extractedData;
+          if (d.nik) {
+            d.nik = String(d.nik).replace(/\D/g, '');
+            if (d.nik.length > 16) d.nik = d.nik.substring(0, 16);
+          }
           isiFieldOcr(jalur, {
             nik: d.nik || '',
             nama: d.nama || '',
@@ -2528,15 +2622,10 @@ window.toggleWebPassword = toggleWebPassword;
           statusEl.innerHTML = '<div style="display:flex; align-items:flex-start; gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg> <span>Berhasil dipindai via AI Gemini Vision. Mohon verifikasi & periksa kelengkapan data di bawah sebelum disimpan.</span></div>';
         } else {
           statusEl.className = 'ocr-status ocr-status-gagal';
-          statusEl.textContent = (json && json.message) ? json.message : 'KTP belum terbaca jelas. Foto tetap tersimpan - silakan lengkapi form manual.';
+          statusEl.textContent = 'KTP belum terbaca jelas. Foto tetap tersimpan - silakan lengkapi form manual.';
         }
         bukaFormManual(jalur);
-      })
-      .catch(function () {
-        statusEl.className = 'ocr-status ocr-status-gagal';
-        statusEl.textContent = 'Gagal menghubungi server AI OCR. Foto KTP tetap tersimpan - silakan isi manual.';
-        bukaFormManual(jalur);
-      });
+      })();
     } catch (err) {
       statusEl.className = 'ocr-status ocr-status-gagal';
       statusEl.textContent = 'Terjadi kesalahan saat memproses gambar KTP.';

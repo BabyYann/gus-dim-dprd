@@ -459,8 +459,8 @@
         <div class="form-group">
           <label class="form-label">Jalur Eksekusi Uji Coba</label>
           <select id="selectMode" class="form-select" onchange="toggleModeSettings()">
-            <option value="backend" selected>Mode A: Melalui Server Backend (api/ocr.php)</option>
-            <option value="direct">Mode B: Langsung Browser ke Google Gemini API (Direct Cloud)</option>
+            <option value="direct" selected>Mode B: Langsung Browser ke Google Gemini API (Direct Cloud - Rekomendasi Bebas Timeout Hosting)</option>
+            <option value="backend">Mode A: Melalui Server Backend (api/ocr.php)</option>
           </select>
           <div class="form-help">Mode A menguji integrasi cPanel. Mode B menguji langsung ke Google untuk isolasi masalah.</div>
         </div>
@@ -474,7 +474,7 @@
           </select>
         </div>
 
-        <div class="form-group" id="groupApiKey" style="display:none;">
+        <div class="form-group" id="groupApiKey">
           <label class="form-label">Kunci API Gemini (Opsional untuk override)</label>
           <input type="text" id="inputApiKey" class="form-input" placeholder="Kosongkan untuk menggunakan kunci default server">
           <div class="form-help">Otomatis menggunakan kunci default jika dikosongkan.</div>
@@ -587,6 +587,7 @@
   let currentFile = null;
   let currentDataUrl = '';
   let currentImageMeta = { width: 0, height: 0, originalSize: 0, compressedSize: 0 };
+  window.addEventListener('DOMContentLoaded', () => { try { document.getElementById('inputApiKey').value = atob(DEFAULT_KEY_B64); } catch(e){} });
 
   const DEFAULT_KEY_B64 = 'QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=';
 
@@ -769,10 +770,12 @@
         logMsg('Diagnostik: Model ' + json.data.diagnostics.model_used + ', Waktu server ' + json.data.diagnostics.execution_time_ms + ' ms', 'info');
       }
     } else {
-      const msg = (json && json.message) ? json.message : 'Pemindaian gagal.';
-      logMsg('GAGAL: ' + msg, 'warn');
-      if (json && json.detail) logMsg('Detail Error: ' + json.detail, 'error');
-      alert('Hasil: ' + msg);
+      const msg = (json && json.message) ? json.message : 'Pemindaian backend server gagal.';
+      logMsg('GAGAL VIA BACKEND: ' + msg, 'warn');
+      if (json && json.attempts) logMsg('Daftar Percobaan cURL Server: ' + JSON.stringify(json.attempts), 'error');
+
+      logMsg('MENGALIHKAN OTOMATIS: Server cPanel mengalami timeout/firewall. Menjalankan Mode B (Direct Cloud)...', 'warn');
+      await executeDirectCloudMode(model, customKey, startTime);
     }
   }
 

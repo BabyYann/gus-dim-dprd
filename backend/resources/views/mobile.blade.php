@@ -6742,7 +6742,69 @@ function parseHasilOcrKtpMobile(teks) {
   return hasil;
 }
 
-// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI
+// Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
+async function callGeminiDirectCloud(dataUrl, model) {
+  model = model || 'gemini-3.5-flash-lite';
+  const rawBase64 = dataUrl.split(',')[1];
+  const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+  const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
+
+  const promptText = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
+    + "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
+    + "Format keluaran WAJIB HANYA JSON murni (valid JSON tanpa tanda kutip markdown) dengan struktur objek: "
+    + "{"
+    + "\"is_ktp\": true, "
+    + "\"nik\": \"16 digit angka NIK murni\", "
+    + "\"nama\": \"Nama lengkap warga\", "
+    + "\"tempat_tgl_lahir\": \"Tempat dan tanggal lahir\", "
+    + "\"jenis_kelamin\": \"LAKI-LAKI atau PEREMPUAN\", "
+    + "\"alamat\": \"Alamat jalan atau dusun\", "
+    + "\"rt_rw\": \"Nomor RT dan RW misal 003/002\", "
+    + "\"kel_desa\": \"Nama desa atau kelurahan\", "
+    + "\"kecamatan\": \"Nama kecamatan\", "
+    + "\"agama\": \"Agama\", "
+    + "\"status_perkawinan\": \"Status perkawinan\", "
+    + "\"pekerjaan\": \"Pekerjaan\""
+    + "} "
+    + "Pedoman penting: "
+    + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
+    + "2. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
+
+  const payload = {
+    contents: [{
+      parts: [
+        { text: promptText },
+        { inline_data: { mime_type: mimeType, data: rawBase64 } }
+      ]
+    }],
+    generationConfig: {
+      response_mime_type: 'application/json',
+      temperature: 0.1
+    }
+  };
+
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    throw new Error('Google API direct HTTP ' + res.status);
+  }
+
+  const json = await res.json();
+  if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
+    const rawText = json.candidates[0].content.parts[0].text;
+    const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    return JSON.parse(cleanText);
+  }
+  throw new Error('Format output Gemini tidak valid');
+}
+
+// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover
 async function handleOcrFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -6776,9 +6838,15 @@ async function handleOcrFile(event) {
 
         showToast('Menganalisis teks e-KTP secara presisi...', 'info');
 
+        let extractedData = null;
+
+        // Jalur 1: Coba Backend Server (api/ocr.php) dengan AbortController timeout 6 detik
         try {
           const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
           const token = localStorage.getItem('gusdim_mobile_token') || localStorage.getItem('gusdim_token') || '';
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
 
           const res = await fetch(apiBase + '/ocr.php', {
             method: 'POST',
@@ -6786,81 +6854,102 @@ async function handleOcrFile(event) {
               'Content-Type': 'application/json',
               'Authorization': token ? 'Bearer ' + token : ''
             },
-            body: JSON.stringify({ image: dataUrl })
+            body: JSON.stringify({ image: dataUrl }),
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
 
-          const json = await res.json().catch(function () { return null; });
+          if (res.ok) {
+            const json = await res.json().catch(function () { return null; });
+            if (json && json.success && json.data) {
+              extractedData = json.data;
+            }
+          }
+        } catch (backendErr) {
+          console.warn('Backend server timeout/unreachable, beralih ke Direct Cloud:', backendErr);
+        }
 
-          if (json && json.success && json.data) {
-            const d = json.data;
-            const inNik = document.getElementById('formNik');
-            const inNama = document.getElementById('formNama');
-            const inAlamat = document.getElementById('formAlamat');
-            const inKec = document.getElementById('formKecamatan');
-            const inDesa = document.getElementById('formDesa');
+        // Jalur 2: Direct Cloud Failover jika backend timeout/terblokir cPanel firewall
+        if (!extractedData && typeof callGeminiDirectCloud === 'function') {
+          try {
+            showToast('Menghubungkan langsung ke AI Cloud Engine...', 'info');
+            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash-lite');
+          } catch (cloudErr) {
+            console.error('Direct Cloud Error:', cloudErr);
+          }
+        }
 
-            let count = 0;
-            if (d.nik && inNik) {
-              inNik.value = d.nik;
-              count++;
-              if (typeof window.handleMobileNikInput === 'function') {
-                window.handleMobileNikInput(d.nik);
+        if (extractedData) {
+          const d = extractedData;
+          const inNik = document.getElementById('formNik');
+          const inNama = document.getElementById('formNama');
+          const inAlamat = document.getElementById('formAlamat');
+          const inKec = document.getElementById('formKecamatan');
+          const inDesa = document.getElementById('formDesa');
+
+          // Normalisasi NIK murni angka 16 digit
+          if (d.nik) {
+            d.nik = String(d.nik).replace(/\D/g, '');
+            if (d.nik.length > 16) d.nik = d.nik.substring(0, 16);
+          }
+
+          let count = 0;
+          if (d.nik && inNik) {
+            inNik.value = d.nik;
+            count++;
+            if (typeof window.handleMobileNikInput === 'function') {
+              window.handleMobileNikInput(d.nik);
+            }
+          }
+          if (d.nama && inNama) {
+            inNama.value = d.nama;
+            count++;
+          }
+
+          // Gabungkan alamat, RT/RW, Dusun
+          let fullAlamat = d.alamat || '';
+          if (d.rt_rw && !fullAlamat.includes(d.rt_rw)) {
+            fullAlamat += (fullAlamat ? ' RT/RW ' : '') + d.rt_rw;
+          }
+          if (fullAlamat && inAlamat) {
+            inAlamat.value = fullAlamat.trim();
+            count++;
+          }
+
+          // Otomatisasi pemilihan dropdown Kecamatan (Kraksaan, Besuk, Gading)
+          if (d.kecamatan && inKec) {
+            const dKec = d.kecamatan.toLowerCase();
+            for (let i = 0; i < inKec.options.length; i++) {
+              if (inKec.options[i].value && dKec.includes(inKec.options[i].value.toLowerCase())) {
+                inKec.selectedIndex = i;
+                if (typeof updateDesaDropdown === 'function') {
+                  updateDesaDropdown(inKec.value);
+                }
+                break;
               }
             }
-            if (d.nama && inNama) {
-              inNama.value = d.nama;
-              count++;
-            }
+          }
 
-            // Gabungkan alamat, RT/RW, Dusun
-            let fullAlamat = d.alamat || '';
-            if (d.rt_rw && !fullAlamat.includes(d.rt_rw)) {
-              fullAlamat += (fullAlamat ? ' RT/RW ' : '') + d.rt_rw;
-            }
-            if (fullAlamat && inAlamat) {
-              inAlamat.value = fullAlamat.trim();
-              count++;
-            }
-
-            // Otomatisasi pemilihan dropdown Kecamatan (Kraksaan, Besuk, Gading)
-            if (d.kecamatan && inKec) {
-              const dKec = d.kecamatan.toLowerCase();
-              for (let i = 0; i < inKec.options.length; i++) {
-                if (inKec.options[i].value && dKec.includes(inKec.options[i].value.toLowerCase())) {
-                  inKec.selectedIndex = i;
-                  if (typeof updateDesaDropdown === 'function') {
-                    updateDesaDropdown(inKec.value);
-                  }
+          // Otomatisasi pemilihan dropdown Desa
+          if (d.kel_desa && inDesa) {
+            const dDesa = d.kel_desa.toLowerCase();
+            setTimeout(function () {
+              for (let i = 0; i < inDesa.options.length; i++) {
+                if (inDesa.options[i].value && dDesa.includes(inDesa.options[i].value.toLowerCase())) {
+                  inDesa.selectedIndex = i;
                   break;
                 }
               }
-            }
-
-            // Otomatisasi pemilihan dropdown Desa
-            if (d.kel_desa && inDesa) {
-              const dDesa = d.kel_desa.toLowerCase();
-              setTimeout(function () {
-                for (let i = 0; i < inDesa.options.length; i++) {
-                  if (inDesa.options[i].value && dDesa.includes(inDesa.options[i].value.toLowerCase())) {
-                    inDesa.selectedIndex = i;
-                    break;
-                  }
-                }
-              }, 120);
-            }
-
-            if (count > 0) {
-              showToast('KTP Berhasil Dipindai dengan AI Gemini Vision! NIK dan Nama terisi otomatis.', 'success');
-            } else {
-              showToast('Data KTP belum lengkap terbaca. Mohon lengkapi manual.', 'warning');
-            }
-          } else {
-            const msg = (json && json.message) ? json.message : 'KTP belum terbaca jelas. Mohon posisikan kartu di dalam bingkai foto.';
-            showToast(msg, 'warning');
+            }, 120);
           }
-        } catch (apiErr) {
-          console.error('OCR API Error:', apiErr);
-          showToast('Gagal menghubungi server AI OCR. Silakan lengkapi form manual.', 'warning');
+
+          if (count > 0) {
+            showToast('KTP Berhasil Dipindai dengan AI Gemini Vision! NIK dan Nama terisi otomatis.', 'success');
+          } else {
+            showToast('Data KTP belum lengkap terbaca. Mohon lengkapi manual.', 'warning');
+          }
+        } else {
+          showToast('KTP belum terbaca jelas. Mohon posisikan kartu di dalam bingkai foto.', 'warning');
         }
       };
       img.src = e.target.result;
