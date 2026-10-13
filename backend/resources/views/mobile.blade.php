@@ -209,21 +209,22 @@ html, body {
    ========================================================================== */
 .mobile-header {
   flex-shrink: 0;
-  padding-top: max(var(--safe-top), 8px);
-  padding-left: 14px;
-  padding-right: 14px;
-  padding-bottom: 10px;
-  background: linear-gradient(135deg, #16225e 0%, #1e3a8a 100%);
-  color: var(--text-inverse);
-  box-shadow: var(--shadow-md);
+  padding-top: max(var(--safe-top), 10px);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 24px;
+  background: #091a3a url('assets/img/header-bg.png') no-repeat center top / cover;
+  color: #ffffff;
+  position: relative;
   z-index: 30;
+  border-bottom: none;
 }
 
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 44px;
+  height: 48px;
 }
 
 .header-left {
@@ -232,20 +233,40 @@ html, body {
   gap: 10px;
 }
 
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.header-avatar-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
 }
 
 .header-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--accent-gold);
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 2px solid #eab308;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.45);
   object-fit: cover;
   background-color: #ffffff;
-  flex-shrink: 0;
+  display: block;
+}
+
+.header-avatar-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #22c55e;
+  border: 2px solid #071938;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .header-title-box {
@@ -254,50 +275,84 @@ html, body {
 }
 
 .header-app-title {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  line-height: 1.1;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+  color: #ffffff;
+}
+
+.header-app-title .title-mobile {
+  color: #facc15;
+  font-weight: 900;
 }
 
 .header-badge-dapil {
-  font-size: 10px;
-  color: #fbbf24;
-  font-weight: 600;
+  font-size: 9.5px;
+  color: #7dd3fc;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.header-badge-dapil svg {
+  width: 10px !important;
+  height: 10px !important;
+  min-width: 10px !important;
+  min-height: 10px !important;
+  stroke: #7dd3fc;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.header-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.header-glass-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  position: relative;
   text-decoration: none;
 }
 
-.header-btn:active {
+.header-glass-btn:active {
   transform: scale(0.92);
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-.header-btn svg {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
+.header-glass-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  stroke: #ffffff;
+}
+
+.header-notif-dot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #ef4444;
+  border: 1.5px solid #0a1b3c;
 }
 
 /* Offline Banner */
@@ -534,18 +589,20 @@ html, body {
 /* ==========================================================================
    BOTTOM NAVIGATION BAR
    ========================================================================== */
+/* ==========================================================================
+   BOTTOM NAVIGATION BAR (EXACT REFERENCE 5-TAB + CENTER FAB)
+   ========================================================================== */
 .mobile-bottom-nav {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(var(--bottom-nav-height) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: rgba(255, 255, 255, 0.96);
+  height: 68px;
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border-color);
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
+  border-top: 1px solid #f1f5f9;
+  box-shadow: 0 -8px 25px rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -559,63 +616,70 @@ html, body {
   justify-content: center;
   flex: 1;
   height: 100%;
-  color: var(--text-muted);
+  color: #64748b;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   position: relative;
   text-decoration: none;
 }
 
-.nav-item svg {
-  width: 22px;
-  height: 22px;
-  stroke: currentColor;
-  stroke-width: 2;
+.nav-item-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 2px;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .nav-item.active {
-  color: var(--primary-light);
-  font-weight: 700;
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.nav-item.active .nav-item-icon-box {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.nav-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  stroke: currentColor;
+  stroke-width: 2.2;
 }
 
 .nav-item.active svg {
-  stroke: var(--primary-light);
-  transform: translateY(-2px);
-}
-
-.nav-item.active::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  width: 18px;
-  height: 3px;
-  background-color: var(--primary-light);
-  border-radius: var(--radius-full);
+  stroke: #ffffff;
 }
 
 /* Center Raised Floating Action Button */
-.nav-fab-container {
+.nav-fab-box {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   position: relative;
   height: 100%;
 }
 
-.nav-fab {
+.nav-fab-btn {
   position: absolute;
   top: -18px;
   width: 52px;
   height: 52px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #16225e 0%, #2563eb 100%);
-  border: 3px solid #ffffff;
-  box-shadow: var(--shadow-fab);
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  border: 3.5px solid #ffffff;
+  box-shadow: 0 8px 20px rgba(234, 88, 12, 0.38);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -624,21 +688,643 @@ html, body {
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
 }
 
-.nav-fab:active {
-  transform: scale(0.9) translateY(2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+.nav-fab-btn:active {
+  transform: scale(0.92) translateY(2px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
 }
 
-.nav-fab svg {
-  width: 26px;
-  height: 26px;
+.nav-fab-btn svg {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
   stroke: #ffffff;
-  stroke-width: 2.4;
+  stroke-width: 2.8;
+}
+
+.nav-fab-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d97706;
+  margin-top: 32px;
+}
+
+/* iOS Home Indicator Bar */
+.ios-home-bar {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  background: #0f172a;
+  border-radius: 9999px;
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 /* ==========================================================================
-   CARDS & KPI WIDGETS
+   REVAMPED DASHBOARD WIDGETS (EXACT REFERENCE DESIGN)
    ========================================================================== */
+
+/* 1. Welcome Card Banner with Gold Wave Ribbon */
+.welcome-card-banner {
+  margin-top: -16px;
+  background: #ffffff;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  padding: 22px 18px 14px;
+  position: relative;
+  box-shadow: 0 -10px 25px rgba(9, 26, 58, 0.12);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.welcome-wave-ribbon {
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(90deg, rgba(180, 131, 32, 0.6) 0%, rgba(250, 204, 21, 0.9) 35%, rgba(234, 179, 8, 0.9) 70%, rgba(202, 138, 4, 0.6) 100%);
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  opacity: 0.85;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.welcome-info {
+  flex: 1;
+}
+
+.welcome-greeting {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.welcome-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0b193d;
+  letter-spacing: -0.6px;
+  line-height: 1.15;
+  margin: 1px 0 3px;
+}
+
+.welcome-subtitle {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.welcome-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.welcome-filter-pill svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: #475569;
+}
+
+/* 2. 3D Donut Gauge & Metrics Card */
+.dashboard-kpi-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 16px;
+  margin: 0 16px 14px;
+  border: 1px solid #eef2f6;
+  box-shadow: 0 10px 25px rgba(22, 34, 94, 0.05);
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.donut-gauge-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 154px;
+  height: 154px;
+  margin: 0 auto;
+}
+
+.donut-svg-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-user-icon {
+  width: 22px;
+  height: 22px;
+  color: #2563eb;
+  margin-bottom: 2px;
+}
+
+.donut-user-icon svg {
+  width: 22px !important;
+  height: 22px !important;
+  stroke: #2563eb;
+}
+
+.donut-total-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.donut-total-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 2px;
+}
+
+.donut-growth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #16a34a;
+  margin-top: 2px;
+}
+
+.donut-growth-badge svg {
+  width: 9px !important;
+  height: 9px !important;
+  stroke: #16a34a;
+}
+
+.donut-growth-sub {
+  font-size: 8.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Metric Stack on Right */
+.metric-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metric-pill-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metric-icon-square {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon-square.green { background: #dcfce7; color: #10b981; }
+.metric-icon-square.orange { background: #fef3c7; color: #f59e0b; }
+.metric-icon-square.purple { background: #ede9fe; color: #6366f1; }
+
+.metric-icon-square svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.metric-data-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.metric-value-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.metric-label-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.metric-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-progress-track {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.metric-progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.metric-progress-bar.green { background: #10b981; }
+.metric-progress-bar.orange { background: #f59e0b; }
+.metric-progress-bar.purple { background: #6366f1; }
+
+.metric-pct-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  min-width: 28px;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 3. Sebaran Pendukung Card */
+.sebaran-card-wrap {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 16px;
+  margin: 0 16px 14px;
+  border: 1px solid #eef2f6;
+  box-shadow: 0 10px 25px rgba(22, 34, 94, 0.05);
+}
+
+.sebaran-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sebaran-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sebaran-title-group svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: #16225e;
+}
+
+.sebaran-title-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.sebaran-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+
+.sebaran-pill-btn svg {
+  width: 12px !important;
+  height: 12px !important;
+  stroke: #2563eb;
+}
+
+.sebaran-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.district-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.district-row-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.district-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.district-info-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.district-name-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  line-height: 1.2;
+}
+
+.district-val-text {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+
+.district-progress-track {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+.district-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  border-radius: 9999px;
+}
+
+.district-pct-text {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  margin-left: 4px;
+}
+
+.district-chevron svg {
+  width: 13px !important;
+  height: 13px !important;
+  stroke: #94a3b8;
+}
+
+.map-container-box {
+  position: relative;
+  background: #f0f9ff;
+  border-radius: 16px;
+  border: 1px solid #e0f2fe;
+  overflow: hidden;
+  height: 156px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-graphic-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 4. Menu Cepat (Quick Action Grid) */
+.menu-cepat-card {
+  margin: 0 16px 16px;
+}
+
+.menu-cepat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.menu-cepat-title-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-cepat-title-box svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: #16225e;
+}
+
+.menu-cepat-title-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.menu-cepat-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.menu-cepat-all-btn svg {
+  width: 13px !important;
+  height: 13px !important;
+  stroke: #2563eb;
+}
+
+.menu-cepat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 6px;
+  text-align: center;
+}
+
+.menu-cepat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.menu-cepat-item:active {
+  transform: scale(0.92);
+}
+
+.menu-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.menu-icon-circle svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.menu-icon-circle.entri { background: #ffedd5; color: #ea580c; }
+.menu-icon-circle.pendukung { background: #dbeafe; color: #2563eb; }
+.menu-icon-circle.aspirasi { background: #dcfce7; color: #16a34a; }
+.menu-icon-circle.peta { background: #f3e8ff; color: #9333ea; }
+.menu-icon-circle.pokir { background: #e0f2fe; color: #0284c7; }
+.menu-icon-circle.leaderboard { background: #fef9c3; color: #ca8a04; }
+.menu-icon-circle.dokumen { background: #ffe4e6; color: #e11d48; }
+.menu-icon-circle.pengaturan { background: #f1f5f9; color: #475569; }
+
+.menu-item-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.menu-item-sub {
+  font-size: 9.5px;
+  color: #94a3b8;
+  margin-top: 1px;
+  line-height: 1.1;
+}
+
+/* 5. Promo Banner Card */
+.promo-banner-card {
+  margin: 0 16px 20px;
+  border-radius: 20px;
+  padding: 16px;
+  background: linear-gradient(90deg, rgba(8, 22, 51, 0.96) 0%, rgba(10, 26, 61, 0.78) 55%, rgba(10, 26, 61, 0.35) 100%), url('assets/img/banner-promo.png') no-repeat right center / cover;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 10px 25px rgba(8, 22, 51, 0.22);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-banner-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.promo-bulb-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #fef3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+}
+
+.promo-bulb-badge svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: #d97706;
+}
+
+.promo-text-wrap {
+  flex: 1;
+}
+
+.promo-title-text {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.promo-desc-text {
+  font-size: 10px;
+  color: #cbd5e1;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.promo-arrow-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.promo-arrow-btn svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke: #0f172a;
+}
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -646,98 +1332,6 @@ html, body {
   padding: 16px;
   margin-bottom: 14px;
   box-shadow: var(--shadow-sm);
-}
-
-/* KPI Summary Cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.kpi-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-}
-
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background-color: var(--primary-light);
-}
-
-.kpi-card.gold::before { background-color: var(--accent-gold); }
-.kpi-card.green::before { background-color: var(--success); }
-.kpi-card.info::before { background-color: var(--info); }
-.kpi-card.purple::before { background-color: var(--purple); }
-
-.kpi-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.kpi-title {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.kpi-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary-subtle);
-  color: var(--primary-light);
-}
-
-.kpi-icon.gold { background-color: var(--accent-gold-light); color: var(--accent-gold); }
-.kpi-icon.green { background-color: var(--success-light); color: var(--success); }
-.kpi-icon.info { background-color: var(--info-light); color: var(--info); }
-.kpi-icon.purple { background-color: var(--purple-light); color: var(--purple); }
-
-.kpi-icon svg {
-  width: 15px;
-  height: 15px;
-  stroke: currentColor;
-}
-
-.kpi-value {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.1;
-}
-
-.kpi-subtext {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-/* Quick Navigation Shortcut Grid */
-.shortcut-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
 }
 
 /* ==========================================================================
@@ -2484,24 +3078,26 @@ html, body {
     <header class="mobile-header">
       <div class="header-inner">
         <div class="header-left">
-          <button type="button" id="btnOpenDrawer" class="header-btn" title="Buka Menu Navigasi">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;min-width:20px;min-height:20px;max-width:20px;max-height:20px;"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-          </button>
-          <div class="header-brand">
-            <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="header-avatar" width="36" height="36">
-            <div class="header-title-box">
-              <span class="header-app-title">GUS DIM MOBILE</span>
-              <span class="header-badge-dapil">Dapil Kraksaan Raya</span>
-            </div>
+          <div class="header-avatar-wrap" onclick="navigatePage('profil')" style="cursor:pointer;" title="Lihat Profil Saya">
+            <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="header-avatar" width="44" height="44">
+            <span class="header-avatar-badge"></span>
+          </div>
+          <div class="header-title-box">
+            <span class="header-app-title">GUS DIM <span class="title-mobile">MOBILE</span></span>
+            <span class="header-badge-dapil">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              DAPIL KRAKSAAN RAYA
+            </span>
           </div>
         </div>
 
-        <div class="header-actions" style="display:flex;align-items:center;gap:6px;">
-          <button type="button" id="btnRefresh" class="header-btn" title="Sinkronisasi Data">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        <div class="header-actions">
+          <button type="button" id="btnRefresh" class="header-glass-btn" title="Notifikasi &amp; Sinkronisasi">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span class="header-notif-dot"></span>
           </button>
-          <button type="button" id="btnHeaderProfile" class="header-btn" title="Profil Saya" onclick="navigatePage('profil')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <button type="button" id="btnOpenDrawer" class="header-glass-btn" title="Buka Menu Navigasi">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
           </button>
         </div>
       </div>
@@ -2637,134 +3233,285 @@ html, body {
       <!-- ==========================================
            HALAMAN 1: DASHBOARD (BERANDA UTAMA)
            ========================================== -->
-      <section id="page-dashboard" class="tab-pane active">
+      <section id="page-dashboard" class="tab-pane active" style="padding-left:0;padding-right:0;">
 
-        
-          
-
-        <!-- Quick Shortcut Grid (6 Akses Cepat Modul Utama 3x2) -->
-        <div class="shortcut-grid">
-          <div class="shortcut-tile" onclick="navigatePage('input')" style="border-color:#fbbf24;background:#fffbeb;">
-            <div class="shortcut-icon" style="background:#fef3c7;color:#d97706;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px;height:20px;min-width:20px;min-height:20px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </div>
-            <span class="shortcut-label" style="font-weight:700;color:#92400e;">Entri 5 Jalur</span>
+        <!-- 1. Welcome Card Banner with Gold Wave Ribbon -->
+        <div class="welcome-card-banner">
+          <div class="welcome-wave-ribbon"></div>
+          <div class="welcome-info">
+            <div class="welcome-greeting">Selamat datang, Gus Dim</div>
+            <div class="welcome-name">Dashboard Relawan</div>
+            <div class="welcome-subtitle">Pantau pergerakan konstituen &amp; aspirasi Dapil Kraksaan Raya secara real-time.</div>
           </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('pendukung')">
-            <div class="shortcut-icon" style="background:#eff6ff;color:#2563eb;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <span class="shortcut-label">Pendukung</span>
-          </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('aspirasi')">
-            <div class="shortcut-icon" style="background:#f0fdf4;color:#16a34a;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </div>
-            <span class="shortcut-label">Aspirasi</span>
-          </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('reses')">
-            <div class="shortcut-icon" style="background:#e0f2fe;color:#0284c7;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
-            </div>
-            <span class="shortcut-label">Pokir APBD</span>
-          </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('peta')">
-            <div class="shortcut-icon" style="background:#faf5ff;color:#9333ea;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
-            </div>
-            <span class="shortcut-label">Peta Sebaran</span>
-          </div>
-
-          <div class="shortcut-tile" onclick="navigatePage('leaderboard')">
-            <div class="shortcut-icon" style="background:#fff7ed;color:#ea580c;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-            </div>
-            <span class="shortcut-label">Leaderboard</span>
+          <div class="welcome-filter-pill" onclick="showToast('Periode aktif: Tahun Anggaran 2025')">
+            <span>Tahun 2025</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
 
-        <!-- KPI Grid 2x2 -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-title">Total Pendukung</span>
-              <div class="kpi-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <!-- 2. 3D Donut Gauge KPI Card -->
+        <div class="dashboard-kpi-card">
+          <!-- Donut Ring Column -->
+          <div class="donut-gauge-box">
+            <svg class="donut-svg-ring" viewBox="0 0 160 160">
+              <!-- Background Ring Track -->
+              <circle cx="80" cy="80" r="65" fill="none" stroke="#f1f5f9" stroke-width="16" />
+              <!-- Multi-segment Colored Ring -->
+              <!-- Segment 1: Terverifikasi (Emerald #10b981) -->
+              <circle id="donutSegVerif" cx="80" cy="80" r="65" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" stroke-dasharray="326 408" stroke-dashoffset="0" />
+              <!-- Segment 2: Aspirasi (Amber #f59e0b) -->
+              <circle id="donutSegAspirasi" cx="80" cy="80" r="65" fill="none" stroke="#f59e0b" stroke-width="16" stroke-linecap="round" stroke-dasharray="49 408" stroke-dashoffset="-330" />
+              <!-- Segment 3: Pokir (Indigo #6366f1) -->
+              <circle id="donutSegPokir" cx="80" cy="80" r="65" fill="none" stroke="#6366f1" stroke-width="16" stroke-linecap="round" stroke-dasharray="33 408" stroke-dashoffset="-382" />
+            </svg>
+            <div class="donut-gauge-center">
+              <div class="donut-user-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div id="donutTotalPendukung" class="donut-total-val">0</div>
+              <div class="donut-total-lbl">Total Pendukung</div>
+              <div class="donut-growth-badge">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                <span>+12%</span>
+                <span class="donut-growth-sub">bln lalu</span>
               </div>
             </div>
-            <div id="kpiTotalPendukung" class="kpi-value">0</div>
-            <div class="kpi-subtext">Warga Dapil Terdata</div>
           </div>
 
-          <div class="kpi-card green">
-            <div class="kpi-header">
-              <span class="kpi-title">Terverifikasi</span>
-              <div class="kpi-icon green">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <!-- Metric Stack on Right -->
+          <div class="metric-stack">
+            <!-- Metric 1: Terverifikasi -->
+            <div class="metric-pill-item" onclick="navigatePage('pendukung')" style="cursor:pointer;">
+              <div class="metric-icon-square green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div class="metric-data-col">
+                <div class="metric-header-row">
+                  <span id="valTerverifikasi" class="metric-value-text">0</span>
+                  <span class="metric-label-text">Terverifikasi</span>
+                </div>
+                <div class="metric-progress-wrap">
+                  <div class="metric-progress-track">
+                    <div id="barTerverifikasi" class="metric-progress-bar green" style="width: 80%;"></div>
+                  </div>
+                  <span id="pctTerverifikasi" class="metric-pct-text">80%</span>
+                </div>
               </div>
             </div>
-            <div id="kpiTerverifikasi" class="kpi-value">0</div>
-            <div class="kpi-subtext">KTP &amp; Berkas Valid</div>
-          </div>
 
-          <div class="kpi-card gold">
-            <div class="kpi-header">
-              <span class="kpi-title">Aspirasi Warga</span>
-              <div class="kpi-icon gold">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <!-- Metric 2: Aspirasi Warga -->
+            <div class="metric-pill-item" onclick="navigatePage('aspirasi')" style="cursor:pointer;">
+              <div class="metric-icon-square orange">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="metric-data-col">
+                <div class="metric-header-row">
+                  <span id="valAspirasi" class="metric-value-text">0</span>
+                  <span class="metric-label-text">Aspirasi Warga</span>
+                </div>
+                <div class="metric-progress-wrap">
+                  <div class="metric-progress-track">
+                    <div id="barAspirasi" class="metric-progress-bar orange" style="width: 12%;"></div>
+                  </div>
+                  <span id="pctAspirasi" class="metric-pct-text">12%</span>
+                </div>
               </div>
             </div>
-            <div id="kpiTotalAspirasi" class="kpi-value">0</div>
-            <div class="kpi-subtext">Usulan Lapangan</div>
-          </div>
 
-          <div class="kpi-card info">
-            <div class="kpi-header">
-              <span class="kpi-title">Pokir APBD</span>
-              <div class="kpi-icon info">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+            <!-- Metric 3: Pokir APBD -->
+            <div class="metric-pill-item" onclick="navigatePage('reses')" style="cursor:pointer;">
+              <div class="metric-icon-square purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+              </div>
+              <div class="metric-data-col">
+                <div class="metric-header-row">
+                  <span id="valPokir" class="metric-value-text">0</span>
+                  <span class="metric-label-text">Pokir APBD</span>
+                </div>
+                <div class="metric-progress-wrap">
+                  <div class="metric-progress-track">
+                    <div id="barPokir" class="metric-progress-bar purple" style="width: 8%;"></div>
+                  </div>
+                  <span id="pctPokir" class="metric-pct-text">8%</span>
+                </div>
               </div>
             </div>
-            <div id="kpiTotalPokir" class="kpi-value">0</div>
-            <div class="kpi-subtext">Program Dewan 2025</div>
           </div>
         </div>
 
-        <!-- Sebaran Suara 3 Kecamatan -->
-        <div class="card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <span style="font-size:14px;font-weight:700;color:#0f172a;">Sebaran 3 Kecamatan Dapil</span>
-            <span style="font-size:11px;font-weight:600;color:#2563eb;background:#eff6ff;padding:2px 8px;border-radius:999px;">Kraksaan Raya</span>
+        <!-- 3. Sebaran Pendukung Card -->
+        <div class="sebaran-card-wrap">
+          <div class="sebaran-header">
+            <div class="sebaran-title-group">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span class="sebaran-title-text">Sebaran Pendukung</span>
+            </div>
+            <button type="button" class="sebaran-pill-btn" onclick="navigatePage('peta')" title="Buka Peta Wilayah">
+              <span>Kraksaan Raya</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#0f172a;">Kecamatan Kraksaan</div>
-                <div style="font-size:11px;color:#64748b;">Ibu Kota Dapil &bull; 13 Desa/Kelurahan</div>
+          <div class="sebaran-content-grid">
+            <!-- Left: District Rows -->
+            <div class="district-list-col">
+              <!-- District 1: Kraksaan -->
+              <div class="district-row-item" onclick="filterByDistrict('Kraksaan')">
+                <img src="assets/img/thumb-kraksaan.png" alt="Kraksaan" class="district-thumb">
+                <div class="district-info-col">
+                  <div class="district-name-text">Kraksaan</div>
+                  <div id="valKecKraksaan" class="district-val-text">0</div>
+                  <div class="district-progress-track">
+                    <div id="barKecKraksaan" class="district-progress-bar" style="width: 54%;"></div>
+                  </div>
+                </div>
+                <span id="pctKecKraksaan" class="district-pct-text">54%</span>
+                <div class="district-chevron">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
               </div>
-              <span id="kecKraksaanVal" style="font-size:15px;font-weight:800;color:#16225e;">0</span>
+
+              <!-- District 2: Besuk -->
+              <div class="district-row-item" onclick="filterByDistrict('Besuk')">
+                <img src="assets/img/thumb-besuk.png" alt="Besuk" class="district-thumb">
+                <div class="district-info-col">
+                  <div class="district-name-text">Besuk</div>
+                  <div id="valKecBesuk" class="district-val-text">0</div>
+                  <div class="district-progress-track">
+                    <div id="barKecBesuk" class="district-progress-bar" style="width: 28%;"></div>
+                  </div>
+                </div>
+                <span id="pctKecBesuk" class="district-pct-text">28%</span>
+                <div class="district-chevron">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+
+              <!-- District 3: Gading -->
+              <div class="district-row-item" onclick="filterByDistrict('Gading')">
+                <img src="assets/img/thumb-gading.png" alt="Gading" class="district-thumb">
+                <div class="district-info-col">
+                  <div class="district-name-text">Gading</div>
+                  <div id="valKecGading" class="district-val-text">0</div>
+                  <div class="district-progress-track">
+                    <div id="barKecGading" class="district-progress-bar" style="width: 18%;"></div>
+                  </div>
+                </div>
+                <span id="pctKecGading" class="district-pct-text">18%</span>
+                <div class="district-chevron">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#0f172a;">Kecamatan Besuk</div>
-                <div style="font-size:11px;color:#64748b;">Wilayah Penyangga &bull; 9 Desa</div>
+            <!-- Right: Interactive Vector Map Card -->
+            <div class="map-container-box" onclick="navigatePage('peta')" style="cursor:pointer;" title="Buka Peta Interaktif">
+              <img src="assets/img/map-sebaran.png" alt="Peta Sebaran Kraksaan Raya" class="map-graphic-img">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Menu Cepat (Quick Action Grid 2x4) -->
+        <div class="menu-cepat-card">
+          <div class="menu-cepat-header">
+            <div class="menu-cepat-title-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+              <span class="menu-cepat-title-text">Menu Cepat</span>
+            </div>
+            <a href="#drawer" class="menu-cepat-all-btn" onclick="openDrawer(); return false;">
+              <span>Semua Menu</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <div class="menu-cepat-grid">
+            <!-- 1. Entri 5 Jalur -->
+            <div class="menu-cepat-item" onclick="navigatePage('input')">
+              <div class="menu-icon-circle entri">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </div>
-              <span id="kecBesukVal" style="font-size:15px;font-weight:800;color:#16225e;">0</span>
+              <span class="menu-item-title">Entri 5 Jalur</span>
+              <span class="menu-item-sub">Input Cepat</span>
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#0f172a;">Kecamatan Gading</div>
-                <div style="font-size:11px;color:#64748b;">Wilayah Selatan &bull; 9 Desa</div>
+            <!-- 2. Pendukung -->
+            <div class="menu-cepat-item" onclick="navigatePage('pendukung')">
+              <div class="menu-icon-circle pendukung">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
-              <span id="kecGadingVal" style="font-size:15px;font-weight:800;color:#16225e;">0</span>
+              <span class="menu-item-title">Pendukung</span>
+              <span class="menu-item-sub">Konstituen</span>
             </div>
+
+            <!-- 3. Aspirasi -->
+            <div class="menu-cepat-item" onclick="navigatePage('aspirasi')">
+              <div class="menu-icon-circle aspirasi">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <span class="menu-item-title">Aspirasi</span>
+              <span class="menu-item-sub">Usulan Warga</span>
+            </div>
+
+            <!-- 4. Peta Sebaran -->
+            <div class="menu-cepat-item" onclick="navigatePage('peta')">
+              <div class="menu-icon-circle peta">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+              </div>
+              <span class="menu-item-title">Peta Sebaran</span>
+              <span class="menu-item-sub">Geospasial GIS</span>
+            </div>
+
+            <!-- 5. Pokir APBD -->
+            <div class="menu-cepat-item" onclick="navigatePage('reses')">
+              <div class="menu-icon-circle pokir">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+              </div>
+              <span class="menu-item-title">Pokir APBD</span>
+              <span class="menu-item-sub">Reses Dewan</span>
+            </div>
+
+            <!-- 6. Leaderboard -->
+            <div class="menu-cepat-item" onclick="navigatePage('leaderboard')">
+              <div class="menu-icon-circle leaderboard">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+              </div>
+              <span class="menu-item-title">Leaderboard</span>
+              <span class="menu-item-sub">Kinerja Tim</span>
+            </div>
+
+            <!-- 7. Dokumen -->
+            <div class="menu-cepat-item" onclick="openDrawer()">
+              <div class="menu-icon-circle dokumen">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <span class="menu-item-title">Dokumen</span>
+              <span class="menu-item-sub">Arsip &amp; Log</span>
+            </div>
+
+            <!-- 8. Pengaturan -->
+            <div class="menu-cepat-item" onclick="navigatePage('pengaturan')">
+              <div class="menu-icon-circle pengaturan">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </div>
+              <span class="menu-item-title">Pengaturan</span>
+              <span class="menu-item-sub">Sistem</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Promo Banner Card -->
+        <div class="promo-banner-card" onclick="navigatePage('pendukung')">
+          <div class="promo-banner-left">
+            <div class="promo-bulb-badge">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/></svg>
+            </div>
+            <div class="promo-text-wrap">
+              <div class="promo-title-text">Satu Data, Lebih Dekat dengan Masyarakat</div>
+              <div class="promo-desc-text">Sinkronisasi berkala memastikan data aspirasi dan konstituen valid dan terverifikasi secara akurat.</div>
+            </div>
+          </div>
+          <div class="promo-arrow-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
         </div>
 
@@ -3184,31 +3931,42 @@ html, body {
          ========================================== -->
     <nav class="mobile-bottom-nav">
       <a href="#dashboard" class="nav-item active" data-page="dashboard">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div class="nav-item-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
         <span>Beranda</span>
       </a>
 
       <a href="#pendukung" class="nav-item" data-page="pendukung">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div class="nav-item-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
         <span>Pendukung</span>
       </a>
 
       <!-- Center Raised Floating Action Button -->
-      <div class="nav-fab-container">
-        <button type="button" id="fabCenter" class="nav-fab" title="Entri Pendukung Cepat">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:26px;height:26px;min-width:26px;min-height:26px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <div class="nav-fab-box">
+        <button type="button" id="fabCenter" class="nav-fab-btn" title="Entri Pendukung Cepat">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
+        <span class="nav-fab-label">Entri</span>
       </div>
 
       <a href="#aspirasi" class="nav-item" data-page="aspirasi">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="nav-item-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
         <span>Aspirasi</span>
       </a>
 
       <a href="#drawer" id="btnBottomMenu" class="nav-item" data-page="menu">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        <div class="nav-item-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </div>
         <span>Menu</span>
       </a>
+
+      <div class="ios-home-bar"></div>
     </nav>
 
     <!-- ==========================================
@@ -4139,11 +4897,20 @@ function calculateStats() {
   if (bR) bR.textContent = AppState.pokir.length;
 }
 
-// Render Dashboard Dinamis
+// Helper: Filter Pendukung berdasarkan Kecamatan dari Card Sebaran
+function filterByDistrict(kecName) {
+  navigatePage('pendukung');
+  const btnKec = document.querySelector(`.filter-pill[data-filter-type="kecamatan"][data-filter-val="${kecName}"]`);
+  if (btnKec) btnKec.click();
+}
+window.filterByDistrict = filterByDistrict;
+
+// Render Dashboard Dinamis (Mendukung Tampilan Baru & Klasik)
 function renderDashboardStats() {
   calculateStats();
   const s = AppState.stats;
 
+  // 1. Elemen Klasik (kompatibilitas mundur)
   const elTotal = document.getElementById('kpiTotalPendukung');
   const elValid = document.getElementById('kpiTerverifikasi');
   const elAspirasi = document.getElementById('kpiTotalAspirasi');
@@ -4157,13 +4924,99 @@ function renderDashboardStats() {
   const kpiSub = document.querySelector('.kpi-card .kpi-subtext');
   if (kpiSub && s.scopeLabel) kpiSub.textContent = s.scopeLabel;
 
-  const elKecKraksaan = document.getElementById('kecKraksaanVal');
-  const elKecBesuk = document.getElementById('kecBesukVal');
-  const elKecGading = document.getElementById('kecGadingVal');
+  // 2. Elemen Revamp 1:1 Reference Mockup
+  const elDonutTotal = document.getElementById('donutTotalPendukung');
+  if (elDonutTotal) elDonutTotal.textContent = s.total.toLocaleString('id-ID');
 
-  if (elKecKraksaan) elKecKraksaan.textContent = s.kecamatan.Kraksaan.toLocaleString('id-ID');
-  if (elKecBesuk) elKecBesuk.textContent = s.kecamatan.Besuk.toLocaleString('id-ID');
-  if (elKecGading) elKecGading.textContent = s.kecamatan.Gading.toLocaleString('id-ID');
+  const elValVerif = document.getElementById('valTerverifikasi');
+  const elBarVerif = document.getElementById('barTerverifikasi');
+  const elPctVerif = document.getElementById('pctTerverifikasi');
+  if (elValVerif) elValVerif.textContent = s.terverifikasi.toLocaleString('id-ID');
+
+  const elValAsp = document.getElementById('valAspirasi');
+  const elBarAsp = document.getElementById('barAspirasi');
+  const elPctAsp = document.getElementById('pctAspirasi');
+  if (elValAsp) elValAsp.textContent = s.aspirasiCount.toLocaleString('id-ID');
+
+  const elValPok = document.getElementById('valPokir');
+  const elBarPok = document.getElementById('barPokir');
+  const elPctPok = document.getElementById('pctPokir');
+  if (elValPok) elValPok.textContent = s.pokirCount.toLocaleString('id-ID');
+
+  // Kalkulasi persentase metrik untuk progress bar & donut gauge
+  const sumMetrics = (s.terverifikasi + s.aspirasiCount + s.pokirCount) || 1;
+  const pVerif = Math.round((s.terverifikasi / sumMetrics) * 100);
+  const pAsp = Math.round((s.aspirasiCount / sumMetrics) * 100);
+  const pPok = Math.max(0, 100 - pVerif - pAsp);
+
+  if (elBarVerif) elBarVerif.style.width = pVerif + '%';
+  if (elPctVerif) elPctVerif.textContent = pVerif + '%';
+  if (elBarAsp) elBarAsp.style.width = pAsp + '%';
+  if (elPctAsp) elPctAsp.textContent = pAsp + '%';
+  if (elBarPok) elBarPok.style.width = pPok + '%';
+  if (elPctPok) elPctPok.textContent = pPok + '%';
+
+  // Update SVG 3D Donut Gauge Segments (Keliling lingkaran r=65 adalah 408.4px)
+  const circ = 408.4;
+  const lenVerif = (pVerif / 100) * circ;
+  const lenAsp = (pAsp / 100) * circ;
+  const lenPok = (pPok / 100) * circ;
+
+  const segVerif = document.getElementById('donutSegVerif');
+  const segAsp = document.getElementById('donutSegAspirasi');
+  const segPok = document.getElementById('donutSegPokir');
+
+  if (segVerif) {
+    segVerif.setAttribute('stroke-dasharray', `${Math.max(1, lenVerif)} ${circ}`);
+  }
+  if (segAsp) {
+    segAsp.setAttribute('stroke-dasharray', `${Math.max(1, lenAsp)} ${circ}`);
+    segAsp.setAttribute('stroke-dashoffset', `-${lenVerif}`);
+  }
+  if (segPok) {
+    segPok.setAttribute('stroke-dasharray', `${Math.max(1, lenPok)} ${circ}`);
+    segPok.setAttribute('stroke-dashoffset', `-${lenVerif + lenAsp}`);
+  }
+
+  // 3. Sebaran 3 Kecamatan Dapil Kraksaan Raya
+  const krakCount = (s.kecamatan && s.kecamatan.Kraksaan) || 0;
+  const besukCount = (s.kecamatan && s.kecamatan.Besuk) || 0;
+  const gadCount = (s.kecamatan && s.kecamatan.Gading) || 0;
+  const totalKec = (krakCount + besukCount + gadCount) || 1;
+
+  const pKrak = Math.round((krakCount / totalKec) * 100);
+  const pBesuk = Math.round((besukCount / totalKec) * 100);
+  const pGad = Math.max(0, 100 - pKrak - pBesuk);
+
+  // Kraksaan
+  const elKecKraksaan = document.getElementById('kecKraksaanVal');
+  const elValKecKraksaan = document.getElementById('valKecKraksaan');
+  const elBarKecKraksaan = document.getElementById('barKecKraksaan');
+  const elPctKecKraksaan = document.getElementById('pctKecKraksaan');
+  if (elKecKraksaan) elKecKraksaan.textContent = krakCount.toLocaleString('id-ID');
+  if (elValKecKraksaan) elValKecKraksaan.textContent = krakCount.toLocaleString('id-ID');
+  if (elBarKecKraksaan) elBarKecKraksaan.style.width = pKrak + '%';
+  if (elPctKecKraksaan) elPctKecKraksaan.textContent = pKrak + '%';
+
+  // Besuk
+  const elKecBesuk = document.getElementById('kecBesukVal');
+  const elValKecBesuk = document.getElementById('valKecBesuk');
+  const elBarKecBesuk = document.getElementById('barKecBesuk');
+  const elPctKecBesuk = document.getElementById('pctKecBesuk');
+  if (elKecBesuk) elKecBesuk.textContent = besukCount.toLocaleString('id-ID');
+  if (elValKecBesuk) elValKecBesuk.textContent = besukCount.toLocaleString('id-ID');
+  if (elBarKecBesuk) elBarKecBesuk.style.width = pBesuk + '%';
+  if (elPctKecBesuk) elPctKecBesuk.textContent = pBesuk + '%';
+
+  // Gading
+  const elKecGading = document.getElementById('kecGadingVal');
+  const elValKecGading = document.getElementById('valKecGading');
+  const elBarKecGading = document.getElementById('barKecGading');
+  const elPctKecGading = document.getElementById('pctKecGading');
+  if (elKecGading) elKecGading.textContent = gadCount.toLocaleString('id-ID');
+  if (elValKecGading) elValKecGading.textContent = gadCount.toLocaleString('id-ID');
+  if (elBarKecGading) elBarKecGading.style.width = pGad + '%';
+  if (elPctKecGading) elPctKecGading.textContent = pGad + '%';
 }
 
 // Render Daftar Pendukung (Touch Cards)

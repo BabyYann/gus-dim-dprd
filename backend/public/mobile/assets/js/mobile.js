@@ -560,11 +560,20 @@ function calculateStats() {
   if (bR) bR.textContent = AppState.pokir.length;
 }
 
-// Render Dashboard Dinamis
+// Helper: Filter Pendukung berdasarkan Kecamatan dari Card Sebaran
+function filterByDistrict(kecName) {
+  navigatePage('pendukung');
+  const btnKec = document.querySelector(`.filter-pill[data-filter-type="kecamatan"][data-filter-val="${kecName}"]`);
+  if (btnKec) btnKec.click();
+}
+window.filterByDistrict = filterByDistrict;
+
+// Render Dashboard Dinamis (Mendukung Tampilan Baru & Klasik)
 function renderDashboardStats() {
   calculateStats();
   const s = AppState.stats;
 
+  // 1. Elemen Klasik (kompatibilitas mundur)
   const elTotal = document.getElementById('kpiTotalPendukung');
   const elValid = document.getElementById('kpiTerverifikasi');
   const elAspirasi = document.getElementById('kpiTotalAspirasi');
@@ -578,13 +587,99 @@ function renderDashboardStats() {
   const kpiSub = document.querySelector('.kpi-card .kpi-subtext');
   if (kpiSub && s.scopeLabel) kpiSub.textContent = s.scopeLabel;
 
-  const elKecKraksaan = document.getElementById('kecKraksaanVal');
-  const elKecBesuk = document.getElementById('kecBesukVal');
-  const elKecGading = document.getElementById('kecGadingVal');
+  // 2. Elemen Revamp 1:1 Reference Mockup
+  const elDonutTotal = document.getElementById('donutTotalPendukung');
+  if (elDonutTotal) elDonutTotal.textContent = s.total.toLocaleString('id-ID');
 
-  if (elKecKraksaan) elKecKraksaan.textContent = s.kecamatan.Kraksaan.toLocaleString('id-ID');
-  if (elKecBesuk) elKecBesuk.textContent = s.kecamatan.Besuk.toLocaleString('id-ID');
-  if (elKecGading) elKecGading.textContent = s.kecamatan.Gading.toLocaleString('id-ID');
+  const elValVerif = document.getElementById('valTerverifikasi');
+  const elBarVerif = document.getElementById('barTerverifikasi');
+  const elPctVerif = document.getElementById('pctTerverifikasi');
+  if (elValVerif) elValVerif.textContent = s.terverifikasi.toLocaleString('id-ID');
+
+  const elValAsp = document.getElementById('valAspirasi');
+  const elBarAsp = document.getElementById('barAspirasi');
+  const elPctAsp = document.getElementById('pctAspirasi');
+  if (elValAsp) elValAsp.textContent = s.aspirasiCount.toLocaleString('id-ID');
+
+  const elValPok = document.getElementById('valPokir');
+  const elBarPok = document.getElementById('barPokir');
+  const elPctPok = document.getElementById('pctPokir');
+  if (elValPok) elValPok.textContent = s.pokirCount.toLocaleString('id-ID');
+
+  // Kalkulasi persentase metrik untuk progress bar & donut gauge
+  const sumMetrics = (s.terverifikasi + s.aspirasiCount + s.pokirCount) || 1;
+  const pVerif = Math.round((s.terverifikasi / sumMetrics) * 100);
+  const pAsp = Math.round((s.aspirasiCount / sumMetrics) * 100);
+  const pPok = Math.max(0, 100 - pVerif - pAsp);
+
+  if (elBarVerif) elBarVerif.style.width = pVerif + '%';
+  if (elPctVerif) elPctVerif.textContent = pVerif + '%';
+  if (elBarAsp) elBarAsp.style.width = pAsp + '%';
+  if (elPctAsp) elPctAsp.textContent = pAsp + '%';
+  if (elBarPok) elBarPok.style.width = pPok + '%';
+  if (elPctPok) elPctPok.textContent = pPok + '%';
+
+  // Update SVG 3D Donut Gauge Segments (Keliling lingkaran r=65 adalah 408.4px)
+  const circ = 408.4;
+  const lenVerif = (pVerif / 100) * circ;
+  const lenAsp = (pAsp / 100) * circ;
+  const lenPok = (pPok / 100) * circ;
+
+  const segVerif = document.getElementById('donutSegVerif');
+  const segAsp = document.getElementById('donutSegAspirasi');
+  const segPok = document.getElementById('donutSegPokir');
+
+  if (segVerif) {
+    segVerif.setAttribute('stroke-dasharray', `${Math.max(1, lenVerif)} ${circ}`);
+  }
+  if (segAsp) {
+    segAsp.setAttribute('stroke-dasharray', `${Math.max(1, lenAsp)} ${circ}`);
+    segAsp.setAttribute('stroke-dashoffset', `-${lenVerif}`);
+  }
+  if (segPok) {
+    segPok.setAttribute('stroke-dasharray', `${Math.max(1, lenPok)} ${circ}`);
+    segPok.setAttribute('stroke-dashoffset', `-${lenVerif + lenAsp}`);
+  }
+
+  // 3. Sebaran 3 Kecamatan Dapil Kraksaan Raya
+  const krakCount = (s.kecamatan && s.kecamatan.Kraksaan) || 0;
+  const besukCount = (s.kecamatan && s.kecamatan.Besuk) || 0;
+  const gadCount = (s.kecamatan && s.kecamatan.Gading) || 0;
+  const totalKec = (krakCount + besukCount + gadCount) || 1;
+
+  const pKrak = Math.round((krakCount / totalKec) * 100);
+  const pBesuk = Math.round((besukCount / totalKec) * 100);
+  const pGad = Math.max(0, 100 - pKrak - pBesuk);
+
+  // Kraksaan
+  const elKecKraksaan = document.getElementById('kecKraksaanVal');
+  const elValKecKraksaan = document.getElementById('valKecKraksaan');
+  const elBarKecKraksaan = document.getElementById('barKecKraksaan');
+  const elPctKecKraksaan = document.getElementById('pctKecKraksaan');
+  if (elKecKraksaan) elKecKraksaan.textContent = krakCount.toLocaleString('id-ID');
+  if (elValKecKraksaan) elValKecKraksaan.textContent = krakCount.toLocaleString('id-ID');
+  if (elBarKecKraksaan) elBarKecKraksaan.style.width = pKrak + '%';
+  if (elPctKecKraksaan) elPctKecKraksaan.textContent = pKrak + '%';
+
+  // Besuk
+  const elKecBesuk = document.getElementById('kecBesukVal');
+  const elValKecBesuk = document.getElementById('valKecBesuk');
+  const elBarKecBesuk = document.getElementById('barKecBesuk');
+  const elPctKecBesuk = document.getElementById('pctKecBesuk');
+  if (elKecBesuk) elKecBesuk.textContent = besukCount.toLocaleString('id-ID');
+  if (elValKecBesuk) elValKecBesuk.textContent = besukCount.toLocaleString('id-ID');
+  if (elBarKecBesuk) elBarKecBesuk.style.width = pBesuk + '%';
+  if (elPctKecBesuk) elPctKecBesuk.textContent = pBesuk + '%';
+
+  // Gading
+  const elKecGading = document.getElementById('kecGadingVal');
+  const elValKecGading = document.getElementById('valKecGading');
+  const elBarKecGading = document.getElementById('barKecGading');
+  const elPctKecGading = document.getElementById('pctKecGading');
+  if (elKecGading) elKecGading.textContent = gadCount.toLocaleString('id-ID');
+  if (elValKecGading) elValKecGading.textContent = gadCount.toLocaleString('id-ID');
+  if (elBarKecGading) elBarKecGading.style.width = pGad + '%';
+  if (elPctKecGading) elPctKecGading.textContent = pGad + '%';
 }
 
 // Render Daftar Pendukung (Touch Cards)
