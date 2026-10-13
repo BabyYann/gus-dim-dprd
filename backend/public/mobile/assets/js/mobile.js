@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNetworkStatusListener();
   setupNavigation();
   setupEventListeners();
+  initPullToRefresh();
   loadAllData();
   initHorizontalSwipeFilters();
 });
@@ -108,7 +109,10 @@ function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('ServiceWorker PWA Aktif:', reg.scope))
+        .then(reg => {
+          console.log('ServiceWorker PWA Aktif:', reg.scope);
+          reg.update();
+        })
         .catch(err => console.log('ServiceWorker Gagal:', err));
     });
   }
@@ -131,6 +135,92 @@ function initNetworkStatusListener() {
 }
 
 // Setup Navigasi (Bottom Bar & Drawer)
+
+// Hard Refresh & Pembersihan Cache Menyeluruh untuk Mobile PWA & Web
+window.triggerAppHardRefresh = function() {
+  if (typeof showToast === 'function') {
+    showToast('Memperbarui sistem & membersihkan cache...', 'info');
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+      registrations.forEach(function (r) { r.unregister(); });
+    }).catch(function () {});
+  }
+  if ('caches' in window) {
+    caches.keys().then(function (keys) {
+      keys.forEach(function (k) { caches.delete(k); });
+    }).catch(function () {});
+  }
+  setTimeout(function () {
+    const url = new URL(window.location.href);
+    url.searchParams.set('reload', Date.now());
+    window.location.replace(url.toString());
+  }, 450);
+};
+
+// Inisialisasi Deteksi Gerakan Tarik ke Bawah (Pull-to-Refresh)
+function initPullToRefresh() {
+  const container = document.getElementById('mobileMain');
+  const ptrBox = document.getElementById('pullToRefreshIndicator');
+  const ptrText = document.getElementById('ptrText');
+  const ptrIcon = document.getElementById('ptrIcon');
+  if (!container || !ptrBox || !ptrText || !ptrIcon) return;
+
+  let startY = 0;
+  let pullDistance = 0;
+  let isPulling = false;
+  const threshold = 65;
+
+  container.addEventListener('touchstart', function (e) {
+    if (container.scrollTop <= 0) {
+      startY = e.touches[0].clientY;
+      isPulling = false;
+      pullDistance = 0;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', function (e) {
+    if (container.scrollTop <= 0 && startY > 0) {
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if (diff > 0) {
+        isPulling = true;
+        pullDistance = Math.min(diff * 0.45, 90);
+        ptrBox.classList.add('active');
+        ptrBox.style.height = pullDistance + 'px';
+        ptrBox.style.maxHeight = pullDistance + 'px';
+
+        if (pullDistance >= threshold) {
+          ptrText.textContent = 'Lepaskan untuk memuat ulang';
+          ptrIcon.style.transform = 'rotate(180deg)';
+        } else {
+          ptrText.textContent = 'Tarik ke bawah untuk memuat ulang...';
+          ptrIcon.style.transform = 'rotate(0deg)';
+        }
+      }
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', function () {
+    if (!isPulling) return;
+    if (pullDistance >= threshold) {
+      ptrText.textContent = 'Memperbarui sistem...';
+      ptrIcon.classList.add('spin');
+      window.triggerAppHardRefresh();
+    } else {
+      ptrBox.style.height = '0px';
+      ptrBox.style.maxHeight = '0px';
+      setTimeout(function () {
+        ptrBox.classList.remove('active');
+        ptrIcon.style.transform = 'rotate(0deg)';
+      }, 150);
+    }
+    startY = 0;
+    pullDistance = 0;
+    isPulling = false;
+  });
+}
+
 function setupNavigation() {
   // Tombol Drawer Buka & Tutup
   const btnOpenDrawer = document.getElementById('btnOpenDrawer');
@@ -247,13 +337,30 @@ function navigatePage(pageId) {
 
 // Setup Event Listeners
 function setupEventListeners() {
-  // Tombol Refresh Header
+  // Tombol Refresh Header (Dukungan Tap Biasa, Double-Tap, dan Tahan Lama untuk Hard Refresh)
   const btnRefresh = document.getElementById('btnRefresh');
+  let lastRefreshClick = 0;
   if (btnRefresh) {
     btnRefresh.addEventListener('click', () => {
-      showToast('Memperbarui data dari server...', 'info');
+      const now = Date.now();
+      if (now - lastRefreshClick < 1500) {
+        window.triggerAppHardRefresh();
+        return;
+      }
+      lastRefreshClick = now;
+      showToast('Memperbarui data... (Ketuk lagi untuk Hard Refresh)', 'info');
       loadAllData();
     });
+
+    let longPressTimer = null;
+    btnRefresh.addEventListener('touchstart', () => {
+      longPressTimer = setTimeout(() => {
+        window.triggerAppHardRefresh();
+      }, 800);
+    }, { passive: true });
+    btnRefresh.addEventListener('touchend', () => {
+      clearTimeout(longPressTimer);
+    }, { passive: true });
   }
 
   // Input Pencarian Pendukung

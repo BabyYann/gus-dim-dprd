@@ -2065,6 +2065,46 @@ html, body {
   line-height: 1.4;
 }
 
+
+/* Pull-to-Refresh Indicator Mobile */
+.pull-to-refresh-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: height 0.15s ease, max-height 0.15s ease, opacity 0.15s ease;
+  opacity: 0;
+  margin-bottom: 0;
+  width: 100%;
+}
+.pull-to-refresh-box.active {
+  opacity: 1;
+}
+.ptr-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+.ptr-icon {
+  transition: transform 0.2s ease;
+}
+.ptr-icon.spin {
+  animation: ptrSpin 0.7s linear infinite;
+}
+@keyframes ptrSpin {
+  100% { transform: rotate(360deg); }
+}
+
 </style>
 </head>
 <body>
@@ -2250,6 +2290,13 @@ html, body {
             <span>Riwayat &amp; Log Audit</span>
           </div>
         </div>
+                <div class="drawer-menu-item" onclick="triggerAppHardRefresh()" style="color:#0284c7;">
+          <div class="drawer-menu-item-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            <span>Segarkan &amp; Bersihkan Cache</span>
+          </div>
+          <span class="drawer-badge" style="background:#e0f2fe;color:#0369a1;">Hard Reload</span>
+        </div>
         <div class="drawer-menu-item" data-page="pengaturan">
           <div class="drawer-menu-item-left">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;min-height:20px;max-width:20px;max-height:20px;"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -2276,6 +2323,17 @@ html, body {
 
     <!-- Konten Scrollable -->
     <main id="mobileMain" class="mobile-main">
+
+      <!-- Pull-to-Refresh Indicator Mobile -->
+      <div id="pullToRefreshIndicator" class="pull-to-refresh-box">
+        <div class="ptr-content">
+          <svg id="ptrIcon" class="ptr-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M19 12l-7 7-7-7"/>
+          </svg>
+          <span id="ptrText" class="ptr-text">Tarik ke bawah untuk memuat ulang...</span>
+        </div>
+      </div>
+
 
       <!-- ==========================================
            HALAMAN 1: DASHBOARD (BERANDA UTAMA)
@@ -2978,6 +3036,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNetworkStatusListener();
   setupNavigation();
   setupEventListeners();
+  initPullToRefresh();
   loadAllData();
   initMobileRealtimeReverb();
   initHorizontalSwipeFilters();
@@ -2988,7 +3047,10 @@ function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('ServiceWorker PWA Aktif:', reg.scope))
+        .then(reg => {
+          console.log('ServiceWorker PWA Aktif:', reg.scope);
+          reg.update();
+        })
         .catch(err => console.log('ServiceWorker Gagal:', err));
     });
   }
@@ -3071,6 +3133,92 @@ function initMobileRealtimeReverb() {
 }
 
 // Setup Navigasi (Bottom Bar & Drawer)
+
+// Hard Refresh & Pembersihan Cache Menyeluruh untuk Mobile PWA & Web
+window.triggerAppHardRefresh = function() {
+  if (typeof showToast === 'function') {
+    showToast('Memperbarui sistem & membersihkan cache...', 'info');
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+      registrations.forEach(function (r) { r.unregister(); });
+    }).catch(function () {});
+  }
+  if ('caches' in window) {
+    caches.keys().then(function (keys) {
+      keys.forEach(function (k) { caches.delete(k); });
+    }).catch(function () {});
+  }
+  setTimeout(function () {
+    const url = new URL(window.location.href);
+    url.searchParams.set('reload', Date.now());
+    window.location.replace(url.toString());
+  }, 450);
+};
+
+// Inisialisasi Deteksi Gerakan Tarik ke Bawah (Pull-to-Refresh)
+function initPullToRefresh() {
+  const container = document.getElementById('mobileMain');
+  const ptrBox = document.getElementById('pullToRefreshIndicator');
+  const ptrText = document.getElementById('ptrText');
+  const ptrIcon = document.getElementById('ptrIcon');
+  if (!container || !ptrBox || !ptrText || !ptrIcon) return;
+
+  let startY = 0;
+  let pullDistance = 0;
+  let isPulling = false;
+  const threshold = 65;
+
+  container.addEventListener('touchstart', function (e) {
+    if (container.scrollTop <= 0) {
+      startY = e.touches[0].clientY;
+      isPulling = false;
+      pullDistance = 0;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', function (e) {
+    if (container.scrollTop <= 0 && startY > 0) {
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if (diff > 0) {
+        isPulling = true;
+        pullDistance = Math.min(diff * 0.45, 90);
+        ptrBox.classList.add('active');
+        ptrBox.style.height = pullDistance + 'px';
+        ptrBox.style.maxHeight = pullDistance + 'px';
+
+        if (pullDistance >= threshold) {
+          ptrText.textContent = 'Lepaskan untuk memuat ulang';
+          ptrIcon.style.transform = 'rotate(180deg)';
+        } else {
+          ptrText.textContent = 'Tarik ke bawah untuk memuat ulang...';
+          ptrIcon.style.transform = 'rotate(0deg)';
+        }
+      }
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', function () {
+    if (!isPulling) return;
+    if (pullDistance >= threshold) {
+      ptrText.textContent = 'Memperbarui sistem...';
+      ptrIcon.classList.add('spin');
+      window.triggerAppHardRefresh();
+    } else {
+      ptrBox.style.height = '0px';
+      ptrBox.style.maxHeight = '0px';
+      setTimeout(function () {
+        ptrBox.classList.remove('active');
+        ptrIcon.style.transform = 'rotate(0deg)';
+      }, 150);
+    }
+    startY = 0;
+    pullDistance = 0;
+    isPulling = false;
+  });
+}
+
 function setupNavigation() {
   // Tombol Drawer Buka & Tutup
   const btnOpenDrawer = document.getElementById('btnOpenDrawer');
@@ -3216,13 +3364,30 @@ function navigatePage(pageId, updateHash) {
 
 // Setup Event Listeners
 function setupEventListeners() {
-  // Tombol Refresh Header
+  // Tombol Refresh Header (Dukungan Tap Biasa, Double-Tap, dan Tahan Lama untuk Hard Refresh)
   const btnRefresh = document.getElementById('btnRefresh');
+  let lastRefreshClick = 0;
   if (btnRefresh) {
     btnRefresh.addEventListener('click', () => {
-      showToast('Memperbarui data dari server...', 'info');
+      const now = Date.now();
+      if (now - lastRefreshClick < 1500) {
+        window.triggerAppHardRefresh();
+        return;
+      }
+      lastRefreshClick = now;
+      showToast('Memperbarui data... (Ketuk lagi untuk Hard Refresh)', 'info');
       loadAllData();
     });
+
+    let longPressTimer = null;
+    btnRefresh.addEventListener('touchstart', () => {
+      longPressTimer = setTimeout(() => {
+        window.triggerAppHardRefresh();
+      }, 800);
+    }, { passive: true });
+    btnRefresh.addEventListener('touchend', () => {
+      clearTimeout(longPressTimer);
+    }, { passive: true });
   }
 
   // Input Pencarian Pendukung
@@ -6451,28 +6616,249 @@ function triggerOcrCamera() {
   if (input) input.click();
 }
 
-function handleOcrFile(event) {
+// Pra-pemrosesan Kontras Foto KTP untuk Akurasi OCR Tinggi
+function preprocessKtpCanvas(img, maxWidth) {
+  maxWidth = maxWidth || 1280;
+  let w = img.naturalWidth || img.width;
+  let h = img.naturalHeight || img.height;
+  if (w > maxWidth) {
+    h = Math.round((h * maxWidth) / w);
+    w = maxWidth;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+
+  try {
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      // Grayscale luminance
+      const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      // Kontras tinggi: pertegas tulisan gelap, bersihkan latar belakang KTP
+      let val = lum;
+      if (val < 115) {
+        val = Math.max(0, val * 0.7);
+      } else {
+        val = Math.min(255, val * 1.25);
+      }
+      d[i] = val;
+      d[i + 1] = val;
+      d[i + 2] = val;
+    }
+    ctx.putImageData(imgData, 0, 0);
+  } catch (e) {
+    console.warn('Canvas filter pass skipped:', e);
+  }
+  return canvas;
+}
+
+function bersihkanKarakterNikMobile(str) {
+  if (!str) return '';
+  return str
+    .replace(/[OoQq]/g, '0')
+    .replace(/[IiLl|!j]/g, '1')
+    .replace(/[Zz]/g, '2')
+    .replace(/[Ee]/g, '3')
+    .replace(/[Aa]/g, '4')
+    .replace(/[Ss$]/g, '5')
+    .replace(/[b]/g, '6')
+    .replace(/[Tt]/g, '7')
+    .replace(/[B]/g, '8')
+    .replace(/[g]/g, '9')
+    .replace(/[^0-9]/g, '');
+}
+
+function parseHasilOcrKtpMobile(teks) {
+  const rawLines = teks.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  const hasil = { nik: '', nama: '', alamat: '' };
+
+  // 1. Ekstraksi NIK
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i];
+    if (/nik/i.test(line)) {
+      const cleaned = bersihkanKarakterNikMobile(line);
+      if (cleaned.length >= 16) {
+        hasil.nik = cleaned.substring(0, 16);
+        break;
+      } else if (rawLines[i + 1]) {
+        const nextCleaned = bersihkanKarakterNikMobile(rawLines[i + 1]);
+        if (nextCleaned.length >= 16) {
+          hasil.nik = nextCleaned.substring(0, 16);
+          break;
+        }
+      }
+    }
+  }
+
+  if (!hasil.nik) {
+    const match16 = teks.replace(/\s+/g, ' ').match(/\b\d{16}\b/);
+    if (match16) {
+      hasil.nik = match16[0];
+    } else {
+      for (let i = 0; i < rawLines.length; i++) {
+        const c = bersihkanKarakterNikMobile(rawLines[i]);
+        if (c.length === 16) {
+          hasil.nik = c;
+          break;
+        }
+      }
+    }
+  }
+
+  // 2. Ekstraksi Nama
+  for (let i = 0; i < rawLines.length; i++) {
+    if (/nama/i.test(rawLines[i])) {
+      const sama = rawLines[i].match(/nama\s*[:=\-]?\s*(.+)/i);
+      if (sama && sama[1] && sama[1].trim().length > 2) {
+        hasil.nama = sama[1].replace(/^[^a-zA-Z]+/, '').trim();
+      } else if (rawLines[i + 1]) {
+        hasil.nama = rawLines[i + 1].replace(/^[^a-zA-Z]+/, '').trim();
+      }
+      break;
+    }
+  }
+
+  // 3. Ekstraksi Alamat
+  for (let i = 0; i < rawLines.length; i++) {
+    if (/alamat/i.test(rawLines[i])) {
+      const sama = rawLines[i].match(/alamat\s*[:=\-]?\s*(.+)/i);
+      let almt = '';
+      if (sama && sama[1] && sama[1].trim().length > 2) {
+        almt = sama[1].replace(/^[^a-zA-Z0-9]+/, '').trim();
+      } else if (rawLines[i + 1]) {
+        almt = rawLines[i + 1].replace(/^[^a-zA-Z0-9]+/, '').trim();
+      }
+      if (rawLines[i + 1] && /rt|rw|dusun|desa/i.test(rawLines[i + 1])) {
+        almt += ' ' + rawLines[i + 1].trim();
+      }
+      hasil.alamat = almt;
+      break;
+    }
+  }
+
+  return hasil;
+}
+
+// Handler Pemindaian KTP Nyata dengan Tesseract.js di Mobile PWA
+async function handleOcrFile(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  showToast('Memindai KTP via Smart AI OCR...', 'info');
+  showToast('Mengoptimalkan kontras foto KTP...', 'info');
 
-  setTimeout(() => {
-    const randomNik = '3513' + Math.floor(100000000000 + Math.random() * 900000000000);
-    const sampleNames = ['Siti Rohmah', 'Muhammad Khoirul', 'Dewi Susilawati', 'Hasan Basri', 'Abdul Mukti'];
-    const chosenName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+  try {
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      const img = new Image();
+      img.onload = async function () {
+        const canvas = preprocessKtpCanvas(img, 1280);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-    const inNik = document.getElementById('formNik');
-    const inNama = document.getElementById('formNama');
-    const inAlamat = document.getElementById('formAlamat');
+        if (typeof Tesseract === 'undefined') {
+          showToast('Pustaka OCR sedang memuat dari jaringan. Silakan isi manual.', 'warning');
+          return;
+        }
 
-    if (inNik) inNik.value = randomNik;
-    if (inNama) inNama.value = chosenName;
-    if (inAlamat) inAlamat.value = 'RT 03 RW 02 Dusun Melati';
+        showToast('Memindai teks KTP dengan AI Engine...', 'info');
 
-    showToast('KTP Berhasil Dipindai! NIK dan Nama terisi otomatis.', 'success');
-  }, 1000);
+        try {
+          const out = await Tesseract.recognize(dataUrl, 'ind');
+          const hasil = parseHasilOcrKtpMobile(out.data.text || '');
+
+          const inNik = document.getElementById('formNik');
+          const inNama = document.getElementById('formNama');
+          const inAlamat = document.getElementById('formAlamat');
+
+          let count = 0;
+          if (hasil.nik && inNik) {
+            inNik.value = hasil.nik;
+            count++;
+            window.handleMobileNikInput(hasil.nik);
+          }
+          if (hasil.nama && inNama) {
+            inNama.value = hasil.nama;
+            count++;
+          }
+          if (hasil.alamat && inAlamat) {
+            inAlamat.value = hasil.alamat;
+            count++;
+          }
+
+          if (count > 0) {
+            showToast('KTP Berhasil Dipindai! NIK dan Nama terisi otomatis.', 'success');
+          } else {
+            showToast('Teks KTP kurang terbaca jelas. Mohon lengkapi manual.', 'warning');
+          }
+        } catch (ocrErr) {
+          console.error('Tesseract error:', ocrErr);
+          showToast('Gagal memindai KTP otomatis. Silakan isi form manual.', 'warning');
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('OCR Process error:', err);
+    showToast('Terjadi kesalahan memproses foto KTP.', 'danger');
+  }
 }
+
+// Validasi Anti-Duplikasi NIK Real-Time Mobile
+let _mobileNikTimer = null;
+window.handleMobileNikInput = function(nik) {
+  const fb = document.getElementById('nikFeedbackMobile');
+  if (!fb) return;
+  clearTimeout(_mobileNikTimer);
+
+  const cleaned = (nik || '').replace(/\D/g, '');
+  if (cleaned.length < 16) {
+    if (cleaned.length > 0) {
+      fb.style.display = 'block';
+      fb.style.background = 'rgba(255,255,255,0.06)';
+      fb.style.color = '#94a3b8';
+      fb.style.border = '1px solid rgba(255,255,255,0.1)';
+      fb.innerHTML = 'Ketik 16 digit NIK (' + cleaned.length + '/16)';
+    } else {
+      fb.style.display = 'none';
+    }
+    return;
+  }
+
+  fb.style.display = 'block';
+  fb.style.background = 'rgba(56, 189, 248, 0.12)';
+  fb.style.color = '#38bdf8';
+  fb.style.border = '1px solid rgba(56, 189, 248, 0.3)';
+  fb.innerHTML = 'Memeriksa ketersediaan NIK...';
+
+  _mobileNikTimer = setTimeout(function () {
+    const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
+    fetch(apiBase + '/pendukung.php?action=check-nik&nik=' + encodeURIComponent(cleaned))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.exists && data.data) {
+          const d = data.data;
+          fb.style.display = 'block';
+          fb.style.background = 'rgba(245, 158, 11, 0.15)';
+          fb.style.color = '#fbbf24';
+          fb.style.border = '1px solid rgba(245, 158, 11, 0.35)';
+          fb.innerHTML = '<strong>Perhatian:</strong> NIK sudah terdaftar atas nama <strong>' + (d.nama || '') + '</strong> (' + (d.desa || '') + ') oleh petugas <em>' + (d.input_by_user_name || 'Petugas') + '</em>' + (d.tanggal ? ' pada ' + d.tanggal : '') + '.';
+        } else {
+          fb.style.display = 'block';
+          fb.style.background = 'rgba(34, 197, 94, 0.15)';
+          fb.style.color = '#4ade80';
+          fb.style.border = '1px solid rgba(34, 197, 94, 0.35)';
+          fb.innerHTML = 'NIK valid (16 digit) & belum terdaftar di sistem.';
+        }
+      })
+      .catch(function () {
+        fb.style.display = 'none';
+      });
+  }, 350);
+};
+
 
 function lockGpsPosition() {
   const statusEl = document.getElementById('gpsStatusText');

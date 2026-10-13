@@ -1751,3 +1751,49 @@ html, body {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* ==========================================================================
+   PULL TO REFRESH COMPONENT (NATIVE MOBILE & PWA)
+   ========================================================================== */
+.pull-to-refresh-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: height 0.15s ease, max-height 0.15s ease, opacity 0.15s ease;
+  opacity: 0;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.pull-to-refresh-box.active {
+  opacity: 1;
+}
+
+.ptr-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.ptr-icon {
+  transition: transform 0.2s ease;
+}
+
+.ptr-icon.spin {
+  animation: ptrSpin 0.7s linear infinite;
+}
+
+@keyframes ptrSpin {
+  100% { transform: rotate(360deg); }
+}
