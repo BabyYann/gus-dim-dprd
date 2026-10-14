@@ -468,9 +468,12 @@
         <div class="form-group">
           <label class="form-label">Model AI Gemini</label>
           <select id="selectModel" class="form-select">
-            <option value="gemini-3.5-flash" selected>gemini-3.5-flash (Utama - Terbukti Berhasil 100%)</option>
+            <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite (Hemat Biaya - Utama)</option>
+            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Hemat Biaya)</option>
+            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (Alternatif)</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash (Standard)</option>
+            <option value="gemini-3.5-flash">gemini-3.5-flash (High Performance)</option>
             <option value="gemini-flash-latest">gemini-flash-latest (Stabil)</option>
-            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Alternatif)</option>
           </select>
         </div>
 
@@ -835,7 +838,7 @@
       }
     };
 
-    const candidateModels = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
+    const candidateModels = [model || 'gemini-2.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
     const uniqueModels = [...new Set(candidateModels)];
 
     let success = false;

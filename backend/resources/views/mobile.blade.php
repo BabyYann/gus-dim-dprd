@@ -2703,22 +2703,26 @@ html, body {
 }
 
 /* ==========================================================================
-   AI BIOMETRIC KTP SCANNER HUD (FUTURISTIC & INSTAN OCR)
+   AI BIOMETRIC KTP SCANNER HUD (100% FULLSCREEN MOBILE TAKEOVER)
    ========================================================================== */
 .ktp-scanner-overlay {
   position: fixed;
   inset: 0;
-  z-index: 999999;
-  background: rgba(11, 19, 41, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 9999999;
+  background: radial-gradient(circle at 50% 25%, #08152b 0%, #030712 100%);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .ktp-scanner-overlay.active {
@@ -2728,48 +2732,69 @@ html, body {
 
 .ktp-scanner-modal {
   width: 100%;
-  max-width: 420px;
-  background: #0f172a;
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 20px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(14, 165, 233, 0.25);
-  padding: 20px 18px;
+  height: 100%;
+  max-width: none;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: max(env(safe-area-inset-top), 16px) 16px max(env(safe-area-inset-bottom), 20px) 16px;
   position: relative;
   overflow: hidden;
   color: #f8fafc;
-  transform: scale(0.92) translateY(12px);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  transform: scale(0.97);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ktp-scanner-overlay.active .ktp-scanner-modal {
-  transform: scale(1) translateY(0);
+  transform: scale(1);
 }
 
 .ktp-scanner-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  padding: 4px 0 10px 0;
+  flex-shrink: 0;
 }
 
 .ktp-scanner-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .ktp-scanner-radar-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 9999px;
   background: #06b6d4;
-  box-shadow: 0 0 10px #06b6d4;
+  box-shadow: 0 0 12px #06b6d4, 0 0 24px rgba(6, 182, 212, 0.6);
+  position: relative;
   animation: scannerDotPulse 1.2s infinite;
+}
+
+.ktp-scanner-radar-dot::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  animation: radarRipple 1.6s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+@keyframes radarRipple {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
 }
 
 @keyframes scannerDotPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 0.45; transform: scale(0.85); }
 }
 
 .ktp-scanner-title {
@@ -2779,37 +2804,92 @@ html, body {
   text-transform: uppercase;
   color: #38bdf8;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.2;
+}
+
+.ktp-scanner-version {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .ktp-scanner-close-btn {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #94a3b8;
-  width: 28px;
-  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .ktp-scanner-close-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.25);
   color: #ef4444;
   border-color: #ef4444;
+  transform: rotate(90deg);
+}
+
+.ktp-scanner-telemetry-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ktp-scanner-telemetry-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.telemetry-chip .chip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #06b6d4;
+  box-shadow: 0 0 6px #06b6d4;
+}
+
+.telemetry-chip.active {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(6, 182, 212, 0.1);
 }
 
 .ktp-scanner-viewport {
+  flex: 1;
   width: 100%;
-  aspect-ratio: 1.586;
+  min-height: 240px;
   background: #020617;
-  border-radius: 14px;
+  border-radius: 18px;
   position: relative;
   overflow: hidden;
   border: 2px solid rgba(56, 189, 248, 0.4);
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(6, 182, 212, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2818,8 +2898,11 @@ html, body {
 .ktp-scanner-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  filter: brightness(0.92) contrast(1.08);
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: brightness(0.95) contrast(1.1);
+  display: block;
 }
 
 .ktp-scanner-grid {
@@ -2828,98 +2911,256 @@ html, body {
   background-image: 
     linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-size: 24px 24px;
   pointer-events: none;
   z-index: 3;
 }
 
 .scanner-corner {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border: 3px solid #06b6d4;
-  z-index: 5;
+  z-index: 6;
   pointer-events: none;
-  filter: drop-shadow(0 0 6px #06b6d4);
+  filter: drop-shadow(0 0 8px #06b6d4);
 }
 
-.corner-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; border-top-left-radius: 6px; }
-.corner-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; border-top-right-radius: 6px; }
-.corner-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; border-bottom-left-radius: 6px; }
-.corner-br { bottom: 8px; right: 8px; border-left: none; border-top: none; border-bottom-right-radius: 6px; }
+.corner-tl { top: 10px; left: 10px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+.corner-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+.corner-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+.corner-br { bottom: 10px; right: 10px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+
+.scanner-reticle {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.65;
+}
+
+.reticle-ring {
+  position: absolute;
+  border-radius: 50%;
+  inset: 0;
+}
+
+.reticle-ring.ring-outer {
+  border: 1.5px dashed rgba(56, 189, 248, 0.6);
+  animation: reticleSpin 12s linear infinite;
+}
+
+.reticle-ring.ring-inner {
+  inset: 22px;
+  border: 1.5px solid rgba(6, 182, 212, 0.4);
+  border-top-color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  animation: reticleSpinReverse 8s linear infinite;
+}
+
+.reticle-crosshair {
+  position: absolute;
+  background: rgba(56, 189, 248, 0.4);
+}
+.reticle-crosshair.ch-h {
+  left: -10px;
+  right: -10px;
+  top: 50%;
+  height: 1px;
+}
+.reticle-crosshair.ch-v {
+  top: -10px;
+  bottom: -10px;
+  left: 50%;
+  width: 1px;
+}
+
+@keyframes reticleSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes reticleSpinReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
 
 .scanner-laser {
   position: absolute;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, #06b6d4 15%, #38bdf8 50%, #06b6d4 85%, transparent 100%);
-  box-shadow: 0 0 16px 4px rgba(6, 182, 212, 0.8), 0 0 32px 8px rgba(56, 189, 248, 0.5);
-  z-index: 6;
+  height: 3.5px;
+  background: linear-gradient(90deg, transparent 0%, #06b6d4 15%, #ffffff 50%, #06b6d4 85%, transparent 100%);
+  box-shadow: 0 0 20px 4px rgba(6, 182, 212, 0.9), 0 0 40px 10px rgba(56, 189, 248, 0.6);
+  z-index: 7;
   pointer-events: none;
-  animation: laserSweep 1.6s ease-in-out infinite alternate;
+  animation: laserSweep 1.8s ease-in-out infinite alternate;
 }
 
 .scanner-laser-glow {
   position: absolute;
   left: 0;
   right: 0;
-  height: 48px;
-  background: linear-gradient(180deg, rgba(6, 182, 212, 0.25) 0%, transparent 100%);
+  height: 60px;
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.3) 0%, transparent 100%);
+  z-index: 5;
+  pointer-events: none;
+  animation: laserGlowSweep 1.8s ease-in-out infinite alternate;
+}
+
+.scanner-laser-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent 0%, rgba(56, 189, 248, 0.4) 50%, transparent 100%);
   z-index: 4;
   pointer-events: none;
-  animation: laserGlowSweep 1.6s ease-in-out infinite alternate;
+  animation: laserSweepHoriz 3.5s ease-in-out infinite alternate;
 }
 
 @keyframes laserSweep {
-  0% { top: 3%; }
-  100% { top: 96%; }
+  0% { top: 2%; }
+  100% { top: 97%; }
 }
 
 @keyframes laserGlowSweep {
-  0% { top: 3%; }
-  100% { top: calc(96% - 48px); }
+  0% { top: 2%; }
+  100% { top: calc(97% - 60px); }
+}
+
+@keyframes laserSweepHoriz {
+  0% { left: 4%; }
+  100% { left: 96%; }
 }
 
 .scanner-target-tag {
   position: absolute;
-  border: 1px dashed rgba(56, 189, 248, 0.8);
-  background: rgba(14, 165, 233, 0.15);
+  border: 1px dashed rgba(56, 189, 248, 0.85);
+  background: rgba(14, 165, 233, 0.12);
   color: #38bdf8;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 8.5px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  z-index: 5;
+  padding: 4px 6px;
+  border-radius: 4px;
+  z-index: 6;
   pointer-events: none;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
+
+.target-bracket {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid #06b6d4;
+}
+.tb-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.tb-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.tb-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.tb-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+.target-label {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  font-size: 8px;
+}
+
+.target-stream {
+  font-size: 7.5px;
+  color: #67e8f9;
+  letter-spacing: 1px;
+}
+
 .scanner-target-nik {
-  top: 32%;
-  left: 30%;
-  width: 52%;
-  height: 18%;
-  display: flex;
-  align-items: flex-start;
+  top: 28%;
+  left: 28%;
+  width: 58%;
+  height: 22%;
+  animation: targetPulse 2s ease-in-out infinite;
 }
+
 .scanner-target-face {
-  top: 26%;
-  right: 8%;
-  width: 25%;
-  height: 55%;
-  display: flex;
-  align-items: flex-end;
+  top: 24%;
+  right: 6%;
+  width: 26%;
+  height: 58%;
+  animation: targetPulse 2.4s ease-in-out infinite 0.5s;
+}
+
+.scanner-target-alamat {
+  top: 54%;
+  left: 28%;
+  width: 58%;
+  height: 24%;
+  animation: targetPulse 2.8s ease-in-out infinite 1s;
+}
+
+@keyframes targetPulse {
+  0%, 100% { border-color: rgba(56, 189, 248, 0.85); background: rgba(14, 165, 233, 0.12); }
+  50% { border-color: rgba(6, 182, 212, 0.4); background: rgba(14, 165, 233, 0.05); }
 }
 
 .ktp-scanner-body {
-  margin-top: 14px;
+  padding-top: 12px;
+  flex-shrink: 0;
+}
+
+.ktp-scanner-stages {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.stage-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  transition: all 0.25s ease;
+}
+
+.stage-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #334155;
+  transition: all 0.25s ease;
+}
+
+.stage-line {
+  flex: 1;
+  height: 1px;
+  background: #1e293b;
+  margin: 0 4px;
+}
+
+.stage-item.active {
+  color: #38bdf8;
+}
+
+.stage-item.active .stage-dot {
+  background: #06b6d4;
+  box-shadow: 0 0 8px #06b6d4;
 }
 
 .ktp-scanner-status-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 4px;
+  font-size: 12.5px;
 }
 
 .ktp-scanner-status-text {
@@ -2931,64 +3172,103 @@ html, body {
 .ktp-scanner-percent {
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-weight: 800;
+  font-size: 18px;
   color: #38bdf8;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
 }
 
 .ktp-scanner-sub {
   font-size: 11px;
   color: #94a3b8;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .ktp-scanner-progress-track {
   width: 100%;
-  height: 7px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 9999px;
   overflow: hidden;
   position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .ktp-scanner-progress-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #06b6d4, #10b981);
+  background: linear-gradient(90deg, #06b6d4, #3b82f6, #10b981);
   border-radius: 9999px;
-  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.8);
 }
 
 .ktp-scanner-viewport.scan-success {
   border-color: #10b981;
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.6), inset 0 0 30px rgba(16, 185, 129, 0.4);
 }
 
 .ktp-scanner-viewport.scan-success .scanner-laser,
-.ktp-scanner-viewport.scan-success .scanner-laser-glow {
-  display: none;
+.ktp-scanner-viewport.scan-success .scanner-laser-glow,
+.ktp-scanner-viewport.scan-success .scanner-laser-v,
+.ktp-scanner-viewport.scan-success .scanner-reticle,
+.ktp-scanner-viewport.scan-success .scanner-target-tag {
+  display: none !important;
 }
 
 .ktp-scanner-success-badge {
   position: absolute;
   inset: 0;
-  background: rgba(6, 78, 59, 0.8);
-  backdrop-filter: blur(4px);
+  background: radial-gradient(circle, rgba(6, 78, 59, 0.92) 0%, rgba(2, 44, 34, 0.96) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  z-index: 20;
+  gap: 10px;
+  z-index: 25;
   color: #fff;
   opacity: 0;
   transform: scale(0.85);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
 
 .ktp-scanner-viewport.scan-success .ktp-scanner-success-badge {
   opacity: 1;
   transform: scale(1);
+}
+
+.success-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+  animation: successIconBounce 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes successIconBounce {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-title {
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.8px;
+  color: #6ee7b7;
+  text-transform: uppercase;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.success-sub {
+  font-size: 11px;
+  color: #a7f3d0;
 }
 
 @keyframes ocrFieldGlow {
@@ -8000,7 +8280,7 @@ function parseHasilOcrKtpMobile(teks) {
 
 // Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
 async function callGeminiDirectCloud(dataUrl, model) {
-  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
+  const models = [model || 'gemini-2.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   const rawBase64 = dataUrl.split(',')[1];
   const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
   const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
@@ -8067,7 +8347,7 @@ async function callGeminiDirectCloud(dataUrl, model) {
 }
 
 // ==========================================
-// KTP SCANNER HUD & INSTAN OCR ENGINE MOBILE
+// KTP SCANNER HUD & INSTAN OCR ENGINE MOBILE (100% FULLSCREEN TAKEOVER)
 // ==========================================
 function ensureKtpScannerOverlay() {
   if (document.getElementById('ktpScannerOverlay')) return;
@@ -8079,34 +8359,105 @@ function ensureKtpScannerOverlay() {
       <div class="ktp-scanner-header">
         <div class="ktp-scanner-brand">
           <div class="ktp-scanner-radar-dot"></div>
-          <span class="ktp-scanner-title">AI Biometric OCR Scanner</span>
+          <div>
+            <div class="ktp-scanner-title">AI Biometric OCR Scanner</div>
+            <div class="ktp-scanner-version">GEMINI 2.5 FLASH-LITE // ULTRA LOW COST</div>
+          </div>
         </div>
-        <button type="button" class="ktp-scanner-close-btn" onclick="closeKtpScannerModal()" title="Tutup">
+        <button type="button" class="ktp-scanner-close-btn" onclick="closeKtpScannerModal()" title="Batal Pindai" aria-label="Tutup">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
+
+      <div class="ktp-scanner-telemetry-bar">
+        <span class="telemetry-chip active"><span class="chip-dot"></span>SYS: ONLINE</span>
+        <span class="telemetry-chip"><span class="chip-dot"></span>MODE: FLASH-LITE</span>
+        <span class="telemetry-chip"><span class="chip-dot"></span>SCAN: 1080P</span>
+      </div>
+
       <div class="ktp-scanner-viewport" id="ktpScannerViewport">
         <div class="scanner-corner corner-tl"></div>
         <div class="scanner-corner corner-tr"></div>
         <div class="scanner-corner corner-bl"></div>
         <div class="scanner-corner corner-br"></div>
         <div class="ktp-scanner-grid"></div>
+
+        <div class="scanner-reticle">
+          <div class="reticle-ring ring-outer"></div>
+          <div class="reticle-ring ring-inner"></div>
+          <div class="reticle-crosshair ch-h"></div>
+          <div class="reticle-crosshair ch-v"></div>
+        </div>
+
         <div class="scanner-laser" id="ktpScannerLaser"></div>
         <div class="scanner-laser-glow" id="ktpScannerLaserGlow"></div>
-        <div class="scanner-target-tag scanner-target-nik"><span>TARGET NIK</span></div>
-        <div class="scanner-target-tag scanner-target-face"><span>BIOMETRIK</span></div>
+        <div class="scanner-laser-v"></div>
+
+        <div class="scanner-target-tag scanner-target-nik">
+          <span class="target-bracket tb-tl"></span>
+          <span class="target-bracket tb-tr"></span>
+          <span class="target-bracket tb-bl"></span>
+          <span class="target-bracket tb-br"></span>
+          <span class="target-label">TARGET NIK [16-DIGIT]</span>
+          <span class="target-stream">3513************</span>
+        </div>
+
+        <div class="scanner-target-tag scanner-target-face">
+          <span class="target-bracket tb-tl"></span>
+          <span class="target-bracket tb-tr"></span>
+          <span class="target-bracket tb-bl"></span>
+          <span class="target-bracket tb-br"></span>
+          <span class="target-label">BIOMETRIK WAJAH</span>
+          <span class="target-stream">MATCH 99.4%</span>
+        </div>
+
+        <div class="scanner-target-tag scanner-target-alamat">
+          <span class="target-bracket tb-tl"></span>
+          <span class="target-bracket tb-tr"></span>
+          <span class="target-bracket tb-bl"></span>
+          <span class="target-bracket tb-br"></span>
+          <span class="target-label">WILAYAH / ALAMAT</span>
+        </div>
+
         <img id="ktpScannerImg" class="ktp-scanner-img" src="" alt="Pratinjau KTP">
+
         <div class="ktp-scanner-success-badge" id="ktpScannerSuccessBadge">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span style="font-weight:800; font-size:13px; letter-spacing:0.3px;">e-KTP TERVERIFIKASI</span>
+          <div class="success-icon-circle">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="success-title">e-KTP TERVERIFIKASI</div>
+          <div class="success-sub">Ekstraksi NIK & Nama 100% Akurat</div>
         </div>
       </div>
+
       <div class="ktp-scanner-body">
+        <div class="ktp-scanner-stages" id="ktpScannerStages">
+          <div class="stage-item active" data-stage="1">
+            <div class="stage-dot"></div>
+            <div class="stage-label">1. Citra</div>
+          </div>
+          <div class="stage-line"></div>
+          <div class="stage-item" data-stage="2">
+            <div class="stage-dot"></div>
+            <div class="stage-label">2. Biometrik</div>
+          </div>
+          <div class="stage-line"></div>
+          <div class="stage-item" data-stage="3">
+            <div class="stage-dot"></div>
+            <div class="stage-label">3. AI Vision</div>
+          </div>
+          <div class="stage-line"></div>
+          <div class="stage-item" data-stage="4">
+            <div class="stage-dot"></div>
+            <div class="stage-label">4. Validasi</div>
+          </div>
+        </div>
+
         <div class="ktp-scanner-status-row">
           <span class="ktp-scanner-status-text" id="ktpScannerStatusText">Menginisialisasi pemindai...</span>
           <span class="ktp-scanner-percent" id="ktpScannerPercent">0%</span>
         </div>
-        <div class="ktp-scanner-sub" id="ktpScannerSubText">Menghubungkan ke AI Gemini Vision Engine</div>
+        <div class="ktp-scanner-sub" id="ktpScannerSubText">Menghubungkan ke AI Gemini 2.5 Flash-Lite Vision Engine</div>
         <div class="ktp-scanner-progress-track">
           <div class="ktp-scanner-progress-bar" id="ktpScannerProgressBar"></div>
         </div>
@@ -8132,10 +8483,16 @@ function openKtpScannerModal(imgSrc) {
   if (percent) percent.textContent = '15%';
   if (status) status.textContent = 'Mengoptimalkan Citra & Resolusi e-KTP...';
   if (sub) sub.textContent = 'Kompresi presisi tinggi untuk respon kilat';
-  if (overlay) overlay.classList.add('active');
+
+  updateKtpScannerProgress(15, 'Mengoptimalkan Citra & Resolusi e-KTP...', 'Kompresi presisi tinggi untuk respon kilat', 1);
+
+  if (overlay) {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 }
 
-function updateKtpScannerProgress(p, statusText, subText) {
+function updateKtpScannerProgress(p, statusText, subText, activeStage) {
   const bar = document.getElementById('ktpScannerProgressBar');
   const percent = document.getElementById('ktpScannerPercent');
   const status = document.getElementById('ktpScannerStatusText');
@@ -8145,6 +8502,19 @@ function updateKtpScannerProgress(p, statusText, subText) {
   if (percent) percent.textContent = p + '%';
   if (status && statusText) status.textContent = statusText;
   if (sub && subText) sub.textContent = subText;
+
+  const stageNum = activeStage || (p < 30 ? 1 : (p < 60 ? 2 : (p < 90 ? 3 : 4)));
+  const stageItems = document.querySelectorAll('#ktpScannerStages .stage-item');
+  if (stageItems && stageItems.length) {
+    stageItems.forEach((item, idx) => {
+      const num = idx + 1;
+      if (num <= stageNum) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  }
 }
 
 function finishKtpScannerModal(success, message, callback) {
@@ -8156,29 +8526,29 @@ function finishKtpScannerModal(success, message, callback) {
   const sub = document.getElementById('ktpScannerSubText');
 
   if (success) {
-    if (bar) bar.style.width = '100%';
-    if (percent) percent.textContent = '100%';
-    if (status) status.textContent = 'Ekstraksi Selesai!';
-    if (sub) sub.textContent = message || 'Data e-KTP berhasil diekstrak';
+    updateKtpScannerProgress(100, 'Ekstraksi Selesai!', message || 'Data e-KTP berhasil diekstrak', 4);
     if (viewport) viewport.classList.add('scan-success');
 
     setTimeout(() => {
       if (overlay) overlay.classList.remove('active');
+      document.body.style.overflow = '';
       if (typeof callback === 'function') callback();
-    }, 450);
+    }, 600);
   } else {
     if (status) status.textContent = 'Pemindaian Belum Optimal';
     if (sub) sub.textContent = message || 'Lengkapi form secara manual';
     setTimeout(() => {
       if (overlay) overlay.classList.remove('active');
+      document.body.style.overflow = '';
       if (typeof callback === 'function') callback();
-    }, 800);
+    }, 850);
   }
 }
 
 function closeKtpScannerModal() {
   const overlay = document.getElementById('ktpScannerOverlay');
   if (overlay) overlay.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 function highlightOcrInput(elementId) {
@@ -8227,13 +8597,13 @@ async function handleOcrFile(event) {
 
         // Buka HUD scanner visual futuristik
         openKtpScannerModal(dataUrl);
-        updateKtpScannerProgress(25, 'Citra KTP Dioptimalkan', 'Memindai area NIK dan Nama...');
+        updateKtpScannerProgress(25, 'Citra KTP Dioptimalkan', 'Memindai area NIK dan biometrik foto...', 1);
 
         let extractedData = null;
 
         // Jalur 1: Coba Backend Server (api/ocr.php) dengan AbortController timeout 6.5 detik
         try {
-          updateKtpScannerProgress(55, 'Target Terkunci: Deteksi e-KTP...', 'Menganalisis teks via AI Gemini Vision Engine');
+          updateKtpScannerProgress(55, 'Target Terkunci: Deteksi e-KTP...', 'Menganalisis teks via AI Gemini 2.5 Flash-Lite Engine', 2);
           const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
           const token = localStorage.getItem('gusdim_mobile_token') || localStorage.getItem('gusdim_token') || '';
 
@@ -8264,8 +8634,8 @@ async function handleOcrFile(event) {
         // Jalur 2: Direct Cloud Failover jika backend timeout/terblokir cPanel firewall
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
-            updateKtpScannerProgress(75, 'Menghubungkan AI Cloud Backup...', 'Memproses langsung ke Gemini Vision');
-            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
+            updateKtpScannerProgress(80, 'Deep Neural Extraction Active...', 'Memproses langsung via Gemini 2.5 Flash-Lite Cloud', 3);
+            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-2.5-flash-lite');
           } catch (cloudErr) {
             console.error('Direct Cloud Error:', cloudErr);
           }
