@@ -3597,7 +3597,7 @@ function parseHasilOcrKtpMobile(teks) {
 
 // Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
 async function callGeminiDirectCloud(dataUrl, model) {
-  const models = [model || 'gemini-2.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.6-flash', 'gemini-pro-latest'];
   const rawBase64 = dataUrl.split(',')[1];
   const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
   const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
@@ -3664,7 +3664,7 @@ async function callGeminiDirectCloud(dataUrl, model) {
 }
 
 // ==========================================
-// KTP SCANNER HUD & INSTAN OCR ENGINE MOBILE (100% FULLSCREEN TAKEOVER)
+// KTP LOADING MODAL & OCR ENGINE MOBILE (CLEAN MINIMALIST OVERLAY)
 // ==========================================
 function ensureKtpScannerOverlay() {
   if (document.getElementById('ktpScannerOverlay')) return;
@@ -3672,113 +3672,23 @@ function ensureKtpScannerOverlay() {
   overlay.id = 'ktpScannerOverlay';
   overlay.className = 'ktp-scanner-overlay';
   overlay.innerHTML = `
-    <div class="ktp-scanner-modal">
-      <div class="ktp-scanner-header">
-        <div class="ktp-scanner-brand">
-          <div class="ktp-scanner-radar-dot"></div>
-          <div>
-            <div class="ktp-scanner-title">AI Biometric OCR Scanner</div>
-            <div class="ktp-scanner-version">GEMINI 2.5 FLASH-LITE // ULTRA LOW COST</div>
-          </div>
-        </div>
-        <button type="button" class="ktp-scanner-close-btn" onclick="closeKtpScannerModal()" title="Batal Pindai" aria-label="Tutup">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-
-      <div class="ktp-scanner-telemetry-bar">
-        <span class="telemetry-chip active"><span class="chip-dot"></span>SYS: ONLINE</span>
-        <span class="telemetry-chip"><span class="chip-dot"></span>MODE: FLASH-LITE</span>
-        <span class="telemetry-chip"><span class="chip-dot"></span>SCAN: 1080P</span>
-      </div>
-
-      <div class="ktp-scanner-viewport" id="ktpScannerViewport">
-        <div class="scanner-corner corner-tl"></div>
-        <div class="scanner-corner corner-tr"></div>
-        <div class="scanner-corner corner-bl"></div>
-        <div class="scanner-corner corner-br"></div>
-        <div class="ktp-scanner-grid"></div>
-
-        <div class="scanner-reticle">
-          <div class="reticle-ring ring-outer"></div>
-          <div class="reticle-ring ring-inner"></div>
-          <div class="reticle-crosshair ch-h"></div>
-          <div class="reticle-crosshair ch-v"></div>
-        </div>
-
-        <div class="scanner-laser" id="ktpScannerLaser"></div>
-        <div class="scanner-laser-glow" id="ktpScannerLaserGlow"></div>
-        <div class="scanner-laser-v"></div>
-
-        <div class="scanner-target-tag scanner-target-nik">
-          <span class="target-bracket tb-tl"></span>
-          <span class="target-bracket tb-tr"></span>
-          <span class="target-bracket tb-bl"></span>
-          <span class="target-bracket tb-br"></span>
-          <span class="target-label">TARGET NIK [16-DIGIT]</span>
-          <span class="target-stream">3513************</span>
-        </div>
-
-        <div class="scanner-target-tag scanner-target-face">
-          <span class="target-bracket tb-tl"></span>
-          <span class="target-bracket tb-tr"></span>
-          <span class="target-bracket tb-bl"></span>
-          <span class="target-bracket tb-br"></span>
-          <span class="target-label">BIOMETRIK WAJAH</span>
-          <span class="target-stream">MATCH 99.4%</span>
-        </div>
-
-        <div class="scanner-target-tag scanner-target-alamat">
-          <span class="target-bracket tb-tl"></span>
-          <span class="target-bracket tb-tr"></span>
-          <span class="target-bracket tb-bl"></span>
-          <span class="target-bracket tb-br"></span>
-          <span class="target-label">WILAYAH / ALAMAT</span>
-        </div>
-
-        <img id="ktpScannerImg" class="ktp-scanner-img" src="" alt="Pratinjau KTP">
-
-        <div class="ktp-scanner-success-badge" id="ktpScannerSuccessBadge">
-          <div class="success-icon-circle">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <div class="success-title">e-KTP TERVERIFIKASI</div>
-          <div class="success-sub">Ekstraksi NIK & Nama 100% Akurat</div>
+    <div class="ktp-loading-card" id="ktpScannerViewport">
+      <div class="ktp-loading-spinner-wrap" id="ktpLoadingSpinnerWrap">
+        <div class="ktp-loading-spinner"></div>
+        <div class="ktp-loading-success-icon" id="ktpScannerSuccessBadge">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         </div>
       </div>
-
-      <div class="ktp-scanner-body">
-        <div class="ktp-scanner-stages" id="ktpScannerStages">
-          <div class="stage-item active" data-stage="1">
-            <div class="stage-dot"></div>
-            <div class="stage-label">1. Citra</div>
-          </div>
-          <div class="stage-line"></div>
-          <div class="stage-item" data-stage="2">
-            <div class="stage-dot"></div>
-            <div class="stage-label">2. Biometrik</div>
-          </div>
-          <div class="stage-line"></div>
-          <div class="stage-item" data-stage="3">
-            <div class="stage-dot"></div>
-            <div class="stage-label">3. AI Vision</div>
-          </div>
-          <div class="stage-line"></div>
-          <div class="stage-item" data-stage="4">
-            <div class="stage-dot"></div>
-            <div class="stage-label">4. Validasi</div>
-          </div>
-        </div>
-
-        <div class="ktp-scanner-status-row">
-          <span class="ktp-scanner-status-text" id="ktpScannerStatusText">Menginisialisasi pemindai...</span>
-          <span class="ktp-scanner-percent" id="ktpScannerPercent">0%</span>
-        </div>
-        <div class="ktp-scanner-sub" id="ktpScannerSubText">Menghubungkan ke AI Gemini 2.5 Flash-Lite Vision Engine</div>
-        <div class="ktp-scanner-progress-track">
-          <div class="ktp-scanner-progress-bar" id="ktpScannerProgressBar"></div>
-        </div>
+      <div class="ktp-loading-img-wrap">
+        <img id="ktpScannerImg" class="ktp-loading-img" src="" alt="Pratinjau KTP">
       </div>
+      <div class="ktp-loading-title" id="ktpScannerStatusText">Memproses Foto KTP...</div>
+      <div class="ktp-loading-sub" id="ktpScannerSubText">Membaca NIK dan data identitas via AI Gemini</div>
+      <span id="ktpScannerPercent" class="ktp-loading-percent">15%</span>
+      <div class="ktp-loading-progress-track">
+        <div class="ktp-loading-progress-bar" id="ktpScannerProgressBar"></div>
+      </div>
+      <button type="button" class="ktp-loading-cancel-btn" onclick="closeKtpScannerModal()">Batal</button>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -3798,10 +3708,8 @@ function openKtpScannerModal(imgSrc) {
   if (img) img.src = imgSrc || '';
   if (bar) bar.style.width = '15%';
   if (percent) percent.textContent = '15%';
-  if (status) status.textContent = 'Mengoptimalkan Citra & Resolusi e-KTP...';
-  if (sub) sub.textContent = 'Kompresi presisi tinggi untuk respon kilat';
-
-  updateKtpScannerProgress(15, 'Mengoptimalkan Citra & Resolusi e-KTP...', 'Kompresi presisi tinggi untuk respon kilat', 1);
+  if (status) status.textContent = 'Memproses Foto KTP...';
+  if (sub) sub.textContent = 'Mengoptimalkan kualitas gambar...';
 
   if (overlay) {
     overlay.classList.add('active');
@@ -3809,7 +3717,7 @@ function openKtpScannerModal(imgSrc) {
   }
 }
 
-function updateKtpScannerProgress(p, statusText, subText, activeStage) {
+function updateKtpScannerProgress(p, statusText, subText) {
   const bar = document.getElementById('ktpScannerProgressBar');
   const percent = document.getElementById('ktpScannerPercent');
   const status = document.getElementById('ktpScannerStatusText');
@@ -3819,46 +3727,31 @@ function updateKtpScannerProgress(p, statusText, subText, activeStage) {
   if (percent) percent.textContent = p + '%';
   if (status && statusText) status.textContent = statusText;
   if (sub && subText) sub.textContent = subText;
-
-  const stageNum = activeStage || (p < 30 ? 1 : (p < 60 ? 2 : (p < 90 ? 3 : 4)));
-  const stageItems = document.querySelectorAll('#ktpScannerStages .stage-item');
-  if (stageItems && stageItems.length) {
-    stageItems.forEach((item, idx) => {
-      const num = idx + 1;
-      if (num <= stageNum) {
-        item.classList.add('active');
-      } else {
-        item.classList.remove('active');
-      }
-    });
-  }
 }
 
 function finishKtpScannerModal(success, message, callback) {
   const overlay = document.getElementById('ktpScannerOverlay');
   const viewport = document.getElementById('ktpScannerViewport');
-  const bar = document.getElementById('ktpScannerProgressBar');
-  const percent = document.getElementById('ktpScannerPercent');
   const status = document.getElementById('ktpScannerStatusText');
   const sub = document.getElementById('ktpScannerSubText');
 
   if (success) {
-    updateKtpScannerProgress(100, 'Ekstraksi Selesai!', message || 'Data e-KTP berhasil diekstrak', 4);
+    updateKtpScannerProgress(100, 'Berhasil Diproses!', message || 'Data e-KTP berhasil diekstrak');
     if (viewport) viewport.classList.add('scan-success');
 
     setTimeout(() => {
       if (overlay) overlay.classList.remove('active');
       document.body.style.overflow = '';
       if (typeof callback === 'function') callback();
-    }, 600);
+    }, 500);
   } else {
-    if (status) status.textContent = 'Pemindaian Belum Optimal';
+    if (status) status.textContent = 'Gagal Memproses';
     if (sub) sub.textContent = message || 'Lengkapi form secara manual';
     setTimeout(() => {
       if (overlay) overlay.classList.remove('active');
       document.body.style.overflow = '';
       if (typeof callback === 'function') callback();
-    }, 850);
+    }, 800);
   }
 }
 
@@ -3882,7 +3775,7 @@ window.updateKtpScannerProgress = updateKtpScannerProgress;
 window.finishKtpScannerModal = finishKtpScannerModal;
 window.highlightOcrInput = highlightOcrInput;
 
-// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover & HUD Animasi
+// Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover
 async function handleOcrFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -3912,15 +3805,15 @@ async function handleOcrFile(event) {
         ctx.drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
 
-        // Buka HUD scanner visual futuristik
+        // Buka modal loading
         openKtpScannerModal(dataUrl);
-        updateKtpScannerProgress(25, 'Citra KTP Dioptimalkan', 'Memindai area NIK dan biometrik foto...', 1);
+        updateKtpScannerProgress(25, 'Memproses Gambar...', 'Membaca data KTP...');
 
         let extractedData = null;
 
         // Jalur 1: Coba Backend Server (api/ocr.php) dengan AbortController timeout 6.5 detik
         try {
-          updateKtpScannerProgress(55, 'Target Terkunci: Deteksi e-KTP...', 'Menganalisis teks via AI Gemini 2.5 Flash-Lite Engine', 2);
+          updateKtpScannerProgress(50, 'Menganalisis Dokumen...', 'Membaca NIK dan nama via AI Gemini');
           const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
           const token = localStorage.getItem('gusdim_mobile_token') || localStorage.getItem('gusdim_token') || '';
 
@@ -3951,8 +3844,8 @@ async function handleOcrFile(event) {
         // Jalur 2: Direct Cloud Failover jika backend timeout/terblokir cPanel firewall
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
-            updateKtpScannerProgress(80, 'Deep Neural Extraction Active...', 'Memproses langsung via Gemini 2.5 Flash-Lite Cloud', 3);
-            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-2.5-flash-lite');
+            updateKtpScannerProgress(75, 'Menganalisis Dokumen...', 'Menghubungkan ke Gemini AI Cloud');
+            extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
           } catch (cloudErr) {
             console.error('Direct Cloud Error:', cloudErr);
           }

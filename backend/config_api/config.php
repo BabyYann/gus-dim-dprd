@@ -72,7 +72,7 @@ if (!defined('GEMINI_API_KEY')) {
     }
     define('GEMINI_API_KEY', $geminiKey);
 }
-if (!defined('GEMINI_MODEL')) define('GEMINI_MODEL', $loadedEnv['GEMINI_MODEL'] ?? getenv('GEMINI_MODEL') ?: 'gemini-2.5-flash-lite');
+if (!defined('GEMINI_MODEL')) define('GEMINI_MODEL', $loadedEnv['GEMINI_MODEL'] ?? getenv('GEMINI_MODEL') ?: 'gemini-3.5-flash');
 
 
 // 5. PENANGANAN ERROR
