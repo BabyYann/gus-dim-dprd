@@ -1917,6 +1917,9 @@ html, body {
 /* ==========================================================================
    CLEAN & ELEGANT KTP OCR LOADING OVERLAY
    ========================================================================== */
+/* ==========================================
+   MINIMALIST & ELEGANT KTP LOADING MODAL
+   ========================================== */
 .ktp-scanner-overlay {
   position: fixed;
   inset: 0;
@@ -1925,16 +1928,16 @@ html, body {
   height: 100vh;
   height: 100dvh;
   z-index: 9999999;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s ease;
   box-sizing: border-box;
 }
 
@@ -1944,96 +1947,44 @@ html, body {
 }
 
 .ktp-loading-card {
-  width: 100%;
-  max-width: 320px;
   background: #ffffff;
-  border-radius: 24px;
-  padding: 28px 22px 20px 22px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   box-sizing: border-box;
-  transform: scale(0.92);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 200px;
+  max-width: 250px;
+  transform: scale(0.96);
+  transition: transform 0.2s ease;
 }
 
 .ktp-scanner-overlay.active .ktp-loading-card {
   transform: scale(1);
 }
 
-.ktp-loading-spinner-wrap {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .ktp-loading-spinner {
-  width: 50px;
-  height: 50px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 4px solid #e2e8f0;
-  border-top-color: #16225e;
-  border-right-color: #2563eb;
-  animation: cleanSpinnerRotate 0.9s linear infinite;
+  border: 3px solid #f1f5f9;
+  border-top-color: #2563eb;
+  animation: ktpCleanSpin 0.75s linear infinite;
+  margin-bottom: 12px;
   box-sizing: border-box;
 }
 
-@keyframes cleanSpinnerRotate {
+@keyframes ktpCleanSpin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-.ktp-loading-success-icon {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ecfdf5;
-  border-radius: 50%;
-  border: 3px solid #10b981;
-  opacity: 0;
-  transform: scale(0.5);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
-}
-
-.ktp-loading-card.scan-success .ktp-loading-spinner {
-  display: none;
-}
-
-.ktp-loading-card.scan-success .ktp-loading-success-icon {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.ktp-loading-img-wrap {
-  width: 140px;
-  height: 88px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  flex-shrink: 0;
-}
-
-.ktp-loading-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 .ktp-loading-title {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 4px;
@@ -2041,68 +1992,19 @@ html, body {
 }
 
 .ktp-loading-sub {
-  font-size: 12.5px;
-  color: #64748b;
-  margin-bottom: 12px;
-  line-height: 1.4;
-  padding: 0 6px;
-}
-
-.ktp-loading-percent {
   font-size: 12px;
-  font-weight: 700;
-  color: #2563eb;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  margin-bottom: 8px;
-}
-
-.ktp-loading-progress-track {
-  width: 100%;
-  height: 6px;
-  background: #f1f5f9;
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 14px;
-}
-
-.ktp-loading-progress-bar {
-  height: 100%;
-  width: 15%;
-  background: linear-gradient(90deg, #16225e, #2563eb);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.ktp-loading-card.scan-success .ktp-loading-progress-bar {
-  background: #10b981;
-}
-
-.ktp-loading-cancel-btn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 6px 16px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.ktp-loading-cancel-btn:hover {
-  background: #f1f5f9;
-  color: #ef4444;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
 }
 
 @keyframes ocrFieldGlow {
-  0% { background-color: #dbeafe; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
-  70% { background-color: #f0fdf4; border-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
-  100% { background-color: transparent; border-color: inherit; box-shadow: none; }
+  0% { border-color: #2563eb; background-color: #eff6ff; }
+  100% { border-color: inherit; background-color: transparent; }
 }
 
 .ocr-field-glow {
-  animation: ocrFieldGlow 2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: ocrFieldGlow 1.2s ease;
 }
 
 /* ==========================================================================

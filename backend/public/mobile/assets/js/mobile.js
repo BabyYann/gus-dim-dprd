@@ -3664,7 +3664,7 @@ async function callGeminiDirectCloud(dataUrl, model) {
 }
 
 // ==========================================
-// KTP LOADING MODAL & OCR ENGINE MOBILE (CLEAN MINIMALIST OVERLAY)
+// KTP LOADING MODAL & OCR ENGINE MOBILE (MINIMALIST & ELEGANT)
 // ==========================================
 function ensureKtpScannerOverlay() {
   if (document.getElementById('ktpScannerOverlay')) return;
@@ -3673,43 +3673,22 @@ function ensureKtpScannerOverlay() {
   overlay.className = 'ktp-scanner-overlay';
   overlay.innerHTML = `
     <div class="ktp-loading-card" id="ktpScannerViewport">
-      <div class="ktp-loading-spinner-wrap" id="ktpLoadingSpinnerWrap">
-        <div class="ktp-loading-spinner"></div>
-        <div class="ktp-loading-success-icon" id="ktpScannerSuccessBadge">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </div>
-      </div>
-      <div class="ktp-loading-img-wrap">
-        <img id="ktpScannerImg" class="ktp-loading-img" src="" alt="Pratinjau KTP">
-      </div>
-      <div class="ktp-loading-title" id="ktpScannerStatusText">Memproses Foto KTP...</div>
-      <div class="ktp-loading-sub" id="ktpScannerSubText">Membaca NIK dan data identitas via AI Gemini</div>
-      <span id="ktpScannerPercent" class="ktp-loading-percent">15%</span>
-      <div class="ktp-loading-progress-track">
-        <div class="ktp-loading-progress-bar" id="ktpScannerProgressBar"></div>
-      </div>
-      <button type="button" class="ktp-loading-cancel-btn" onclick="closeKtpScannerModal()">Batal</button>
+      <div class="ktp-loading-spinner"></div>
+      <div class="ktp-loading-title" id="ktpScannerStatusText">Memproses KTP...</div>
+      <div class="ktp-loading-sub" id="ktpScannerSubText">Mohon tunggu sebentar</div>
     </div>
   `;
   document.body.appendChild(overlay);
 }
 
-function openKtpScannerModal(imgSrc) {
+function openKtpScannerModal() {
   ensureKtpScannerOverlay();
   const overlay = document.getElementById('ktpScannerOverlay');
-  const viewport = document.getElementById('ktpScannerViewport');
-  const img = document.getElementById('ktpScannerImg');
-  const bar = document.getElementById('ktpScannerProgressBar');
-  const percent = document.getElementById('ktpScannerPercent');
   const status = document.getElementById('ktpScannerStatusText');
   const sub = document.getElementById('ktpScannerSubText');
 
-  if (viewport) viewport.classList.remove('scan-success');
-  if (img) img.src = imgSrc || '';
-  if (bar) bar.style.width = '15%';
-  if (percent) percent.textContent = '15%';
-  if (status) status.textContent = 'Memproses Foto KTP...';
-  if (sub) sub.textContent = 'Mengoptimalkan kualitas gambar...';
+  if (status) status.textContent = 'Memproses KTP...';
+  if (sub) sub.textContent = 'Mohon tunggu sebentar';
 
   if (overlay) {
     overlay.classList.add('active');
@@ -3718,40 +3697,34 @@ function openKtpScannerModal(imgSrc) {
 }
 
 function updateKtpScannerProgress(p, statusText, subText) {
-  const bar = document.getElementById('ktpScannerProgressBar');
-  const percent = document.getElementById('ktpScannerPercent');
   const status = document.getElementById('ktpScannerStatusText');
   const sub = document.getElementById('ktpScannerSubText');
 
-  if (bar) bar.style.width = p + '%';
-  if (percent) percent.textContent = p + '%';
   if (status && statusText) status.textContent = statusText;
   if (sub && subText) sub.textContent = subText;
 }
 
 function finishKtpScannerModal(success, message, callback) {
   const overlay = document.getElementById('ktpScannerOverlay');
-  const viewport = document.getElementById('ktpScannerViewport');
   const status = document.getElementById('ktpScannerStatusText');
   const sub = document.getElementById('ktpScannerSubText');
 
   if (success) {
-    updateKtpScannerProgress(100, 'Berhasil Diproses!', message || 'Data e-KTP berhasil diekstrak');
-    if (viewport) viewport.classList.add('scan-success');
-
+    if (status) status.textContent = 'Selesai!';
+    if (sub) sub.textContent = message || 'Data berhasil dibaca';
     setTimeout(() => {
       if (overlay) overlay.classList.remove('active');
       document.body.style.overflow = '';
       if (typeof callback === 'function') callback();
-    }, 500);
+    }, 200);
   } else {
-    if (status) status.textContent = 'Gagal Memproses';
+    if (status) status.textContent = 'Gagal Membaca';
     if (sub) sub.textContent = message || 'Lengkapi form secara manual';
     setTimeout(() => {
       if (overlay) overlay.classList.remove('active');
       document.body.style.overflow = '';
       if (typeof callback === 'function') callback();
-    }, 800);
+    }, 400);
   }
 }
 
@@ -3805,15 +3778,13 @@ async function handleOcrFile(event) {
         ctx.drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
 
-        // Buka modal loading
-        openKtpScannerModal(dataUrl);
-        updateKtpScannerProgress(25, 'Memproses Gambar...', 'Membaca data KTP...');
+        // Buka modal loading simpel & elegan
+        openKtpScannerModal();
 
         let extractedData = null;
 
         // Jalur 1: Coba Backend Server (api/ocr.php) dengan AbortController timeout 6.5 detik
         try {
-          updateKtpScannerProgress(50, 'Menganalisis Dokumen...', 'Membaca NIK dan nama via AI Gemini');
           const apiBase = (window.location.pathname && window.location.pathname.includes('/mobile')) ? '../api' : 'api';
           const token = localStorage.getItem('gusdim_mobile_token') || localStorage.getItem('gusdim_token') || '';
 
@@ -3844,7 +3815,6 @@ async function handleOcrFile(event) {
         // Jalur 2: Direct Cloud Failover jika backend timeout/terblokir cPanel firewall
         if (!extractedData && typeof callGeminiDirectCloud === 'function') {
           try {
-            updateKtpScannerProgress(75, 'Menganalisis Dokumen...', 'Menghubungkan ke Gemini AI Cloud');
             extractedData = await callGeminiDirectCloud(dataUrl, 'gemini-3.5-flash');
           } catch (cloudErr) {
             console.error('Direct Cloud Error:', cloudErr);
