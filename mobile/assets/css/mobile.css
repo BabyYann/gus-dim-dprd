@@ -159,16 +159,32 @@ html, body {
    ========================================================================== */
 .mobile-header {
   flex-shrink: 0;
-  padding-top: max(var(--safe-top), 10px);
+  padding-top: max(var(--safe-top), 12px);
   padding-left: 16px;
   padding-right: 16px;
-  padding-bottom: 24px;
-  background: #012e54 url('../img/header-bg.png') no-repeat center center / cover;
+  padding-bottom: 34px;
+  background: #012e54 url('../img/header-bg.png') no-repeat right center / cover;
   color: #ffffff;
   position: relative;
   z-index: 30;
   border-bottom: none;
-  box-shadow: 0 4px 20px rgba(7, 25, 56, 0.25);
+  overflow: hidden;
+}
+
+.header-gold-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 34px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.header-gold-wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .header-inner {
@@ -2017,31 +2033,16 @@ html, body {
 
 /* 1. Welcome Card Banner with Gold Wave Ribbon */
 .welcome-card-banner {
-  margin-top: -16px;
-  background: #ffffff;
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
-  padding: 22px 18px 14px;
+  margin-top: 0;
+  background: transparent;
+  padding: 8px 18px 14px;
   position: relative;
-  box-shadow: 0 -10px 25px rgba(9, 26, 58, 0.12);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-}
-
-.welcome-wave-ribbon {
-  position: absolute;
-  top: -12px;
-  left: 0;
-  right: 0;
-  height: 16px;
-  background: linear-gradient(90deg, rgba(180, 131, 32, 0.6) 0%, rgba(250, 204, 21, 0.9) 35%, rgba(234, 179, 8, 0.9) 70%, rgba(202, 138, 4, 0.6) 100%);
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  opacity: 0.85;
-  filter: blur(1px);
-  pointer-events: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .welcome-info {
@@ -2051,16 +2052,17 @@ html, body {
 .welcome-greeting {
   font-size: 13px;
   font-weight: 500;
-  color: #475569;
+  color: #64748b;
+  line-height: 1.2;
 }
 
 .welcome-name {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 900;
   color: #0b193d;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.5px;
   line-height: 1.15;
-  margin: 1px 0 3px;
+  margin: 2px 0 4px;
 }
 
 .welcome-subtitle {
@@ -2074,14 +2076,14 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
-  background: #f8fafc;
+  padding: 6px 12px;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 9999px;
   font-size: 12px;
   font-weight: 700;
   color: #0f172a;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -2095,17 +2097,33 @@ html, body {
 /* 2. 3D Donut Gauge & Metrics Card */
 .dashboard-kpi-card {
   background: #ffffff;
-  border-radius: 24px;
-  padding: 16px;
-  margin: 0 16px 14px;
+  border-radius: 28px;
+  padding: 18px 16px;
+  margin: 0 16px 16px;
   border: 1px solid #eef2f6;
-  box-shadow: 0 10px 25px rgba(22, 34, 94, 0.05);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
   display: grid;
   grid-template-columns: 1fr 1.15fr;
   gap: 12px;
   align-items: center;
   position: relative;
   overflow: hidden;
+}
+
+.kpi-card-wave-accent {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 170px;
+  height: 42px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.kpi-card-wave-accent svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .donut-gauge-box {
@@ -2117,6 +2135,7 @@ html, body {
   width: 154px;
   height: 154px;
   margin: 0 auto;
+  z-index: 2;
 }
 
 .donut-svg-ring {
@@ -2137,85 +2156,89 @@ html, body {
 }
 
 .donut-user-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   color: #2563eb;
   margin-bottom: 2px;
 }
 
 .donut-user-icon svg {
-  width: 22px !important;
-  height: 22px !important;
+  width: 24px !important;
+  height: 24px !important;
   stroke: #2563eb;
 }
 
 .donut-total-val {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
   color: #0f172a;
   letter-spacing: -0.5px;
   line-height: 1;
+  margin: 2px 0 1px;
 }
 
 .donut-total-lbl {
   font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  margin-top: 2px;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .donut-growth-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  color: #16a34a;
-  margin-top: 2px;
+  color: #10b981;
+  margin-top: 3px;
 }
 
 .donut-growth-badge svg {
-  width: 9px !important;
-  height: 9px !important;
-  stroke: #16a34a;
+  width: 10px !important;
+  height: 10px !important;
+  stroke: #10b981;
 }
 
 .donut-growth-sub {
-  font-size: 8.5px;
+  font-size: 9.5px;
   color: #94a3b8;
   font-weight: 500;
+  margin-left: 1px;
 }
 
 /* Metric Stack on Right */
 .metric-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  z-index: 2;
 }
 
 .metric-pill-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .metric-icon-square {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
 }
 
-.metric-icon-square.green { background: #dcfce7; color: #10b981; }
-.metric-icon-square.orange { background: #fef3c7; color: #f59e0b; }
-.metric-icon-square.purple { background: #ede9fe; color: #6366f1; }
+.metric-icon-square.green { background: #10b981; color: #ffffff; }
+.metric-icon-square.orange { background: #f59e0b; color: #ffffff; }
+.metric-icon-square.purple { background: #6366f1; color: #ffffff; }
 
 .metric-icon-square svg {
   width: 18px !important;
   height: 18px !important;
+  stroke: #ffffff;
 }
 
 .metric-data-col {
@@ -2226,19 +2249,19 @@ html, body {
 .metric-header-row {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 7px;
+  margin-bottom: 5px;
 }
 
 .metric-value-text {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
   color: #0f172a;
   line-height: 1;
 }
 
 .metric-label-text {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   color: #64748b;
   white-space: nowrap;
@@ -2269,12 +2292,12 @@ html, body {
 .metric-progress-bar.purple { background: #6366f1; }
 
 .metric-pct-text {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
-  color: #475569;
+  color: #0f172a;
   min-width: 28px;
   text-align: right;
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* 3. Sebaran Pendukung Card */

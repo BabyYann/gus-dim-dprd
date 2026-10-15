@@ -212,16 +212,32 @@ html, body {
    ========================================================================== */
 .mobile-header {
   flex-shrink: 0;
-  padding-top: max(var(--safe-top), 10px);
+  padding-top: max(var(--safe-top), 12px);
   padding-left: 16px;
   padding-right: 16px;
-  padding-bottom: 24px;
-  background: #012e54 url('assets/img/header-bg.png') no-repeat center center / cover;
+  padding-bottom: 34px;
+  background: #012e54 url('assets/img/header-bg.png') no-repeat right center / cover;
   color: #ffffff;
   position: relative;
   z-index: 30;
   border-bottom: none;
-  box-shadow: 0 4px 20px rgba(7, 25, 56, 0.25);
+  overflow: hidden;
+}
+
+.header-gold-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 34px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.header-gold-wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .header-inner {
@@ -736,31 +752,16 @@ html, body {
 
 /* 1. Welcome Card Banner with Gold Wave Ribbon */
 .welcome-card-banner {
-  margin-top: -16px;
-  background: #ffffff;
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
-  padding: 22px 18px 14px;
+  margin-top: 0;
+  background: transparent;
+  padding: 8px 18px 14px;
   position: relative;
-  box-shadow: 0 -10px 25px rgba(9, 26, 58, 0.12);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-}
-
-.welcome-wave-ribbon {
-  position: absolute;
-  top: -12px;
-  left: 0;
-  right: 0;
-  height: 16px;
-  background: linear-gradient(90deg, rgba(180, 131, 32, 0.6) 0%, rgba(250, 204, 21, 0.9) 35%, rgba(234, 179, 8, 0.9) 70%, rgba(202, 138, 4, 0.6) 100%);
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  opacity: 0.85;
-  filter: blur(1px);
-  pointer-events: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .welcome-info {
@@ -770,16 +771,17 @@ html, body {
 .welcome-greeting {
   font-size: 13px;
   font-weight: 500;
-  color: #475569;
+  color: #64748b;
+  line-height: 1.2;
 }
 
 .welcome-name {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 900;
   color: #0b193d;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.5px;
   line-height: 1.15;
-  margin: 1px 0 3px;
+  margin: 2px 0 4px;
 }
 
 .welcome-subtitle {
@@ -793,14 +795,14 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
-  background: #f8fafc;
+  padding: 6px 12px;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 9999px;
   font-size: 12px;
   font-weight: 700;
   color: #0f172a;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -814,17 +816,33 @@ html, body {
 /* 2. 3D Donut Gauge & Metrics Card */
 .dashboard-kpi-card {
   background: #ffffff;
-  border-radius: 24px;
-  padding: 16px;
-  margin: 0 16px 14px;
+  border-radius: 28px;
+  padding: 18px 16px;
+  margin: 0 16px 16px;
   border: 1px solid #eef2f6;
-  box-shadow: 0 10px 25px rgba(22, 34, 94, 0.05);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
   display: grid;
   grid-template-columns: 1fr 1.15fr;
   gap: 12px;
   align-items: center;
   position: relative;
   overflow: hidden;
+}
+
+.kpi-card-wave-accent {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 170px;
+  height: 42px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.kpi-card-wave-accent svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .donut-gauge-box {
@@ -836,6 +854,7 @@ html, body {
   width: 154px;
   height: 154px;
   margin: 0 auto;
+  z-index: 2;
 }
 
 .donut-svg-ring {
@@ -856,85 +875,89 @@ html, body {
 }
 
 .donut-user-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   color: #2563eb;
   margin-bottom: 2px;
 }
 
 .donut-user-icon svg {
-  width: 22px !important;
-  height: 22px !important;
+  width: 24px !important;
+  height: 24px !important;
   stroke: #2563eb;
 }
 
 .donut-total-val {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
   color: #0f172a;
   letter-spacing: -0.5px;
   line-height: 1;
+  margin: 2px 0 1px;
 }
 
 .donut-total-lbl {
   font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  margin-top: 2px;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .donut-growth-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  color: #16a34a;
-  margin-top: 2px;
+  color: #10b981;
+  margin-top: 3px;
 }
 
 .donut-growth-badge svg {
-  width: 9px !important;
-  height: 9px !important;
-  stroke: #16a34a;
+  width: 10px !important;
+  height: 10px !important;
+  stroke: #10b981;
 }
 
 .donut-growth-sub {
-  font-size: 8.5px;
+  font-size: 9.5px;
   color: #94a3b8;
   font-weight: 500;
+  margin-left: 1px;
 }
 
 /* Metric Stack on Right */
 .metric-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  z-index: 2;
 }
 
 .metric-pill-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .metric-icon-square {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
 }
 
-.metric-icon-square.green { background: #dcfce7; color: #10b981; }
-.metric-icon-square.orange { background: #fef3c7; color: #f59e0b; }
-.metric-icon-square.purple { background: #ede9fe; color: #6366f1; }
+.metric-icon-square.green { background: #10b981; color: #ffffff; }
+.metric-icon-square.orange { background: #f59e0b; color: #ffffff; }
+.metric-icon-square.purple { background: #6366f1; color: #ffffff; }
 
 .metric-icon-square svg {
   width: 18px !important;
   height: 18px !important;
+  stroke: #ffffff;
 }
 
 .metric-data-col {
@@ -945,19 +968,19 @@ html, body {
 .metric-header-row {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 7px;
+  margin-bottom: 5px;
 }
 
 .metric-value-text {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
   color: #0f172a;
   line-height: 1;
 }
 
 .metric-label-text {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   color: #64748b;
   white-space: nowrap;
@@ -988,12 +1011,12 @@ html, body {
 .metric-progress-bar.purple { background: #6366f1; }
 
 .metric-pct-text {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
-  color: #475569;
+  color: #0f172a;
   min-width: 28px;
   text-align: right;
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* 3. Sebaran Pendukung Card */
@@ -3003,6 +3026,22 @@ html, body {
           </button>
         </div>
       </div>
+      <!-- Wave Transition with Gold Ribbon -->
+      <div class="header-gold-wave">
+        <svg viewBox="0 0 400 36" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="headerGoldRibbon" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#b45309" />
+              <stop offset="30%" stop-color="#f59e0b" />
+              <stop offset="60%" stop-color="#fef08a" />
+              <stop offset="85%" stop-color="#eab308" />
+              <stop offset="100%" stop-color="#ca8a04" />
+            </linearGradient>
+          </defs>
+          <path d="M 0,14 C 95,36 190,38 275,10 C 325,-2 370,6 400,16 L 400,36 L 0,36 Z" fill="#ffffff" />
+          <path d="M 0,14 C 95,36 190,38 275,10 C 325,-2 370,6 400,16" fill="none" stroke="url(#headerGoldRibbon)" stroke-width="4" stroke-linecap="round" />
+        </svg>
+      </div>
     </header>
 
     <!-- Slide-Out Drawer Menu (Sidebar 4 Rumpun Sesuai Desktop) -->
@@ -3139,43 +3178,73 @@ html, body {
 
         <!-- 1. Welcome Card Banner with Gold Wave Ribbon -->
         <div class="welcome-card-banner">
-          <div class="welcome-wave-ribbon"></div>
           <div class="welcome-info">
-            <div class="welcome-greeting">Selamat datang, Gus Dim</div>
-            <div class="welcome-name">Dashboard Relawan</div>
-            <div class="welcome-subtitle">Pantau pergerakan konstituen &amp; aspirasi Dapil Kraksaan Raya secara real-time.</div>
+            <div class="welcome-greeting">Selamat datang,</div>
+            <div class="welcome-name">Gus Dim</div>
+            <div class="welcome-subtitle">Bersama masyarakat, untuk Kraksaan Raya yang lebih baik</div>
           </div>
           <div class="welcome-filter-pill" onclick="showToast('Periode aktif: Tahun Anggaran 2025')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
             <span>Tahun 2025</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
 
         <!-- 2. 3D Donut Gauge KPI Card -->
         <div class="dashboard-kpi-card">
+          <!-- Decorative Bottom-Left Wave Accent matching Reference -->
+          <div class="kpi-card-wave-accent">
+            <svg viewBox="0 0 220 50" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="kpiGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#b45309" />
+                  <stop offset="40%" stop-color="#f59e0b" />
+                  <stop offset="70%" stop-color="#fef08a" />
+                  <stop offset="100%" stop-color="#eab308" />
+                </linearGradient>
+              </defs>
+              <path d="M 0,30 C 60,48 130,16 220,38 L 220,50 L 0,50 Z" fill="rgba(239, 246, 255, 0.85)" />
+              <path d="M 0,30 C 60,48 130,16 220,38" fill="none" stroke="url(#kpiGoldGrad)" stroke-width="2.5" stroke-linecap="round" />
+            </svg>
+          </div>
+
           <!-- Donut Ring Column -->
           <div class="donut-gauge-box">
             <svg class="donut-svg-ring" viewBox="0 0 160 160">
+              <defs>
+                <linearGradient id="segGreenCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10b981" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+                <linearGradient id="segCyanBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#3b82f6" />
+                </linearGradient>
+                <linearGradient id="segYellowAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#facc15" />
+                  <stop offset="100%" stop-color="#f59e0b" />
+                </linearGradient>
+              </defs>
               <!-- Background Ring Track -->
-              <circle cx="80" cy="80" r="65" fill="none" stroke="#f1f5f9" stroke-width="16" />
+              <circle cx="80" cy="80" r="64" fill="none" stroke="#f1f5f9" stroke-width="15" />
               <!-- Multi-segment Colored Ring -->
-              <!-- Segment 1: Terverifikasi (Emerald #10b981) -->
-              <circle id="donutSegVerif" cx="80" cy="80" r="65" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" stroke-dasharray="326 408" stroke-dashoffset="0" />
-              <!-- Segment 2: Aspirasi (Amber #f59e0b) -->
-              <circle id="donutSegAspirasi" cx="80" cy="80" r="65" fill="none" stroke="#f59e0b" stroke-width="16" stroke-linecap="round" stroke-dasharray="49 408" stroke-dashoffset="-330" />
-              <!-- Segment 3: Pokir (Indigo #6366f1) -->
-              <circle id="donutSegPokir" cx="80" cy="80" r="65" fill="none" stroke="#6366f1" stroke-width="16" stroke-linecap="round" stroke-dasharray="33 408" stroke-dashoffset="-382" />
+              <!-- Segment 1: Terverifikasi (Emerald-Cyan Gradient) -->
+              <circle id="donutSegVerif" cx="80" cy="80" r="64" fill="none" stroke="url(#segGreenCyan)" stroke-width="15" stroke-linecap="round" stroke-dasharray="240 402" stroke-dashoffset="0" />
+              <!-- Segment 2: Aspirasi (Cyan-Blue Gradient) -->
+              <circle id="donutSegAspirasi" cx="80" cy="80" r="64" fill="none" stroke="url(#segCyanBlue)" stroke-width="15" stroke-linecap="round" stroke-dasharray="70 402" stroke-dashoffset="-245" />
+              <!-- Segment 3: Pokir (Yellow-Amber Gradient) -->
+              <circle id="donutSegPokir" cx="80" cy="80" r="64" fill="none" stroke="url(#segYellowAmber)" stroke-width="15" stroke-linecap="round" stroke-dasharray="45 402" stroke-dashoffset="-325" />
             </svg>
             <div class="donut-gauge-center">
               <div class="donut-user-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
               <div id="donutTotalPendukung" class="donut-total-val">0</div>
               <div class="donut-total-lbl">Total Pendukung</div>
               <div class="donut-growth-badge">
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
                 <span>+12%</span>
-                <span class="donut-growth-sub">bln lalu</span>
+                <span class="donut-growth-sub">dari bulan lalu</span>
               </div>
             </div>
           </div>
@@ -3185,7 +3254,7 @@ html, body {
             <!-- Metric 1: Terverifikasi -->
             <div class="metric-pill-item" onclick="navigatePage('pendukung')" style="cursor:pointer;">
               <div class="metric-icon-square green">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
               </div>
               <div class="metric-data-col">
                 <div class="metric-header-row">
@@ -3204,7 +3273,7 @@ html, body {
             <!-- Metric 2: Aspirasi Warga -->
             <div class="metric-pill-item" onclick="navigatePage('aspirasi')" style="cursor:pointer;">
               <div class="metric-icon-square orange">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" x2="14" y1="9" y2="9"/><line x1="8" x2="12" y1="13" y2="13"/></svg>
               </div>
               <div class="metric-data-col">
                 <div class="metric-header-row">
@@ -3223,7 +3292,7 @@ html, body {
             <!-- Metric 3: Pokir APBD -->
             <div class="metric-pill-item" onclick="navigatePage('reses')" style="cursor:pointer;">
               <div class="metric-icon-square purple">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
               </div>
               <div class="metric-data-col">
                 <div class="metric-header-row">
