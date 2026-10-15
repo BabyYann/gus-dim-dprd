@@ -163,10 +163,7 @@ html, body {
   padding-left: 16px;
   padding-right: 16px;
   padding-bottom: 24px;
-  background: 
-    radial-gradient(circle at 85% 15%, rgba(250, 204, 21, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 10% 80%, rgba(56, 189, 248, 0.15) 0%, transparent 45%),
-    linear-gradient(135deg, #071938 0%, #0a2558 50%, #0d2f6f 100%);
+  background: #012e54 url('../img/header-bg.png') no-repeat center center / cover;
   color: #ffffff;
   position: relative;
   z-index: 30;
@@ -234,11 +231,13 @@ html, body {
   letter-spacing: -0.3px;
   line-height: 1.15;
   color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .header-app-title .title-mobile {
   color: #facc15;
   font-weight: 900;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .header-badge-dapil {
@@ -251,6 +250,7 @@ html, body {
   align-items: center;
   gap: 4px;
   margin-top: 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .header-badge-dapil svg {
