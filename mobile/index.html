@@ -7916,7 +7916,9 @@ async function callGeminiDirectCloud(dataUrl, model) {
     + "} "
     + "Pedoman penting: "
     + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
-    + "2. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
+    + "2. Baca field 'Kecamatan' dan 'Kel/Desa' secara akurat dan bersih tanpa kata awalan (contoh: jika tertulis 'Kecamatan : BESUK', isi 'kecamatan': 'Besuk'; jika tertulis 'Kel/Desa : SUMURDALAM', isi 'kel_desa': 'Sumurdalam'). "
+    + "3. Wilayah KTP ini umumnya di Kabupaten Probolinggo (Dapil Kraksaan, Besuk, atau Gading). "
+    + "4. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
 
   const payload = {
     contents: [{
@@ -8043,6 +8045,113 @@ window.updateKtpScannerProgress = updateKtpScannerProgress;
 window.finishKtpScannerModal = finishKtpScannerModal;
 window.highlightOcrInput = highlightOcrInput;
 
+// Fungsi Penentuan Kecamatan & Desa Cerdas Berdasarkan Hasil Ekstraksi KTP
+function autoSelectKecamatanDanDesa(ocrData) {
+  if (!ocrData || typeof ocrData !== 'object') return false;
+
+  const inKec = document.getElementById('formKecamatan');
+  const inDesa = document.getElementById('formDesa');
+  if (!inKec || !inDesa) return false;
+
+  const rawKec = String(ocrData.kecamatan || '');
+  const rawDesa = String(ocrData.kel_desa || '');
+  const rawAlamat = String(ocrData.alamat || '');
+  const rawNik = String(ocrData.nik || '');
+
+  function cleanGeo(str) {
+    return (str || '')
+      .toLowerCase()
+      .replace(/\b(desa|kelurahan|kel|kecamatan|kec|dusun|dsn|kabupaten|kab)\b\.?/gi, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  const cleanKec = cleanGeo(rawKec);
+  const cleanDesa = cleanGeo(rawDesa);
+  const cleanAlamat = cleanGeo(rawAlamat);
+
+  let detectedKec = '';
+  let detectedDesa = '';
+
+  // 1. Cek langsung dari nama Kecamatan yang diekstrak OCR
+  if (cleanKec.includes('besuk')) detectedKec = 'Besuk';
+  else if (cleanKec.includes('gading')) detectedKec = 'Gading';
+  else if (cleanKec.includes('kraksaan')) detectedKec = 'Kraksaan';
+
+  // 2. Pencarian Desa cerdas di seluruh data DapilLocations
+  let bestDesaMatch = null;
+  let bestKecMatch = null;
+
+  if (typeof DapilLocations !== 'undefined') {
+    for (const [kecName, locData] of Object.entries(DapilLocations)) {
+      if (!locData || !Array.isArray(locData.desa)) continue;
+
+      for (const desaName of locData.desa) {
+        const cDesa = cleanGeo(desaName);
+        if (!cDesa) continue;
+
+        // Cek kecocokan dengan field kel_desa
+        if (cleanDesa && (cleanDesa === cDesa || cleanDesa.includes(cDesa) || (cDesa.length >= 5 && cDesa.includes(cleanDesa)))) {
+          bestDesaMatch = desaName;
+          bestKecMatch = kecName;
+          break;
+        }
+
+        // Cek juga di field alamat jika kel_desa belum cocok
+        if (!bestDesaMatch && cleanAlamat && (cleanAlamat.includes(cDesa) && cDesa.length >= 5)) {
+          bestDesaMatch = desaName;
+          bestKecMatch = kecName;
+        }
+      }
+      if (bestDesaMatch && detectedKec && bestKecMatch === detectedKec) {
+        break;
+      }
+    }
+  }
+
+  if (bestDesaMatch) {
+    detectedDesa = bestDesaMatch;
+    if (!detectedKec || (bestKecMatch && !cleanKec.includes('kraksaan') && !cleanKec.includes('besuk') && !cleanKec.includes('gading'))) {
+      detectedKec = bestKecMatch;
+    }
+  }
+
+  // 3. Jika Kecamatan masih belum ketemu, cari di field alamat atau prefix NIK
+  if (!detectedKec) {
+    if (cleanAlamat.includes('besuk')) detectedKec = 'Besuk';
+    else if (cleanAlamat.includes('gading')) detectedKec = 'Gading';
+    else if (cleanAlamat.includes('kraksaan')) detectedKec = 'Kraksaan';
+    else {
+      const nikClean = rawNik.replace(/\D/g, '');
+      const nikPrefix = nikClean.substring(0, 6);
+      if (nikPrefix === '351319') detectedKec = 'Besuk';
+      else if (nikPrefix === '351321' || nikPrefix === '351309' || nikPrefix === '351310') detectedKec = 'Gading';
+      else if (nikPrefix === '351324') detectedKec = 'Kraksaan';
+    }
+  }
+
+  // Fallback default
+  if (!detectedKec) {
+    detectedKec = inKec.value || 'Kraksaan';
+  }
+
+  // Set nilai Kecamatan pada dropdown
+  inKec.value = detectedKec;
+  highlightOcrInput('formKecamatan');
+
+  // Perbarui dropdown Desa dengan nilai yang cocok
+  if (typeof updateDesaDropdown === 'function') {
+    updateDesaDropdown(detectedKec, detectedDesa || '');
+  }
+
+  if (detectedDesa) {
+    inDesa.value = detectedDesa;
+    highlightOcrInput('formDesa');
+  }
+
+  return Boolean(detectedDesa || detectedKec);
+}
+window.autoSelectKecamatanDanDesa = autoSelectKecamatanDanDesa;
+
 // Handler Pemindaian KTP Cerdas via Google Gemini Vision AI dengan Auto-Failover
 async function handleOcrFile(event) {
   const file = event.target.files[0];
@@ -8121,8 +8230,6 @@ async function handleOcrFile(event) {
           const inNik = document.getElementById('formNik');
           const inNama = document.getElementById('formNama');
           const inAlamat = document.getElementById('formAlamat');
-          const inKec = document.getElementById('formKecamatan');
-          const inDesa = document.getElementById('formDesa');
 
           // Normalisasi NIK murni angka 16 digit
           if (d.nik) {
@@ -8156,31 +8263,10 @@ async function handleOcrFile(event) {
             count++;
           }
 
-          // Otomatisasi pemilihan dropdown Kecamatan (Kraksaan, Besuk, Gading)
-          if (d.kecamatan && inKec) {
-            const dKec = d.kecamatan.toLowerCase();
-            for (let i = 0; i < inKec.options.length; i++) {
-              if (inKec.options[i].value && dKec.includes(inKec.options[i].value.toLowerCase())) {
-                inKec.selectedIndex = i;
-                if (typeof updateDesaDropdown === 'function') {
-                  updateDesaDropdown(inKec.value);
-                }
-                break;
-              }
-            }
-          }
-
-          // Otomatisasi pemilihan dropdown Desa
-          if (d.kel_desa && inDesa) {
-            const dDesa = d.kel_desa.toLowerCase();
-            setTimeout(function () {
-              for (let i = 0; i < inDesa.options.length; i++) {
-                if (inDesa.options[i].value && dDesa.includes(inDesa.options[i].value.toLowerCase())) {
-                  inDesa.selectedIndex = i;
-                  break;
-                }
-              }
-            }, 120);
+          // Otomatisasi cerdas penentuan Kecamatan & Desa dari data KTP
+          if (typeof autoSelectKecamatanDanDesa === 'function') {
+            const geoOk = autoSelectKecamatanDanDesa(d);
+            if (geoOk) count++;
           }
 
           if (count > 0) {
@@ -8359,8 +8445,24 @@ function updateDesaDropdown(kecamatan, selectedDesa = '') {
   const desaSelect = document.getElementById('formDesa');
   if (!desaSelect) return;
   const data = DapilLocations[kecamatan];
-  if (!data) return;
-  desaSelect.innerHTML = data.desa.map(d => `<option value="${escapeHtml(d)}"${(selectedDesa && selectedDesa.toLowerCase() === d.toLowerCase()) ? ' selected' : ''}>${escapeHtml(d)}</option>`).join('');
+  if (!data || !Array.isArray(data.desa)) return;
+
+  const cleanSel = (selectedDesa || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  desaSelect.innerHTML = data.desa.map(d => {
+    const cleanD = d.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isSelected = cleanSel && (cleanSel === cleanD || cleanSel.includes(cleanD) || cleanD.includes(cleanSel));
+    return `<option value="${escapeHtml(d)}"${isSelected ? ' selected' : ''}>${escapeHtml(d)}</option>`;
+  }).join('');
+
+  if (selectedDesa) {
+    for (let i = 0; i < desaSelect.options.length; i++) {
+      const optVal = desaSelect.options[i].value.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (optVal === cleanSel || optVal.includes(cleanSel) || cleanSel.includes(optVal)) {
+        desaSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
 }
 
 async function handleFormSubmit(event) {
