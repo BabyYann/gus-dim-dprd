@@ -162,7 +162,7 @@ html, body {
   padding-top: max(var(--safe-top), 12px);
   padding-left: 16px;
   padding-right: 16px;
-  padding-bottom: 34px;
+  padding-bottom: 28px;
   background: #012e54 url('../img/header-bg.png') no-repeat right center / cover;
   color: #ffffff;
   position: relative;
@@ -176,7 +176,7 @@ html, body {
   bottom: -1px;
   left: 0;
   right: 0;
-  height: 34px;
+  height: 28px;
   pointer-events: none;
   z-index: 10;
 }
@@ -2035,18 +2035,23 @@ html, body {
 .welcome-card-banner {
   margin-top: 0;
   background: transparent;
-  padding: 8px 18px 14px;
+  padding: 6px 16px 12px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.welcome-header-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: none;
-  border-radius: 0;
 }
 
-.welcome-info {
-  flex: 1;
+.welcome-greeting-wrap {
+  display: flex;
+  flex-direction: column;
 }
 
 .welcome-greeting {
@@ -2062,35 +2067,37 @@ html, body {
   color: #0b193d;
   letter-spacing: -0.5px;
   line-height: 1.15;
-  margin: 2px 0 4px;
+  margin: 1px 0 0;
 }
 
 .welcome-subtitle {
   font-size: 11.5px;
   font-weight: 500;
   color: #64748b;
-  line-height: 1.35;
+  line-height: 1.4;
+  margin: 0;
 }
 
 .welcome-filter-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 6px 11px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #0f172a;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .welcome-filter-pill svg {
-  width: 14px !important;
-  height: 14px !important;
+  width: 13px !important;
+  height: 13px !important;
   stroke: #475569;
 }
 
@@ -2098,32 +2105,27 @@ html, body {
 .dashboard-kpi-card {
   background: #ffffff;
   border-radius: 28px;
-  padding: 18px 16px;
+  padding: 16px 14px;
   margin: 0 16px 16px;
   border: 1px solid #eef2f6;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-  display: grid;
-  grid-template-columns: 1fr 1.15fr;
-  gap: 12px;
+  display: flex;
   align-items: center;
+  gap: 12px;
   position: relative;
   overflow: hidden;
 }
 
-.kpi-card-wave-accent {
+.dashboard-kpi-card::after {
+  content: '';
   position: absolute;
-  bottom: -1px;
+  bottom: 0;
   left: 0;
-  width: 170px;
-  height: 42px;
+  width: 130px;
+  height: 60px;
+  background: radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.12) 0%, rgba(234, 179, 8, 0.08) 50%, transparent 80%);
   pointer-events: none;
   z-index: 1;
-}
-
-.kpi-card-wave-accent svg {
-  display: block;
-  width: 100%;
-  height: 100%;
 }
 
 .donut-gauge-box {
@@ -2132,9 +2134,10 @@ html, body {
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 154px;
-  height: 154px;
-  margin: 0 auto;
+  width: 132px;
+  height: 132px;
+  flex-shrink: 0;
+  margin: 0;
   z-index: 2;
 }
 
@@ -2156,51 +2159,52 @@ html, body {
 }
 
 .donut-user-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: #2563eb;
   margin-bottom: 2px;
 }
 
 .donut-user-icon svg {
-  width: 24px !important;
-  height: 24px !important;
+  width: 20px !important;
+  height: 20px !important;
   stroke: #2563eb;
 }
 
 .donut-total-val {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 900;
   color: #0f172a;
   letter-spacing: -0.5px;
   line-height: 1;
-  margin: 2px 0 1px;
+  margin: 1px 0;
 }
 
 .donut-total-lbl {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: #64748b;
+  line-height: 1;
 }
 
 .donut-growth-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: #10b981;
   margin-top: 3px;
 }
 
 .donut-growth-badge svg {
-  width: 10px !important;
-  height: 10px !important;
+  width: 9px !important;
+  height: 9px !important;
   stroke: #10b981;
 }
 
 .donut-growth-sub {
-  font-size: 9.5px;
+  font-size: 8.5px;
   color: #94a3b8;
   font-weight: 500;
   margin-left: 1px;
@@ -2210,25 +2214,29 @@ html, body {
 .metric-stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 11px;
+  flex: 1;
+  min-width: 0;
   z-index: 2;
 }
 
 .metric-pill-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 .metric-icon-square {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
 .metric-icon-square.green { background: #10b981; color: #ffffff; }
@@ -2236,47 +2244,55 @@ html, body {
 .metric-icon-square.purple { background: #6366f1; color: #ffffff; }
 
 .metric-icon-square svg {
-  width: 18px !important;
-  height: 18px !important;
+  width: 17px !important;
+  height: 17px !important;
   stroke: #ffffff;
 }
 
 .metric-data-col {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .metric-header-row {
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  margin-bottom: 5px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .metric-value-text {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   color: #0f172a;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .metric-label-text {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   color: #64748b;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .metric-progress-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
 }
 
 .metric-progress-track {
   flex: 1;
-  height: 6px;
-  background: #e2e8f0;
+  height: 5px;
+  background: #f1f5f9;
   border-radius: 9999px;
   overflow: hidden;
 }
@@ -2292,12 +2308,12 @@ html, body {
 .metric-progress-bar.purple { background: #6366f1; }
 
 .metric-pct-text {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #0f172a;
-  min-width: 28px;
+  min-width: 26px;
   text-align: right;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  flex-shrink: 0;
 }
 
 /* 3. Sebaran Pendukung Card */
