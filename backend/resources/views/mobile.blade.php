@@ -216,11 +216,15 @@ html, body {
   padding-left: 16px;
   padding-right: 16px;
   padding-bottom: 24px;
-  background: #091a3a url('assets/img/header-bg.png') no-repeat center top / cover;
+  background: 
+    radial-gradient(circle at 85% 15%, rgba(250, 204, 21, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 10% 80%, rgba(56, 189, 248, 0.15) 0%, transparent 45%),
+    linear-gradient(135deg, #071938 0%, #0a2558 50%, #0d2f6f 100%);
   color: #ffffff;
   position: relative;
   z-index: 30;
   border-bottom: none;
+  box-shadow: 0 4px 20px rgba(7, 25, 56, 0.25);
 }
 
 .header-inner {
@@ -1253,13 +1257,16 @@ html, body {
   margin: 0 16px 20px;
   border-radius: 20px;
   padding: 16px;
-  background: linear-gradient(90deg, rgba(8, 22, 51, 0.96) 0%, rgba(10, 26, 61, 0.78) 55%, rgba(10, 26, 61, 0.35) 100%), url('assets/img/banner-promo.png') no-repeat right center / cover;
+  background: 
+    radial-gradient(circle at 90% 20%, rgba(234, 179, 8, 0.12) 0%, transparent 50%),
+    linear-gradient(135deg, #091a3a 0%, #0d2757 60%, #123473 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   box-shadow: 0 10px 25px rgba(8, 22, 51, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
   position: relative;
   overflow: hidden;

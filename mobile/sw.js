@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gusdim-mobile-cache-v23';
+const CACHE_NAME = 'gusdim-mobile-cache-v24';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -6,12 +6,10 @@ const STATIC_ASSETS = [
   './assets/css/mobile.css',
   './assets/js/mobile.js',
   './assets/icons/gus-dim.png',
-  './assets/img/header-bg.png',
   './assets/img/thumb-kraksaan.png',
   './assets/img/thumb-besuk.png',
   './assets/img/thumb-gading.png',
-  './assets/img/map-sebaran.png',
-  './assets/img/banner-promo.png'
+  './assets/img/map-sebaran.png'
 ];
 
 self.addEventListener('install', (event) => {
