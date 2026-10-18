@@ -1624,6 +1624,10 @@
 
       <div class="modal-actions" style="margin-top:16px; padding-top:12px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
         <button class="btn-toolbar-filter" onclick="closeModal('modalDetailOrang')" style="padding:8px 16px; border-radius:8px; font-weight:600; font-size:12.5px;">Tutup</button>
+        <button class="btn-toolbar-filter" id="btnEditPendukungDariDetail" style="display:none; color:#1d4ed8; border-color:#bfdbfe; background:#eff6ff; padding:8px 14px; border-radius:8px; font-weight:600; font-size:12.5px;" onclick="bukaModalEditPendukungDesktop()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Data
+        </button>
         <button class="btn-toolbar-filter" id="btnHapusPendukungDariDetail" style="display:none; color:#dc2626; border-color:#fecaca; background:#fef2f2; padding:8px 14px; border-radius:8px; font-weight:600; font-size:12.5px;" onclick="hapusPendukungDariDesktopModal()">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
           Hapus Data
@@ -1643,6 +1647,93 @@
           Jadikan Operator
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT DATA PENDUKUNG DESKTOP -->
+  <div class="modal-overlay" id="modalEditPendukung">
+    <div class="modal-box" style="max-width:540px; padding:24px; border-radius:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #e2e8f0;">
+        <h3 style="margin:0; font-size:17px; font-weight:800; color:#0f172a; font-family:'Plus Jakarta Sans', sans-serif;">
+          Edit Data Pendukung Konstituen
+        </h3>
+        <button type="button" onclick="closeModal('modalEditPendukung')" style="background:none; border:none; cursor:pointer; color:#64748b; font-size:18px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="error-msg" id="modalEditPendukungError" style="display:none; margin-bottom:12px; background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:8px 12px; border-radius:8px; font-size:12.5px;"></div>
+
+      <form id="formEditPendukungDesktop" onsubmit="event.preventDefault(); simpanEditPendukungDesktop();" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" id="editDesktopId">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Nama Lengkap <span style="color:#dc2626;">*</span></label>
+            <input type="text" id="editDesktopNama" required style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">NIK (16 Digit) <span style="color:#dc2626;">*</span></label>
+            <input type="text" id="editDesktopNik" maxlength="16" required style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; font-family:monospace;">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Nomor WhatsApp / HP</label>
+            <input type="text" id="editDesktopHp" placeholder="08xxxxxxxxxx" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Jalur Penjaringan</label>
+            <select id="editDesktopJalur" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#fff;">
+              <option value="DPC">DPC</option>
+              <option value="DPRT">DPRT</option>
+              <option value="PIP">PIP</option>
+              <option value="KIP">KIP</option>
+              <option value="RELAWAN">RELAWAN</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Jabatan / Posisi</label>
+            <input type="text" id="editDesktopJabatan" placeholder="Pengurus DPRT / Relawan TPS" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Tempat TPS</label>
+            <input type="text" id="editDesktopTps" placeholder="Contoh: 01 atau TPS 04" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Kecamatan <span style="color:#dc2626;">*</span></label>
+            <select id="editDesktopKecamatan" onchange="window.populateDesaDropdown(this.value, 'editDesktopDesa')" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#fff;">
+              <option value="Kraksaan">Kraksaan</option>
+              <option value="Besuk">Besuk</option>
+              <option value="Gading">Gading</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Desa / Kelurahan <span style="color:#dc2626;">*</span></label>
+            <select id="editDesktopDesa" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#fff;">
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Alamat Lengkap (RT/RW / Dusun)</label>
+          <textarea id="editDesktopAlamat" rows="2" placeholder="Alamat lengkap..." style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px; padding-top:10px; border-top:1px solid #f1f5f9;">
+          <button type="button" class="btn-toolbar-filter" onclick="closeModal('modalEditPendukung')" style="padding:8px 16px; border-radius:8px; font-weight:600; font-size:12.5px;">Batal</button>
+          <button type="submit" id="btnSubmitEditDesktop" class="btn-primary-nasdem" style="padding:8px 18px; border-radius:8px; font-weight:700; font-size:12.5px; background:#2563eb; border-color:#2563eb;">
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

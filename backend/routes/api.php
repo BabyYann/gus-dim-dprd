@@ -86,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return match ($action) {
             'submit' => $ctrl->store($request),
             'check-nik' => $ctrl->checkNik($request),
+            'update' => $ctrl->update($request),
             default => response()->json(['error' => 'Aksi tidak valid'], 400),
         };
     });

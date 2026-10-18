@@ -7388,6 +7388,20 @@ function openSupporterDetail(index) {
   const userRole = (AppState.currentUser && AppState.currentUser.role) || 'Superadmin';
   const isSuperadmin = (userRole === 'Superadmin');
 
+  let canEditSupporter = false;
+  if (userRole === 'Superadmin') {
+    canEditSupporter = true;
+  } else if (userRole === 'Koordinator Kecamatan') {
+    const uKec = (AppState.currentUser && AppState.currentUser.kecamatan) || (AppState.user && AppState.user.kecamatan) || '';
+    if (!uKec || uKec.toLowerCase() === (item.kecamatan || '').toLowerCase()) canEditSupporter = true;
+  } else if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
+    const uDesa = (AppState.currentUser && AppState.currentUser.desa) || (AppState.user && AppState.user.desa) || '';
+    if (!uDesa || uDesa.toLowerCase() === (item.desa || '').toLowerCase()) canEditSupporter = true;
+  } else {
+    const curName = (AppState.currentUser && AppState.currentUser.nama) || (AppState.user && AppState.user.nama) || '';
+    if (curName && (item.userInput === curName || item.input_by_user_name === curName)) canEditSupporter = true;
+  }
+
   let verifButtonsHtml = '';
   if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
     if (curStatus === 'Final' || curStatus === 'Divalidasi Kecamatan') {
@@ -7549,6 +7563,13 @@ function openSupporterDetail(index) {
 
       ${jadikanOperatorBtnHtml}
 
+      <!-- Tombol Edit Data Pendukung -->
+      ${canEditSupporter ? `
+      <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#1d4ed8;border-color:#bfdbfe;background:#eff6ff;" onclick="openEditSupporterModal(${index})">
+        ${Icons.edit} Edit Data Pendukung
+      </button>
+      ` : ''}
+
       <button type="button" class="btn-outline-touch" style="width:100%;height:44px;color:#dc2626;border-color:#fecaca;" onclick="deleteSupporter(${index})">
         ${Icons.trash} Hapus Data
       </button>
@@ -7625,6 +7646,197 @@ async function deleteSupporter(index) {
   renderSupportersList();
   closeBottomSheet();
   showToast('Data pendukung berhasil dihapus permanen.', 'success');
+}
+
+// Buka Modal / Form Edit Data Pendukung di Mobile
+function openEditSupporterModal(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  const currentKec = item.kecamatan || 'Kraksaan';
+  const currentDesa = item.desa || '';
+  const currentTps = item.tps || '01';
+  const currentJalur = (item.jalur || 'RELAWAN').toUpperCase();
+
+  const kecOptions = Object.keys(DapilLocations).map(k => {
+    return `<option value="${k}" ${k.toLowerCase() === currentKec.toLowerCase() ? 'selected' : ''}>${k}</option>`;
+  }).join('');
+
+  const desaList = (DapilLocations[currentKec] && DapilLocations[currentKec].desa) || [];
+  const desaOptions = desaList.map(d => {
+    return `<option value="${escapeHtml(d)}" ${d.toLowerCase() === currentDesa.toLowerCase() ? 'selected' : ''}>${escapeHtml(d)}</option>`;
+  }).join('');
+
+  const content = `
+    <form id="mobileEditSupporterForm" onsubmit="handleEditSupporterSubmit(event, ${index})" style="display:flex; flex-direction:column; gap:12px;">
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 12px; font-size:12px; color:#1e40af;">
+        Perubahan data konstituen akan langsung disinkronkan ke basis data server.
+      </div>
+
+      <div>
+        <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Nama Lengkap *</label>
+        <input type="text" id="mEditNama" class="input-touch" value="${escapeHtml(item.nama || '')}" required placeholder="Nama lengkap sesuai KTP">
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">NIK (16 Digit) *</label>
+          <input type="text" id="mEditNik" class="input-touch" maxlength="16" value="${escapeHtml(item.nik || '')}" required placeholder="16 digit NIK" style="font-family:monospace; font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Nomor WhatsApp / HP</label>
+          <input type="tel" id="mEditHp" class="input-touch" value="${escapeHtml(item.no_hp || item.hp || item.telepon || '')}" placeholder="08xxxxxxxxxx">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Jalur Penjaringan</label>
+          <select id="mEditJalur" class="input-touch" style="background:#fff;">
+            <option value="DPC" ${currentJalur === 'DPC' ? 'selected' : ''}>DPC</option>
+            <option value="DPRT" ${currentJalur === 'DPRT' ? 'selected' : ''}>DPRT</option>
+            <option value="PIP" ${currentJalur === 'PIP' ? 'selected' : ''}>PIP</option>
+            <option value="KIP" ${currentJalur === 'KIP' ? 'selected' : ''}>KIP</option>
+            <option value="RELAWAN" ${currentJalur === 'RELAWAN' ? 'selected' : ''}>RELAWAN</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Jabatan / Posisi</label>
+          <input type="text" id="mEditJabatan" class="input-touch" value="${escapeHtml(item.jabatan || '')}" placeholder="Pengurus DPRT / Relawan TPS">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Kecamatan *</label>
+          <select id="mEditKecamatan" class="input-touch" onchange="onMobileEditKecamatanChange(this.value)" style="background:#fff;">
+            ${kecOptions}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Desa / Kelurahan *</label>
+          <select id="mEditDesa" class="input-touch" style="background:#fff;">
+            ${desaOptions}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Nomor TPS</label>
+        <input type="text" id="mEditTps" class="input-touch" value="${escapeHtml(currentTps)}" placeholder="Contoh: 01 atau TPS 04">
+      </div>
+
+      <div>
+        <label style="font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Alamat Lengkap (RT/RW / Dusun)</label>
+        <textarea id="mEditAlamat" class="input-touch" rows="2" style="height:auto; resize:vertical;" placeholder="Alamat lengkap...">${escapeHtml(item.alamat || '')}</textarea>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button type="button" class="btn-outline-touch" style="flex:1; height:44px;" onclick="openSupporterDetail(${index})">
+          Batal
+        </button>
+        <button type="submit" id="btnSubmitMobileEdit" class="btn-primary-touch" style="flex:2; height:44px; background:#2563eb; color:#fff; border:none;">
+          Simpan Perubahan
+        </button>
+      </div>
+    </form>
+  `;
+
+  openBottomSheet('Edit Data Pendukung', content);
+}
+
+function onMobileEditKecamatanChange(kec) {
+  const desaSelect = document.getElementById('mEditDesa');
+  if (!desaSelect) return;
+  const list = (DapilLocations[kec] && DapilLocations[kec].desa) || [];
+  desaSelect.innerHTML = list.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+}
+
+async function handleEditSupporterSubmit(e, index) {
+  e.preventDefault();
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  const nama = document.getElementById('mEditNama').value.trim();
+  const nik = document.getElementById('mEditNik').value.trim();
+  const hp = document.getElementById('mEditHp').value.trim();
+  const jalur = document.getElementById('mEditJalur').value;
+  const jabatan = document.getElementById('mEditJabatan').value.trim();
+  const kecamatan = document.getElementById('mEditKecamatan').value;
+  const desa = document.getElementById('mEditDesa').value;
+  const tps = document.getElementById('mEditTps').value.trim();
+  const alamat = document.getElementById('mEditAlamat').value.trim();
+
+  if (!nama) {
+    showToast('Nama pendukung tidak boleh kosong.', 'warning');
+    return;
+  }
+  if (nik && nik.length !== 16) {
+    if (!confirm('Jumlah digit NIK (' + nik.length + ') belum tepat 16 digit. Lanjutkan simpan?')) {
+      return;
+    }
+  }
+
+  const btnSubmit = document.getElementById('btnSubmitMobileEdit');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Menyimpan...';
+  }
+
+  const targetId = item.id || item.rowNumber;
+
+  try {
+    const res = await mobileApiCall('pendukung.php?action=update', 'POST', {
+      id: targetId,
+      rowNumber: targetId,
+      nama: nama,
+      nik: nik,
+      hp: hp,
+      jalur: jalur,
+      jabatan: jabatan,
+      kecamatan: kecamatan,
+      desa: desa,
+      tps: tps,
+      alamat: alamat
+    });
+
+    if (!res.ok || (res.data && !res.data.success)) {
+      const msg = (res.data && res.data.message) ? res.data.message : 'Gagal menyimpan perubahan data.';
+      showToast(msg, 'warning');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Simpan Perubahan';
+      }
+      return;
+    }
+
+    item.nama = nama;
+    item.nik = nik;
+    item.no_hp = hp;
+    item.hp = hp;
+    item.telepon = hp;
+    item.jalur = jalur;
+    item.jabatan = jabatan;
+    item.kecamatan = kecamatan;
+    item.desa = desa;
+    item.tps = tps || '01';
+    item.alamat = alamat;
+
+    calculateStats();
+    renderDashboardStats();
+    renderSupportersList();
+    closeBottomSheet();
+    showToast('Data pendukung berhasil diperbarui.', 'success');
+
+    setTimeout(() => openSupporterDetail(index), 300);
+  } catch (err) {
+    console.error('Error updating supporter:', err);
+    showToast('Terjadi kesalahan saat menyimpan data.', 'warning');
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Simpan Perubahan';
+    }
+  }
 }
 
 // Buka Formulir Entri 5 Jalur

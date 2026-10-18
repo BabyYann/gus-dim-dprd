@@ -259,4 +259,128 @@ class PendukungController extends Controller
             'id' => $pendukung->id
         ]);
     }
+
+    public function update(Request $request, $id = null)
+    {
+        $targetId = (int)($id ?: ($request->input('id') ?: ($request->input('rowNumber') ?: $request->query('id', 0))));
+        if (!$targetId) {
+            return response()->json(['success' => false, 'message' => 'ID data pendukung tidak valid.'], 400);
+        }
+
+        $user = $request->user();
+        $userRole = $user ? $user->role : '';
+        $userKec = trim($user ? ($user->kecamatan ?? '') : '');
+        $userDesa = trim($user ? ($user->desa ?? '') : '');
+        $userId = $user ? $user->id : 0;
+        $userNama = $user ? $user->nama : '';
+
+        $nama = trim($request->input('nama', ''));
+        if ($nama === '') {
+            return response()->json(['success' => false, 'message' => 'Nama pendukung tidak boleh kosong.'], 400);
+        }
+
+        $pendukung = Pendukung::find($targetId);
+        if (!$pendukung) {
+            return response()->json(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+        }
+
+        // Validasi hak akses teritorial
+        $canEdit = false;
+        if ($userRole === 'Superadmin') {
+            $canEdit = true;
+        } else if ($userRole === 'Koordinator Kecamatan') {
+            if (!$userKec || strcasecmp($userKec, trim($pendukung->kecamatan ?? '')) === 0) {
+                $canEdit = true;
+            }
+        } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
+            if (!$userDesa || strcasecmp($userDesa, trim($pendukung->desa ?? '')) === 0) {
+                $canEdit = true;
+            }
+        } else {
+            if (!empty($pendukung->input_by_user_name) && $pendukung->input_by_user_name === $userNama) {
+                $canEdit = true;
+            }
+        }
+
+        if (!$canEdit) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki wewenang mengubah data di luar wilayah tugas Anda.'], 403);
+        }
+
+        $nik = trim($request->input('nik', ''));
+        if (!empty($nik) && $nik !== $pendukung->nik) {
+            $dup = Pendukung::where('nik', $nik)->where('id', '!=', $targetId)->first();
+            if ($dup) {
+                return response()->json(['success' => false, 'message' => "NIK {$nik} sudah terdaftar pada pendukung lain atas nama '{$dup->nama}'."], 400);
+            }
+        }
+
+        $hp = trim($request->input('hp', $request->input('no_hp', $request->input('telepon', ''))));
+        $jalur = strtoupper(trim($request->input('jalur', '')));
+        $jabatan = trim($request->input('jabatan', ''));
+        $koordinator = trim($request->input('koordinator', ''));
+        $kecamatan = trim($request->input('kecamatan', ''));
+        $desa = trim($request->input('desa', ''));
+        $alamat = trim($request->input('alamat', ''));
+        $tps = trim($request->input('tps', ''));
+
+        $allowedJalur = ['DPC', 'DPRT', 'PIP', 'KIP', 'RELAWAN'];
+        if ($jalur !== '' && !in_array($jalur, $allowedJalur)) {
+            $jalur = 'RELAWAN';
+        }
+
+        $umur = !empty($nik) ? $this->hitungUmurNik($nik) : $pendukung->umur;
+
+        $dataKhusus = is_array($pendukung->data_khusus) ? $pendukung->data_khusus : [];
+        if ($tps !== '') {
+            $dataKhusus['tps'] = $tps;
+        }
+
+        $pendukung->nama = $nama;
+        if (!empty($nik)) $pendukung->nik = $nik;
+        if (!empty($hp)) $pendukung->hp = $hp;
+        if ($umur !== null) $pendukung->umur = $umur;
+        if (!empty($jalur)) $pendukung->jalur = $jalur;
+        if (!empty($jabatan)) $pendukung->jabatan = $jabatan;
+        if (!empty($koordinator)) $pendukung->koordinator = $koordinator;
+        if (!empty($kecamatan)) $pendukung->kecamatan = $kecamatan;
+        if (!empty($desa)) $pendukung->desa = $desa;
+        if (!empty($alamat)) $pendukung->alamat = $alamat;
+        if (!empty($dataKhusus)) $pendukung->data_khusus = $dataKhusus;
+        $pendukung->save();
+
+        \App\Models\User::where('pendukung_id', $targetId)->update([
+            'nama' => $nama,
+            'hp' => $pendukung->hp,
+            'kecamatan' => $pendukung->kecamatan,
+            'desa' => $pendukung->desa,
+        ]);
+
+        AuditLog::create([
+            'user_id' => $userId,
+            'user_nama' => $userNama,
+            'aksi' => "Edit Pendukung",
+            'id_referensi' => $pendukung->jalur . $pendukung->id,
+            'keterangan' => "Memperbarui data pendukung: {$nama} ({$pendukung->jalur})",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Data pendukung '{$nama}' berhasil diperbarui.",
+            'data' => [
+                'id' => $pendukung->id,
+                'nama' => $pendukung->nama,
+                'nik' => $pendukung->nik,
+                'hp' => $pendukung->hp,
+                'umur' => $pendukung->umur,
+                'jalur' => $pendukung->jalur,
+                'jabatan' => $pendukung->jabatan,
+                'kecamatan' => $pendukung->kecamatan,
+                'desa' => $pendukung->desa,
+                'tps' => $tps ?: '01',
+                'alamat' => $pendukung->alamat,
+            ]
+        ]);
+    }
 }

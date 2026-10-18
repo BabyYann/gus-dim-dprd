@@ -552,6 +552,25 @@ function kirimUcapanWa(hp, nama, jalur) {
       btnUbah.style.display = 'none';
     }
 
+    const btnEdit = document.getElementById('btnEditPendukungDariDetail');
+    if (btnEdit) {
+      let canEdit = false;
+      if (userRole === 'Superadmin') {
+        canEdit = true;
+      } else if (userRole === 'Koordinator Kecamatan') {
+        const uKec = CURRENT_USER ? (CURRENT_USER.kecamatan || '').trim().toLowerCase() : '';
+        const rKec = (r.kecamatan || '').trim().toLowerCase();
+        if (!uKec || uKec === rKec) canEdit = true;
+      } else if (userRole === 'Koordinator Desa' || userRole === 'Admin Ranting') {
+        const uDesa = CURRENT_USER ? (CURRENT_USER.desa || '').trim().toLowerCase() : '';
+        const rDesa = (r.desa || '').trim().toLowerCase();
+        if (!uDesa || uDesa === rDesa) canEdit = true;
+      } else if (CURRENT_USER && (r.userInput === CURRENT_USER.nama || r.input_by_user_name === CURRENT_USER.nama)) {
+        canEdit = true;
+      }
+      btnEdit.style.display = canEdit ? 'inline-flex' : 'none';
+    }
+
     const btnHapus = document.getElementById('btnHapusPendukungDariDetail');
     if (btnHapus) {
       let canHapus = false;
@@ -673,6 +692,180 @@ function kirimUcapanWa(hp, nama, jalur) {
     } catch (err) {
       console.error('Gagal hapus pendukung:', err);
       alert('Terjadi kesalahan jaringan atau server saat menghapus data.');
+    }
+  };
+
+  window.bukaModalEditPendukungDesktop = function () {
+    const r = window.currentDetailRecord;
+    if (!r) return;
+
+    const errEl = document.getElementById('modalEditPendukungError');
+    if (errEl) {
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+    }
+
+    document.getElementById('editDesktopId').value = r.id || r.rowNumber || '';
+    document.getElementById('editDesktopNama').value = r.nama || '';
+    document.getElementById('editDesktopNik').value = r.nik || '';
+    document.getElementById('editDesktopHp').value = r.hp || r.no_hp || r.telepon || '';
+    
+    const jVal = (r.jalur || 'RELAWAN').toUpperCase();
+    const selJalur = document.getElementById('editDesktopJalur');
+    if (selJalur) {
+      selJalur.value = ['DPC', 'DPRT', 'PIP', 'KIP', 'RELAWAN'].includes(jVal) ? jVal : 'RELAWAN';
+    }
+
+    document.getElementById('editDesktopJabatan').value = r.jabatan || '';
+    document.getElementById('editDesktopTps').value = r.tps || '01';
+
+    const curKec = r.kecamatan || 'Kraksaan';
+    const selKec = document.getElementById('editDesktopKecamatan');
+    if (selKec) {
+      selKec.value = curKec;
+    }
+
+    if (typeof window.populateDesaDropdown === 'function') {
+      window.populateDesaDropdown(curKec, 'editDesktopDesa', r.desa || '');
+    }
+
+    document.getElementById('editDesktopAlamat').value = r.alamat || '';
+
+    closeModal('modalDetailOrang');
+    openModal('modalEditPendukung');
+  };
+
+  window.simpanEditPendukungDesktop = async function () {
+    const r = window.currentDetailRecord;
+    const targetId = document.getElementById('editDesktopId').value;
+    if (!targetId) {
+      alert('ID data pendukung tidak valid.');
+      return;
+    }
+
+    const nama = document.getElementById('editDesktopNama').value.trim();
+    const nik = document.getElementById('editDesktopNik').value.trim();
+    const hp = document.getElementById('editDesktopHp').value.trim();
+    const jalur = document.getElementById('editDesktopJalur').value;
+    const jabatan = document.getElementById('editDesktopJabatan').value.trim();
+    const kecamatan = document.getElementById('editDesktopKecamatan').value;
+    const desa = document.getElementById('editDesktopDesa').value;
+    const tps = document.getElementById('editDesktopTps').value.trim();
+    const alamat = document.getElementById('editDesktopAlamat').value.trim();
+
+    const errEl = document.getElementById('modalEditPendukungError');
+    if (!nama) {
+      if (errEl) {
+        errEl.textContent = 'Nama lengkap pendukung wajib diisi.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (nik && nik.length !== 16) {
+      if (!confirm('Jumlah digit NIK (' + nik.length + ') belum tepat 16 digit. Lanjutkan simpan perubahan?')) {
+        return;
+      }
+    }
+
+    const btnSubmit = document.getElementById('btnSubmitEditDesktop');
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Menyimpan...';
+    }
+
+    try {
+      const res = await fetchApi('pendukung.php?action=update', 'POST', {
+        id: targetId,
+        rowNumber: targetId,
+        nama: nama,
+        nik: nik,
+        hp: hp,
+        jalur: jalur,
+        jabatan: jabatan,
+        kecamatan: kecamatan,
+        desa: desa,
+        tps: tps,
+        alamat: alamat
+      });
+
+      if (res && res.success) {
+        alert(res.message || 'Data pendukung berhasil diperbarui.');
+        closeModal('modalEditPendukung');
+
+        if (r) {
+          r.nama = nama;
+          r.nik = nik;
+          r.hp = hp;
+          r.jalur = jalur;
+          r.jabatan = jabatan;
+          r.kecamatan = kecamatan;
+          r.desa = desa;
+          r.tps = tps || '01';
+          r.alamat = alamat;
+        }
+
+        if (window.currentDetailRecord) {
+          window.currentDetailRecord.nama = nama;
+          window.currentDetailRecord.nik = nik;
+          window.currentDetailRecord.hp = hp;
+          window.currentDetailRecord.jalur = jalur;
+          window.currentDetailRecord.jabatan = jabatan;
+          window.currentDetailRecord.kecamatan = kecamatan;
+          window.currentDetailRecord.desa = desa;
+          window.currentDetailRecord.tps = tps || '01';
+          window.currentDetailRecord.alamat = alamat;
+        }
+
+        if (window.currentListRows && Array.isArray(window.currentListRows)) {
+          const itemInList = window.currentListRows.find(function (x) {
+            return (x.id || x.rowNumber) == targetId;
+          });
+          if (itemInList) {
+            itemInList.nama = nama;
+            itemInList.nik = nik;
+            itemInList.hp = hp;
+            itemInList.jalur = jalur;
+            itemInList.jabatan = jabatan;
+            itemInList.kecamatan = kecamatan;
+            itemInList.desa = desa;
+            itemInList.tps = tps || '01';
+            itemInList.alamat = alamat;
+          }
+        }
+
+        if (typeof applyListFilter === 'function') {
+          try { applyListFilter(); } catch (e) {}
+        }
+        if (typeof loadDashboardData === 'function') {
+          try { loadDashboardData(); } catch (e) {}
+        }
+
+        if (window.currentDetailRecord) {
+          bukaDetailOrang(window.currentDetailRecord, window.currentDetailOpsi || {});
+        }
+      } else {
+        const msg = (res && res.message) ? res.message : 'Gagal menyimpan perubahan data.';
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.style.display = 'block';
+        } else {
+          alert('Gagal: ' + msg);
+        }
+      }
+    } catch (err) {
+      console.error('Gagal edit pendukung:', err);
+      if (errEl) {
+        errEl.textContent = 'Terjadi kesalahan jaringan atau server saat menyimpan data.';
+        errEl.style.display = 'block';
+      } else {
+        alert('Terjadi kesalahan jaringan atau server saat menyimpan data.');
+      }
+    } finally {
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Simpan Perubahan';
+      }
     }
   };
 

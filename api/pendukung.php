@@ -267,7 +267,7 @@ switch ($action) {
             $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", array_map(fn($w) => "p." . $w, $where)) : "";
             $sql = "SELECT p.id, p.jalur, p.nik, p.nama, p.hp, p.umur, p.jabatan, p.koordinator, p.alamat, 
                            p.kecamatan, p.desa, p.latitude as lat, p.longitude as lng, p.foto_wajah as foto, 
-                           p.foto_ktp, p.status, p.catatan, p.input_by_user_name, p.created_at,
+                           p.foto_ktp, p.status, p.catatan, p.data_khusus, p.input_by_user_name, p.created_at,
                            u.id as operator_user_id, u.username as operator_username, u.role as operator_role, u.status as operator_status
                     FROM pendukung p
                     LEFT JOIN users u ON (u.pendukung_id = p.id OR (p.hp != '' AND (u.username = p.hp OR u.username = REPLACE(REPLACE(p.hp, '-', ''), ' ', ''))))
@@ -276,6 +276,11 @@ switch ($action) {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll();
+            foreach ($rows as &$r) {
+                $dk = is_string($r['data_khusus'] ?? null) ? json_decode($r['data_khusus'], true) : ($r['data_khusus'] ?? null);
+                $r['tps'] = $dk['tps'] ?? ($r['tps'] ?? '01');
+            }
+            unset($r);
         } else {
             $data = Database::getJsonData();
             $rawRows = $data['pendukung'] ?? [];
@@ -298,6 +303,10 @@ switch ($action) {
                         $r['operator_status'] = $u['status'] ?? 'Aktif';
                         break;
                     }
+                }
+                if (!isset($r['tps'])) {
+                    $dk = $r['data_khusus'] ?? null;
+                    $r['tps'] = is_array($dk) ? ($dk['tps'] ?? '01') : '01';
                 }
                 $rows[] = $r;
             }
@@ -335,6 +344,243 @@ switch ($action) {
         json_response([
             'exists' => (bool)$ada,
             'data' => $ada
+        ]);
+        break;
+
+    case 'update':
+        $targetId = (int)($body['id'] ?? ($body['rowNumber'] ?? ($_GET['id'] ?? 0)));
+        if (!$targetId) {
+            json_response(['success' => false, 'message' => 'ID data pendukung tidak valid.'], 400);
+        }
+
+        $userRole = $user['role'] ?? '';
+        $userKec = trim($user['kecamatan'] ?? '');
+        $userDesa = trim($user['desa'] ?? '');
+        $userId = (int)($user['id'] ?? 0);
+        $userNama = $user['nama'] ?? '';
+
+        $nama = trim($body['nama'] ?? '');
+        if ($nama === '') {
+            json_response(['success' => false, 'message' => 'Nama pendukung tidak boleh kosong.'], 400);
+        }
+
+        $nik = trim($body['nik'] ?? '');
+        $hp = trim($body['hp'] ?? ($body['no_hp'] ?? ($body['telepon'] ?? '')));
+        $jalur = strtoupper(trim($body['jalur'] ?? ''));
+        $jabatan = trim($body['jabatan'] ?? '');
+        $koordinator = trim($body['koordinator'] ?? '');
+        $kecamatan = trim($body['kecamatan'] ?? '');
+        $desa = trim($body['desa'] ?? '');
+        $alamat = trim($body['alamat'] ?? '');
+        $tps = trim($body['tps'] ?? '');
+
+        $allowedJalur = ['DPC', 'DPRT', 'PIP', 'KIP', 'RELAWAN'];
+        if ($jalur !== '' && !in_array($jalur, $allowedJalur)) {
+            $jalur = 'RELAWAN';
+        }
+
+        $umur = !empty($nik) ? hitung_umur_nik($nik) : null;
+
+        if (Database::isMysql()) {
+            $pdo = Database::getPdo();
+            $stmt = $pdo->prepare("SELECT * FROM pendukung WHERE id = :id LIMIT 1");
+            $stmt->execute(['id' => $targetId]);
+            $pRow = $stmt->fetch();
+            if (!$pRow) {
+                json_response(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+            }
+
+            // Validasi hak akses teritorial & wewenang
+            $canEdit = false;
+            if ($userRole === 'Superadmin') {
+                $canEdit = true;
+            } else if ($userRole === 'Koordinator Kecamatan') {
+                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                    $canEdit = true;
+                }
+            } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
+                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                    $canEdit = true;
+                }
+            } else {
+                if (!empty($pRow['input_by_user_name']) && $pRow['input_by_user_name'] === $userNama) {
+                    $canEdit = true;
+                }
+            }
+
+            if (!$canEdit) {
+                json_response(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki wewenang mengubah data di luar wilayah tugas Anda.'], 403);
+            }
+
+            // Validasi duplikasi NIK jika NIK diubah
+            if (!empty($nik) && $nik !== ($pRow['nik'] ?? '')) {
+                $stmtCheck = $pdo->prepare("SELECT id, nama FROM pendukung WHERE nik = :nik AND id != :id LIMIT 1");
+                $stmtCheck->execute(['nik' => $nik, 'id' => $targetId]);
+                $dup = $stmtCheck->fetch();
+                if ($dup) {
+                    json_response(['success' => false, 'message' => "NIK {$nik} sudah terdaftar pada pendukung lain atas nama '{$dup['nama']}'."], 400);
+                }
+            }
+
+            // Perbarui data_khusus untuk TPS
+            $dataKhusus = [];
+            if (!empty($pRow['data_khusus'])) {
+                $decoded = is_string($pRow['data_khusus']) ? json_decode($pRow['data_khusus'], true) : $pRow['data_khusus'];
+                if (is_array($decoded)) $dataKhusus = $decoded;
+            }
+            if ($tps !== '') {
+                $dataKhusus['tps'] = $tps;
+            }
+
+            $finalJalur = $jalur !== '' ? $jalur : ($pRow['jalur'] ?? 'RELAWAN');
+            $finalKecamatan = $kecamatan !== '' ? $kecamatan : ($pRow['kecamatan'] ?? '');
+            $finalDesa = $desa !== '' ? $desa : ($pRow['desa'] ?? '');
+            $finalJabatan = $jabatan !== '' ? $jabatan : ($pRow['jabatan'] ?? '');
+            $finalKoordinator = $koordinator !== '' ? $koordinator : ($pRow['koordinator'] ?? '');
+            $finalAlamat = $alamat !== '' ? $alamat : ($pRow['alamat'] ?? '');
+
+            $stmtUp = $pdo->prepare("UPDATE pendukung SET 
+                nama = :nama,
+                nik = :nik,
+                hp = :hp,
+                umur = :umur,
+                jalur = :jalur,
+                jabatan = :jabatan,
+                koordinator = :koordinator,
+                kecamatan = :kecamatan,
+                desa = :desa,
+                alamat = :alamat,
+                data_khusus = :data_khusus,
+                updated_at = NOW()
+                WHERE id = :id");
+
+            $stmtUp->execute([
+                'nama' => $nama,
+                'nik' => $nik,
+                'hp' => $hp,
+                'umur' => $umur,
+                'jalur' => $finalJalur,
+                'jabatan' => $finalJabatan,
+                'koordinator' => $finalKoordinator,
+                'kecamatan' => $finalKecamatan,
+                'desa' => $finalDesa,
+                'alamat' => $finalAlamat,
+                'data_khusus' => !empty($dataKhusus) ? json_encode($dataKhusus, JSON_UNESCAPED_UNICODE) : null,
+                'id' => $targetId
+            ]);
+
+            // Sinkronkan ke akun users jika pendukung ini terdaftar sebagai operator
+            $stmtUpUser = $pdo->prepare("UPDATE users SET nama = :nama, hp = :hp, kecamatan = :kecamatan, desa = :desa WHERE pendukung_id = :id");
+            $stmtUpUser->execute([
+                'nama' => $nama,
+                'hp' => $hp,
+                'kecamatan' => $finalKecamatan,
+                'desa' => $finalDesa,
+                'id' => $targetId
+            ]);
+        } else {
+            $data = Database::getJsonData();
+            $foundIndex = -1;
+            $pRow = null;
+            foreach ($data['pendukung'] as $k => $p) {
+                if ((int)$p['id'] === $targetId) {
+                    $foundIndex = $k;
+                    $pRow = $p;
+                    break;
+                }
+            }
+            if ($foundIndex === -1 || !$pRow) {
+                json_response(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+            }
+
+            // Validasi hak akses teritorial & wewenang
+            $canEdit = false;
+            if ($userRole === 'Superadmin') {
+                $canEdit = true;
+            } else if ($userRole === 'Koordinator Kecamatan') {
+                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                    $canEdit = true;
+                }
+            } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
+                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                    $canEdit = true;
+                }
+            } else {
+                if (!empty($pRow['input_by_user_name']) && $pRow['input_by_user_name'] === $userNama) {
+                    $canEdit = true;
+                }
+            }
+
+            if (!$canEdit) {
+                json_response(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki wewenang mengubah data di luar wilayah tugas Anda.'], 403);
+            }
+
+            // Validasi duplikasi NIK jika NIK diubah
+            if (!empty($nik) && $nik !== ($pRow['nik'] ?? '')) {
+                foreach ($data['pendukung'] as $checkP) {
+                    if ((int)$checkP['id'] !== $targetId && ($checkP['nik'] ?? '') === $nik) {
+                        $dupNama = $checkP['nama'] ?? 'Lainnya';
+                        json_response(['success' => false, 'message' => "NIK {$nik} sudah terdaftar pada pendukung lain atas nama '{$dupNama}'."], 400);
+                    }
+                }
+            }
+
+            $finalJalur = $jalur !== '' ? $jalur : ($pRow['jalur'] ?? 'RELAWAN');
+            $finalKecamatan = $kecamatan !== '' ? $kecamatan : ($pRow['kecamatan'] ?? '');
+            $finalDesa = $desa !== '' ? $desa : ($pRow['desa'] ?? '');
+            $finalJabatan = $jabatan !== '' ? $jabatan : ($pRow['jabatan'] ?? '');
+            $finalKoordinator = $koordinator !== '' ? $koordinator : ($pRow['koordinator'] ?? '');
+            $finalAlamat = $alamat !== '' ? $alamat : ($pRow['alamat'] ?? '');
+
+            $dataKhusus = is_array($pRow['data_khusus'] ?? null) ? $pRow['data_khusus'] : [];
+            if ($tps !== '') {
+                $dataKhusus['tps'] = $tps;
+            }
+
+            $data['pendukung'][$foundIndex]['nama'] = $nama;
+            $data['pendukung'][$foundIndex]['nik'] = $nik;
+            $data['pendukung'][$foundIndex]['hp'] = $hp;
+            $data['pendukung'][$foundIndex]['umur'] = $umur;
+            $data['pendukung'][$foundIndex]['jalur'] = $finalJalur;
+            $data['pendukung'][$foundIndex]['jabatan'] = $finalJabatan;
+            $data['pendukung'][$foundIndex]['koordinator'] = $finalKoordinator;
+            $data['pendukung'][$foundIndex]['kecamatan'] = $finalKecamatan;
+            $data['pendukung'][$foundIndex]['desa'] = $finalDesa;
+            $data['pendukung'][$foundIndex]['alamat'] = $finalAlamat;
+            $data['pendukung'][$foundIndex]['data_khusus'] = $dataKhusus;
+            $data['pendukung'][$foundIndex]['tps'] = $tps !== '' ? $tps : ($pRow['tps'] ?? '01');
+            $data['pendukung'][$foundIndex]['updated_at'] = date('Y-m-d H:i:s');
+
+            foreach ($data['users'] as $uk => $u) {
+                if ((int)($u['pendukung_id'] ?? 0) === $targetId) {
+                    $data['users'][$uk]['nama'] = $nama;
+                    $data['users'][$uk]['hp'] = $hp;
+                    $data['users'][$uk]['kecamatan'] = $finalKecamatan;
+                    $data['users'][$uk]['desa'] = $finalDesa;
+                }
+            }
+
+            Database::saveJsonData($data);
+        }
+
+        log_activity($userId, $userNama, 'Edit Pendukung', (string)$targetId, "Memperbarui data pendukung: {$nama} ({$finalJalur})");
+
+        json_response([
+            'success' => true,
+            'message' => "Data pendukung '{$nama}' berhasil diperbarui.",
+            'data' => [
+                'id' => $targetId,
+                'nama' => $nama,
+                'nik' => $nik,
+                'hp' => $hp,
+                'umur' => $umur,
+                'jalur' => $finalJalur,
+                'jabatan' => $finalJabatan,
+                'kecamatan' => $finalKecamatan,
+                'desa' => $finalDesa,
+                'tps' => $tps !== '' ? $tps : '01',
+                'alamat' => $finalAlamat
+            ]
         ]);
         break;
 
