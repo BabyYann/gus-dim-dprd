@@ -1192,8 +1192,8 @@ html, body {
   right: 8px;
 }
 .map-badge-gading {
-  top: 48px;
-  left: 6px;
+  top: 36px;
+  left: 8px;
 }
 .map-badge-besuk {
   bottom: 12px;
@@ -3524,7 +3524,7 @@ html, body {
 
             <!-- Right: Interactive Vector Map Card -->
             <div class="map-container-box" onclick="navigatePage('peta')" style="cursor:pointer;" title="Buka Peta Interaktif">
-              <img src="assets/img/map-sebaran.png" alt="Peta Sebaran Kraksaan Raya" class="map-graphic-img">
+              <img src="assets/img/map-sebaran.png?v=2" alt="Peta Sebaran Kraksaan Raya" class="map-graphic-img">
               
               <!-- Real Data Badges Overlaying Static Graphic -->
               <div class="map-badge-overlay map-badge-kraksaan">
@@ -4207,7 +4207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=24')
+      navigator.serviceWorker.register('./sw.js?v=25')
         .then(reg => {
           console.log('ServiceWorker PWA Aktif:', reg.scope);
           reg.update();
