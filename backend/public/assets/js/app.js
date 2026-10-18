@@ -820,7 +820,7 @@ function kirimUcapanWa(hp, nama, jalur) {
   // Pemeriksaan Mode Pemeliharaan Sistem Desktop
   function showDesktopMaintenanceOverlay(customMsg) {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('bypass') === 'gusdim2025' || document.cookie.includes('gusdim_bypass=gusdim2025')) {
+    if (urlParams.get('bypass') || document.cookie.includes('gusdim_bypass=')) {
       return;
     }
     let overlay = document.getElementById('desktopMaintenanceOverlay');
@@ -861,7 +861,7 @@ function kirimUcapanWa(hp, nama, jalur) {
 
   async function checkDesktopMaintenanceStatus() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('bypass') === 'gusdim2025' || document.cookie.includes('gusdim_bypass=gusdim2025')) {
+    if (urlParams.get('bypass') || document.cookie.includes('gusdim_bypass=')) {
       return false;
     }
     try {
