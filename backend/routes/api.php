@@ -18,8 +18,12 @@ use App\Http\Controllers\Api\ExportController;
 
 if (!function_exists('isGusdimMaintenanceApi')) {
     function isGusdimMaintenanceApi(Request $request): bool {
-        if ($request->query('bypass') === 'gusdim2025' || $request->cookie('gusdim_bypass') === 'gusdim2025' || $request->header('X-Maintenance-Bypass') === 'gusdim2025') {
-            return false;
+        $bypassKey = env('MAINTENANCE_BYPASS_KEY', '');
+        if (!empty($bypassKey)) {
+            $bypassInput = (string)($request->query('bypass') ?? $request->cookie('gusdim_bypass') ?? $request->header('X-Maintenance-Bypass', ''));
+            if (hash_equals($bypassKey, $bypassInput)) {
+                return false;
+            }
         }
 
         if (file_exists(base_path('maintenance.lock')) || file_exists(base_path('../maintenance.lock'))) {
@@ -60,8 +64,22 @@ Route::post('/auth/change-password', [AuthController::class, 'changePassword'])-
 Route::any('/auth.php', function (Request $request) {
     $action = $request->query('action', 'check');
     $ctrl = app(AuthController::class);
+
+    if ($action === 'login') {
+        return $ctrl->login($request);
+    }
+
+    $user = $request->user('sanctum') ?? auth('sanctum')->user();
+    if (!$user) {
+        if ($action === 'check') {
+            return response()->json(['valid' => false]);
+        }
+        return response()->json(['success' => false, 'message' => 'Sesi tidak valid atau telah kedaluwarsa. Silakan login kembali.'], 401);
+    }
+
+    $request->setUserResolver(fn () => $user);
+
     return match ($action) {
-        'login' => $ctrl->login($request),
         'check' => $ctrl->check($request),
         'logout' => $ctrl->logout($request),
         'update-profile' => $ctrl->updateProfile($request),
@@ -129,6 +147,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/export', [ExportController::class, 'export']);
     Route::get('/export.php', [ExportController::class, 'export']);
 });
-
-// Fallback untuk Export jika token dikirim via query string
-Route::get('/export-public', [ExportController::class, 'export']);

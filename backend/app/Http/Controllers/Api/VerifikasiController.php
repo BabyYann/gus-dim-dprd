@@ -34,10 +34,18 @@ class VerifikasiController extends Controller
             });
         }
 
-        if ($user->role === 'Koordinator Desa' && !empty($user->desa)) {
-            $query->where('desa', $user->desa);
-        } elseif ($user->role === 'Koordinator Kecamatan' && !empty($user->kecamatan)) {
-            $query->where('kecamatan', $user->kecamatan);
+        if ($user->role === 'Koordinator Desa' || $user->role === 'Admin Ranting') {
+            if (!empty($user->desa)) {
+                $query->where('desa', $user->desa);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        } elseif ($user->role === 'Koordinator Kecamatan') {
+            if (!empty($user->kecamatan)) {
+                $query->where('kecamatan', $user->kecamatan);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         $records = $query->orderBy('id', 'desc')->get();
@@ -81,13 +89,13 @@ class VerifikasiController extends Controller
         $catatan = trim($request->input('catatan', ''));
 
         if (!$id || !$newStatus) {
-            return response()->json(['success' => false, 'message' => 'Data tidak lengkap.']);
+            return response()->json(['success' => false, 'message' => 'Data tidak lengkap.'], 400);
         }
 
         $allowed = match ($user->role) {
             'Superadmin' => true,
             'Koordinator Kecamatan' => in_array($newStatus, ['Divalidasi Kecamatan', 'Final', 'Ditolak']),
-            'Koordinator Desa' => in_array($newStatus, ['Diverifikasi Desa', 'Ditolak']),
+            'Koordinator Desa' => in_array($newStatus, ['Diverifikasi Desa', 'Diinput', 'Ditolak']),
             default => false,
         };
 
@@ -95,12 +103,43 @@ class VerifikasiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => "Role '{$user->role}' tidak berwenang mengubah status menjadi '{$newStatus}'."
-            ]);
+            ], 403);
         }
 
         $pendukung = Pendukung::find($id);
         if (!$pendukung) {
-            return response()->json(['success' => false, 'message' => 'Data pendukung tidak ditemukan.']);
+            return response()->json(['success' => false, 'message' => 'Data pendukung tidak ditemukan.'], 404);
+        }
+
+        // Territorial Guard & Workflow Lock
+        if ($user->role === 'Koordinator Desa' || $user->role === 'Admin Ranting') {
+            if (in_array($pendukung->status, ['Divalidasi Kecamatan', 'Final'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Data sudah berstatus '{$pendukung->status}'. Hanya Koordinator Kecamatan atau Superadmin yang berwenang membuka kunci / merevisi data ini."
+                ], 403);
+            }
+            $userDesa = trim($user->desa ?? '');
+            $targetDesa = trim($pendukung->desa ?? '');
+            if ($userDesa === '' || strcasecmp($userDesa, $targetDesa) !== 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $userDesa === ''
+                        ? "Akses Ditolak: Profil akun Anda belum terikat dengan Desa tugas."
+                        : "Akses Ditolak: Anda bertugas di Desa '{$userDesa}', tidak berwenang memverifikasi data Desa '{$targetDesa}'."
+                ], 403);
+            }
+        } elseif ($user->role === 'Koordinator Kecamatan') {
+            $userKec = trim($user->kecamatan ?? '');
+            $targetKec = trim($pendukung->kecamatan ?? '');
+            if ($userKec === '' || strcasecmp($userKec, $targetKec) !== 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $userKec === ''
+                        ? "Akses Ditolak: Profil akun Anda belum terikat dengan Kecamatan tugas."
+                        : "Akses Ditolak: Anda bertugas di Kecamatan '{$userKec}', tidak berwenang memvalidasi data Kecamatan '{$targetKec}'."
+                ], 403);
+            }
         }
 
         $targetName = "{$pendukung->nama} ({$pendukung->jalur})";

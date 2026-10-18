@@ -19,12 +19,6 @@ switch ($action) {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :u LIMIT 1");
             $stmt->execute(['u' => $username]);
             $user = $stmt->fetch();
-
-            // Alias fallback for admin / gusdim
-            if (!$user && in_array(strtolower($username), ['admin', 'gusdim', 'superadmin', 'demo'])) {
-                $stmt = $pdo->query("SELECT * FROM users WHERE username IN ('superadmin', 'admin', 'gusdim') OR role = 'Superadmin' LIMIT 1");
-                $user = $stmt->fetch();
-            }
         } else {
             $data = Database::getJsonData();
             foreach ($data['users'] as $u) {
@@ -33,24 +27,12 @@ switch ($action) {
                     break;
                 }
             }
-            if (!$user && in_array(strtolower($username), ['admin', 'gusdim', 'superadmin', 'demo'])) {
-                foreach ($data['users'] as $u) {
-                    if (in_array(strtolower($u['username']), ['superadmin', 'admin', 'gusdim']) || ($u['role'] ?? '') === 'Superadmin') {
-                        $user = $u;
-                        break;
-                    }
-                }
-            }
         }
 
         $isValidPass = false;
         if ($user) {
             $hash = !empty($user['password_hash']) ? $user['password_hash'] : ($user['password'] ?? '');
             if ($hash && password_verify($password, $hash)) {
-                $isValidPass = true;
-            } elseif ($user['role'] === 'Superadmin' && in_array($password, ['admin', 'admin123', 'gusdim', 'gusdim123', 'password123', '123456', 'superadmin'])) {
-                $isValidPass = true;
-            } elseif (in_array($password, ['password123', 'admin123', '123456', 'admin'])) {
                 $isValidPass = true;
             }
         }
@@ -198,8 +180,7 @@ switch ($action) {
         $hash = password_hash($newPassword, PASSWORD_BCRYPT);
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p WHERE id = :id");
-            $stmt->execute(['p' => $hash, 'id' => $user['id']]);
+            update_user_password_sql($pdo, (int)$user['id'], $hash);
         } else {
             $data = Database::getJsonData();
             foreach ($data['users'] as &$u) {

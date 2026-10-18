@@ -289,11 +289,11 @@ class PendukungController extends Controller
         if ($userRole === 'Superadmin') {
             $canEdit = true;
         } else if ($userRole === 'Koordinator Kecamatan') {
-            if (!$userKec || strcasecmp($userKec, trim($pendukung->kecamatan ?? '')) === 0) {
+            if ($userKec !== '' && strcasecmp($userKec, trim($pendukung->kecamatan ?? '')) === 0) {
                 $canEdit = true;
             }
         } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
-            if (!$userDesa || strcasecmp($userDesa, trim($pendukung->desa ?? '')) === 0) {
+            if ($userDesa !== '' && strcasecmp($userDesa, trim($pendukung->desa ?? '')) === 0) {
                 $canEdit = true;
             }
         } else {

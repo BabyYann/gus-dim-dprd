@@ -47,7 +47,7 @@ if [ -f "$BACKEND_DIR/.env" ] && command -v mysql &> /dev/null; then
 
     if [ -n "$DB_NAME" ] && [ -n "$DB_USER" ]; then
         echo "Menginisialisasi struktur & membersihkan tabel database MySQL: $DB_NAME..."
-        mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$REPO_DIR/database/production_clean_schema.sql" || echo "Catatan: Impor via CLI selesai atau jalankan manual via phpMyAdmin."
+        MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" "$DB_NAME" < "$REPO_DIR/database/production_clean_schema.sql" || echo "Catatan: Impor via CLI selesai atau jalankan manual via phpMyAdmin."
     fi
 fi
 

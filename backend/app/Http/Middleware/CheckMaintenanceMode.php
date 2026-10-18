@@ -18,9 +18,12 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        $bypass = $request->query('bypass') ?? $request->cookie('gusdim_bypass') ?? $request->header('X-Maintenance-Bypass');
-        if ($bypass === 'gusdim2025') {
-            return $next($request);
+        $bypassKey = env('MAINTENANCE_BYPASS_KEY', '');
+        if (!empty($bypassKey)) {
+            $bypass = (string)($request->query('bypass') ?? $request->cookie('gusdim_bypass') ?? $request->header('X-Maintenance-Bypass', ''));
+            if (hash_equals($bypassKey, $bypass)) {
+                return $next($request);
+            }
         }
 
         $isDown = file_exists(storage_path('framework/down'));

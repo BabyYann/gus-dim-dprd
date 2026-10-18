@@ -17,6 +17,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'password_hash',
         'role',
         'kecamatan',
         'desa',
@@ -27,8 +28,14 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
+        'password_hash',
         'remember_token',
     ];
+
+    public function getAuthPassword()
+    {
+        return $this->password ?: $this->password_hash;
+    }
 
     protected function casts(): array
     {

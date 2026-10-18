@@ -11,16 +11,28 @@ class ExportController extends Controller
 {
     public function export(Request $request): StreamedResponse
     {
+        $user = $request->user();
+        if (!$user || !in_array($user->role, ['Superadmin', 'Koordinator Kecamatan', 'Koordinator Desa', 'Admin Ranting'])) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang mengunduh data rekap.');
+        }
+
         $jalur = $request->query('jalur', 'ALL');
         $kecamatan = $request->query('kecamatan', '');
 
         $query = Pendukung::query();
+
+        if ($user->role === 'Koordinator Kecamatan' && !empty($user->kecamatan)) {
+            $kecamatan = $user->kecamatan;
+        }
 
         if ($jalur && $jalur !== 'ALL') {
             $query->where('jalur', $jalur);
         }
         if ($kecamatan) {
             $query->where('kecamatan', $kecamatan);
+        }
+        if (($user->role === 'Koordinator Desa' || $user->role === 'Admin Ranting') && !empty($user->desa)) {
+            $query->where('desa', $user->desa);
         }
 
         $records = $query->orderBy('id', 'asc')->get();

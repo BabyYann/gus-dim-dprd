@@ -10,6 +10,11 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        if (!$user || $user->role !== 'Superadmin') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Hanya Superadmin yang berwenang melihat log aktivitas sistem.'], 403);
+        }
+
         $logs = AuditLog::orderBy('id', 'desc')->limit(200)->get()->map(function ($l) {
             return [
                 'waktu' => $l->created_at ? $l->created_at->format('d/m/Y H:i') : '',

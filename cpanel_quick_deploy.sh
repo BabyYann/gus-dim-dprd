@@ -38,10 +38,6 @@ if [ ! -d "$BACKEND_DIR/vendor" ] || [ ! -f "$BACKEND_DIR/vendor/autoload.php" ]
     fi
 fi
 
-# Bypass Composer platform check untuk kompatibilitas PHP server
-if [ -f "$BACKEND_DIR/vendor/composer/platform_check.php" ]; then
-    echo "<?php return;" > "$BACKEND_DIR/vendor/composer/platform_check.php"
-fi
 
 # Deteksi binary PHP 8.4
 PHP_BIN="php"
@@ -68,7 +64,8 @@ mkdir -p "$BACKEND_DIR/storage/framework/sessions"
 mkdir -p "$BACKEND_DIR/storage/framework/views"
 mkdir -p "$BACKEND_DIR/storage/logs"
 mkdir -p "$BACKEND_DIR/bootstrap/cache"
-chmod -R 775 "$BACKEND_DIR/storage" "$BACKEND_DIR/bootstrap/cache" 2>/dev/null || chmod -R 777 "$BACKEND_DIR/storage" "$BACKEND_DIR/bootstrap/cache" 2>/dev/null || true
+find "$BACKEND_DIR/storage" "$BACKEND_DIR/bootstrap/cache" -type d -exec chmod 775 {} + 2>/dev/null || true
+find "$BACKEND_DIR/storage" "$BACKEND_DIR/bootstrap/cache" -type f -exec chmod 664 {} + 2>/dev/null || true
 
 # 5. Optimasi Laravel Storage dan Cache
 cd "$BACKEND_DIR"

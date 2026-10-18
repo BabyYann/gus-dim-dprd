@@ -8496,74 +8496,10 @@ function parseHasilOcrKtpMobile(teks) {
   return hasil;
 }
 
-// Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
+// Pemanggilan AI OCR e-KTP dialihkan secara aman melalui backend proxy (api/ocr.php)
 async function callGeminiDirectCloud(dataUrl, model) {
-  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.6-flash', 'gemini-pro-latest'];
-  const rawBase64 = dataUrl.split(',')[1];
-  const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
-  const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
-
-  const promptText = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
-    + "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
-    + "Format keluaran WAJIB HANYA JSON murni (valid JSON tanpa tanda kutip markdown) dengan struktur objek: "
-    + "{"
-    + "\"is_ktp\": true, "
-    + "\"nik\": \"16 digit angka NIK murni\", "
-    + "\"nama\": \"Nama lengkap warga\", "
-    + "\"tempat_tgl_lahir\": \"Tempat dan tanggal lahir\", "
-    + "\"jenis_kelamin\": \"LAKI-LAKI atau PEREMPUAN\", "
-    + "\"alamat\": \"Alamat jalan atau dusun\", "
-    + "\"rt_rw\": \"Nomor RT dan RW misal 003/002\", "
-    + "\"kel_desa\": \"Nama desa atau kelurahan\", "
-    + "\"kecamatan\": \"Nama kecamatan\", "
-    + "\"agama\": \"Agama\", "
-    + "\"status_perkawinan\": \"Status perkawinan\", "
-    + "\"pekerjaan\": \"Pekerjaan\""
-    + "} "
-    + "Pedoman penting: "
-    + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
-    + "2. Baca field 'Kecamatan' dan 'Kel/Desa' secara akurat dan bersih tanpa kata awalan (contoh: jika tertulis 'Kecamatan : BESUK', isi 'kecamatan': 'Besuk'; jika tertulis 'Kel/Desa : SUMURDALAM', isi 'kel_desa': 'Sumurdalam'). "
-    + "3. Wilayah KTP ini umumnya di Kabupaten Probolinggo (Dapil Kraksaan, Besuk, atau Gading). "
-    + "4. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
-
-  const payload = {
-    contents: [{
-      parts: [
-        { text: promptText },
-        { inline_data: { mime_type: mimeType, data: rawBase64 } }
-      ]
-    }],
-    generationConfig: {
-      response_mime_type: 'application/json',
-      temperature: 0.1
-    }
-  };
-
-  let lastError = null;
-  const uniqueModels = [...new Set(models)];
-  for (const m of uniqueModels) {
-    try {
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent?key=' + encodeURIComponent(apiKey);
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        lastError = new Error('Model ' + m + ' HTTP ' + res.status);
-        continue;
-      }
-      const json = await res.json();
-      if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
-        const rawText = json.candidates[0].content.parts[0].text;
-        const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-        return JSON.parse(cleanText);
-      }
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError || new Error('Format output Gemini tidak valid');
+  // Pemanggilan langsung sisi klien dinonaktifkan untuk melindungi API key server
+  throw new Error('Pemrosesan OCR e-KTP dialihkan melalui backend server.');
 }
 
 // ==========================================

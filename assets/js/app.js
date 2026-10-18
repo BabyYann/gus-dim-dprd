@@ -1,69 +1,17 @@
-// Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
+// Pemanggilan AI OCR e-KTP dialihkan secara aman melalui backend proxy (api/ocr.php)
 async function callGeminiDirectCloud(dataUrl, model) {
-  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
-  const rawBase64 = dataUrl.split(',')[1];
-  const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
-  const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
+  // Pemanggilan langsung sisi klien dinonaktifkan untuk melindungi API key server
+  throw new Error('Pemrosesan OCR e-KTP dialihkan melalui backend server.');
+}
 
-  const promptText = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
-    + "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
-    + "Format keluaran WAJIB HANYA JSON murni (valid JSON tanpa tanda kutip markdown) dengan struktur objek: "
-    + "{"
-    + "\"is_ktp\": true, "
-    + "\"nik\": \"16 digit angka NIK murni\", "
-    + "\"nama\": \"Nama lengkap warga\", "
-    + "\"tempat_tgl_lahir\": \"Tempat dan tanggal lahir\", "
-    + "\"jenis_kelamin\": \"LAKI-LAKI atau PEREMPUAN\", "
-    + "\"alamat\": \"Alamat jalan atau dusun\", "
-    + "\"rt_rw\": \"Nomor RT dan RW misal 003/002\", "
-    + "\"kel_desa\": \"Nama desa atau kelurahan\", "
-    + "\"kecamatan\": \"Nama kecamatan\", "
-    + "\"agama\": \"Agama\", "
-    + "\"status_perkawinan\": \"Status perkawinan\", "
-    + "\"pekerjaan\": \"Pekerjaan\""
-    + "} "
-    + "Pedoman penting: "
-    + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
-    + "2. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
-
-  const payload = {
-    contents: [{
-      parts: [
-        { text: promptText },
-        { inline_data: { mime_type: mimeType, data: rawBase64 } }
-      ]
-    }],
-    generationConfig: {
-      response_mime_type: 'application/json',
-      temperature: 0.1
-    }
-  };
-
-  let lastError = null;
-  const uniqueModels = [...new Set(models)];
-  for (const m of uniqueModels) {
-    try {
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent?key=' + encodeURIComponent(apiKey);
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        lastError = new Error('Model ' + m + ' HTTP ' + res.status);
-        continue;
-      }
-      const json = await res.json();
-      if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
-        const rawText = json.candidates[0].content.parts[0].text;
-        const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-        return JSON.parse(cleanText);
-      }
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError || new Error('Format output Gemini tidak valid');
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 /**
@@ -337,10 +285,10 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     rows.forEach(function (r, idx) {
       const umur = hitungUmurDariNIK(r.nik);
-      const subInfo = [umur !== null ? umur + ' thn' : null, opsi.showJalur ? r.jalur : null].filter(Boolean).join(' &middot; ');
+      const subInfo = [umur !== null ? umur + ' thn' : null, opsi.showJalur ? escapeHtml(r.jalur) : null].filter(Boolean).join(' &middot; ');
       const avatarHtml = r.foto
-        ? '<img class="people-card-avatar" src="' + r.foto + '" alt="">'
-        : '<div class="people-card-avatar-placeholder">' + inisial(r.nama) + '</div>';
+        ? '<img class="people-card-avatar" src="' + encodeURI(r.foto) + '" alt="">'
+        : '<div class="people-card-avatar-placeholder">' + escapeHtml(inisial(r.nama)) + '</div>';
 
       const badgeClass = r.status === 'Final' ? 'badge-final' : r.status === 'Ditolak' ? 'badge-ditolak' : (r.status === 'Diverifikasi Desa' || r.status === 'Divalidasi Kecamatan') ? 'badge-diverifikasi' : 'badge-diinput';
 
@@ -349,10 +297,10 @@ function kirimUcapanWa(hp, nama, jalur) {
       card.innerHTML =
         avatarHtml +
         '<div class="people-card-info">' +
-          '<div class="people-card-nama">' + r.nama + '</div>' +
+          '<div class="people-card-nama">' + escapeHtml(r.nama) + '</div>' +
           '<div class="people-card-sub">' + (subInfo || '-') + '</div>' +
         '</div>' +
-        (r.status ? '<span class="badge ' + badgeClass + ' people-card-badge">' + r.status + '</span>' : '') +
+        (r.status ? '<span class="badge ' + badgeClass + ' people-card-badge">' + escapeHtml(r.status) + '</span>' : '') +
         '<span class="people-card-chevron">›</span>';
       card.onclick = function () {
         const opsiBaris = r.jalurKeyAsal ? Object.assign({}, opsi, { jalurKey: r.jalurKeyAsal }) : opsi;
@@ -396,27 +344,27 @@ function kirimUcapanWa(hp, nama, jalur) {
 
     const curStatus = r.status || 'Diinput';
     const statusBadgeClass = curStatus === 'Final' ? 'badge-final' : curStatus === 'Ditolak' ? 'badge-ditolak' : (curStatus === 'Diverifikasi Desa' || curStatus === 'Divalidasi Kecamatan' ? 'badge-diverifikasi' : 'badge-diinput');
-    const statusHtml = '<span class="badge ' + statusBadgeClass + '" style="font-size:11px; padding:2.5px 8px; border-radius:5px; font-weight:700;">' + curStatus + '</span>';
+    const statusHtml = '<span class="badge ' + statusBadgeClass + '" style="font-size:11px; padding:2.5px 8px; border-radius:5px; font-weight:700;">' + escapeHtml(curStatus) + '</span>';
 
     const dataKhususObj = (r.data_khusus && typeof r.data_khusus === 'object') ? r.data_khusus : (typeof r.data_khusus === 'string' ? JSON.parse(r.data_khusus || '{}') : {});
     const nomorTps = (dataKhususObj && dataKhususObj.tps) || r.tps || '';
     const barisKhusus = [];
-    if (r.jabatan) barisKhusus.push(['Jabatan / Posisi', r.jabatan]);
-    if (nomorTps) barisKhusus.push(['Nomor TPS', 'TPS ' + nomorTps]);
-    if (dataKhususObj && dataKhususObj.tingkatSekolah) barisKhusus.push(['Jenjang Sekolah', dataKhususObj.tingkatSekolah]);
-    if (dataKhususObj && dataKhususObj.fakultas) barisKhusus.push(['Fakultas / Prodi', dataKhususObj.fakultas]);
+    if (r.jabatan) barisKhusus.push(['Jabatan / Posisi', escapeHtml(r.jabatan)]);
+    if (nomorTps) barisKhusus.push(['Nomor TPS', 'TPS ' + escapeHtml(nomorTps)]);
+    if (dataKhususObj && dataKhususObj.tingkatSekolah) barisKhusus.push(['Jenjang Sekolah', escapeHtml(dataKhususObj.tingkatSekolah)]);
+    if (dataKhususObj && dataKhususObj.fakultas) barisKhusus.push(['Fakultas / Prodi', escapeHtml(dataKhususObj.fakultas)]);
 
     const rowsData = [
-      ['NIK', r.nik ? '<code style="font-family:monospace; font-size:12px; font-weight:600; color:#1e293b;">' + r.nik + '</code>' : '-'],
+      ['NIK', r.nik ? '<code style="font-family:monospace; font-size:12px; font-weight:600; color:#1e293b;">' + escapeHtml(r.nik) + '</code>' : '-'],
       ['Umur', umur !== null ? umur + ' tahun' : '-'],
-      ['No. HP', r.hp || '-'],
-      ['Alamat', r.alamat || '-'],
-      ['Kecamatan / Desa', [r.kecamatan, r.desa].filter(Boolean).join(' / ') || '-'],
+      ['No. HP', escapeHtml(r.hp) || '-'],
+      ['Alamat', escapeHtml(r.alamat) || '-'],
+      ['Kecamatan / Desa', [r.kecamatan, r.desa].filter(Boolean).map(escapeHtml).join(' / ') || '-'],
       ...barisKhusus,
       ['Status Verifikasi', statusHtml],
-      ['Tanggal Input', r.tanggal || '-'],
-      ['Diinput oleh', r.userInput || '-'],
-      ['Catatan', r.catatan || '-']
+      ['Tanggal Input', escapeHtml(r.tanggal) || '-'],
+      ['Diinput oleh', escapeHtml(r.userInput) || '-'],
+      ['Catatan', escapeHtml(r.catatan) || '-']
     ];
     document.getElementById('detailRows').innerHTML = rowsData.map(function (row) {
       return '<div class="detail-row"><span class="k">' + row[0] + '</span><span class="v">' + row[1] + '</span></div>';
@@ -1884,7 +1832,7 @@ window.toggleWebPassword = toggleWebPassword;
     }
     rows.forEach(function (r, idx) {
       const badgeClass = r.status === 'Final' ? 'badge-final' : r.status === 'Ditolak' ? 'badge-ditolak' : (r.status === 'Diverifikasi Desa' || r.status === 'Divalidasi Kecamatan' ? 'badge-diverifikasi' : 'badge-diinput');
-      const nikDisplay = r.nik ? ('NIK: ' + r.nik) : (r.noKtp ? ('NIK: ' + r.noKtp) : 'Terverifikasi');
+      const nikDisplay = r.nik ? ('NIK: ' + escapeHtml(r.nik)) : (r.noKtp ? ('NIK: ' + escapeHtml(r.noKtp)) : 'Terverifikasi');
       
       tbody.innerHTML += '<tr class="saas-row">' +
         '<td class="col-check" onclick="event.stopPropagation()">' +
@@ -1892,27 +1840,27 @@ window.toggleWebPassword = toggleWebPassword;
         '</td>' +
         '<td>' +
           '<div class="cell-stack">' +
-            '<span class="cell-title font-bold">' + (r.nama || '-') + '</span>' +
+            '<span class="cell-title font-bold">' + (escapeHtml(r.nama) || '-') + '</span>' +
             '<span class="cell-sub text-muted">' + nikDisplay + '</span>' +
           '</div>' +
         '</td>' +
         '<td>' +
-          '<span class="badge-jalur-tag">' + (r.jalur || '-') + '</span>' +
+          '<span class="badge-jalur-tag">' + (escapeHtml(r.jalur) || '-') + '</span>' +
         '</td>' +
         '<td>' +
           '<div class="cell-stack">' +
-            '<span class="cell-title">' + (r.kecamatan || '-') + '</span>' +
-            '<span class="cell-sub text-muted">' + (r.desa || '-') + '</span>' +
+            '<span class="cell-title">' + (escapeHtml(r.kecamatan) || '-') + '</span>' +
+            '<span class="cell-sub text-muted">' + (escapeHtml(r.desa) || '-') + '</span>' +
           '</div>' +
         '</td>' +
         '<td>' +
           '<div class="cell-stack">' +
-            '<span class="cell-title">' + (r.userInput || '-') + '</span>' +
-            '<span class="cell-sub text-muted">' + (r.tanggal || '-') + '</span>' +
+            '<span class="cell-title">' + (escapeHtml(r.userInput) || '-') + '</span>' +
+            '<span class="cell-sub text-muted">' + (escapeHtml(r.tanggal) || '-') + '</span>' +
           '</div>' +
         '</td>' +
         '<td>' +
-          '<span class="badge ' + badgeClass + '">' + (r.status || 'Diinput') + '</span>' +
+          '<span class="badge ' + badgeClass + '">' + (escapeHtml(r.status) || 'Diinput') + '</span>' +
         '</td>' +
         '<td class="col-action" onclick="event.stopPropagation()">' +
           '<button class="btn-table-action" onclick="bukaDetailListRow(' + idx + ')">Detail</button>' +
@@ -2427,16 +2375,16 @@ window.toggleWebPassword = toggleWebPassword;
       card.innerHTML =
         '<div>' +
           '<div class="aspirasi-top">' +
-            '<span class="aspirasi-badge ' + bClass + '">● ' + (r.kategori || 'Aspirasi') + '</span>' +
-            '<span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:9999px; background:' + statusBg + '; color:' + statusColor + '; border:1px solid ' + statusBorder + ';">' + (r.status || 'Baru') + '</span>' +
+            '<span class="aspirasi-badge ' + bClass + '">● ' + (escapeHtml(r.kategori) || 'Aspirasi') + '</span>' +
+            '<span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:9999px; background:' + statusBg + '; color:' + statusColor + '; border:1px solid ' + statusBorder + ';">' + (escapeHtml(r.status) || 'Baru') + '</span>' +
           '</div>' +
-          '<div class="aspirasi-quote">"' + r.aspirasi + '"</div>' +
+          '<div class="aspirasi-quote">"' + escapeHtml(r.aspirasi) + '"</div>' +
         '</div>' +
         '<div>' +
           '<div class="aspirasi-author-row">' +
             '<div class="aspirasi-author-info">' +
-              '<span class="aspirasi-author-name">' + r.nama + '</span>' +
-              '<span class="aspirasi-author-loc">' + (r.desa || '-') + ', ' + (r.kecamatan || '-') + ' &bull; ' + (r.tanggal || '-') + '</span>' +
+              '<span class="aspirasi-author-name">' + escapeHtml(r.nama) + '</span>' +
+              '<span class="aspirasi-author-loc">' + (escapeHtml(r.desa) || '-') + ', ' + (escapeHtml(r.kecamatan) || '-') + ' &bull; ' + (escapeHtml(r.tanggal) || '-') + '</span>' +
             '</div>' +
             '<div style="display:flex; gap:6px; align-items:center;">' +
               waBtn + eskalasiBtn + actionBtn +
@@ -2514,11 +2462,11 @@ window.toggleWebPassword = toggleWebPassword;
         podiumContainer.innerHTML +=
           '<div class="podium-pillar podium-2">' +
             '<div class="podium-avatar-wrap">' +
-              '<div class="podium-avatar">' + inisial(top2.nama) + '</div>' +
+              '<div class="podium-avatar">' + escapeHtml(inisial(top2.nama)) + '</div>' +
               '<div class="podium-badge-icon">2</div>' +
             '</div>' +
-            '<div class="podium-name">' + top2.nama + '</div>' +
-            '<div class="podium-role">' + (top2.wilayah || 'Koordinator') + '</div>' +
+            '<div class="podium-name">' + escapeHtml(top2.nama) + '</div>' +
+            '<div class="podium-role">' + escapeHtml(top2.wilayah || 'Koordinator') + '</div>' +
             '<div class="podium-score">' + top2.count + '</div>' +
             '<div class="podium-score-label">Entri Terverifikasi</div>' +
           '</div>';
@@ -2528,11 +2476,11 @@ window.toggleWebPassword = toggleWebPassword;
           '<div class="podium-pillar podium-1">' +
             '<div style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, #fef08a, #facc15); color:#854d0e; margin-bottom:6px; box-shadow:0 2px 6px rgba(234,179,8,0.3);"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg></div>' +
             '<div class="podium-avatar-wrap">' +
-              '<div class="podium-avatar">' + inisial(top1.nama) + '</div>' +
+              '<div class="podium-avatar">' + escapeHtml(inisial(top1.nama)) + '</div>' +
               '<div class="podium-badge-icon">1</div>' +
             '</div>' +
-            '<div class="podium-name">' + top1.nama + '</div>' +
-            '<div class="podium-role">' + (top1.wilayah || 'Koordinator') + '</div>' +
+            '<div class="podium-name">' + escapeHtml(top1.nama) + '</div>' +
+            '<div class="podium-role">' + escapeHtml(top1.wilayah || 'Koordinator') + '</div>' +
             '<div class="podium-score">' + top1.count + '</div>' +
             '<div class="podium-score-label">Juara 1 Minggu Ini</div>' +
           '</div>';
@@ -2541,11 +2489,11 @@ window.toggleWebPassword = toggleWebPassword;
         podiumContainer.innerHTML +=
           '<div class="podium-pillar podium-3">' +
             '<div class="podium-avatar-wrap">' +
-              '<div class="podium-avatar">' + inisial(top3.nama) + '</div>' +
+              '<div class="podium-avatar">' + escapeHtml(inisial(top3.nama)) + '</div>' +
               '<div class="podium-badge-icon">3</div>' +
             '</div>' +
-            '<div class="podium-name">' + top3.nama + '</div>' +
-            '<div class="podium-role">' + (top3.wilayah || 'Koordinator') + '</div>' +
+            '<div class="podium-name">' + escapeHtml(top3.nama) + '</div>' +
+            '<div class="podium-role">' + escapeHtml(top3.wilayah || 'Koordinator') + '</div>' +
             '<div class="podium-score">' + top3.count + '</div>' +
             '<div class="podium-score-label">Entri Terverifikasi</div>' +
           '</div>';
@@ -2569,10 +2517,10 @@ window.toggleWebPassword = toggleWebPassword;
           listContainer.innerHTML +=
             '<div class="lb-item">' +
               '<div class="lb-rank">' + rankNum + '</div>' +
-              '<div class="people-card-avatar-placeholder">' + inisial(item.nama) + '</div>' +
+              '<div class="people-card-avatar-placeholder">' + escapeHtml(inisial(item.nama)) + '</div>' +
               '<div class="people-card-info" style="flex:1;">' +
-                '<div class="people-card-nama">' + item.nama + '</div>' +
-                '<div class="people-card-sub">' + (item.wilayah || '-') + '</div>' +
+                '<div class="people-card-nama">' + escapeHtml(item.nama) + '</div>' +
+                '<div class="people-card-sub">' + (escapeHtml(item.wilayah) || '-') + '</div>' +
                 '<div style="width:100%; height:4px; background:#f1f5f9; border-radius:2px; margin-top:4px; overflow:hidden;">' +
                   '<div style="width:' + pct + '%; height:100%; background:var(--nasdem-navy); border-radius:2px;"></div>' +
                 '</div>' +

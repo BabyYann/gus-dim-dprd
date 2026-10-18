@@ -171,9 +171,14 @@ switch ($action) {
             }
         }
 
-        $allowedStatuses = ['Diinput', 'Diverifikasi Desa', 'Divalidasi Kecamatan', 'Final', 'Ditolak'];
-        $reqStatus = trim($body['status'] ?? '');
-        $status = in_array($reqStatus, $allowedStatuses) ? $reqStatus : 'Diinput';
+        $status = 'Diinput';
+        if (($user['role'] ?? '') === 'Superadmin') {
+            $allowedStatuses = ['Diinput', 'Diverifikasi Desa', 'Divalidasi Kecamatan', 'Final', 'Ditolak'];
+            $reqStatus = trim($body['status'] ?? '');
+            if (in_array($reqStatus, $allowedStatuses)) {
+                $status = $reqStatus;
+            }
+        }
         $now = date('Y-m-d H:i:s');
 
         if (Database::isMysql()) {
@@ -254,12 +259,20 @@ switch ($action) {
         $where = [];
         $params = [];
 
-        if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
-            $where[] = "desa = :uDesa";
-            $params['uDesa'] = $user['desa'];
-        } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
-            $where[] = "kecamatan = :uKec";
-            $params['uKec'] = $user['kecamatan'];
+        if ($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') {
+            if (!empty($user['desa'])) {
+                $where[] = "desa = :uDesa";
+                $params['uDesa'] = $user['desa'];
+            } else {
+                $where[] = "1 = 0";
+            }
+        } else if ($user['role'] === 'Koordinator Kecamatan') {
+            if (!empty($user['kecamatan'])) {
+                $where[] = "kecamatan = :uKec";
+                $params['uKec'] = $user['kecamatan'];
+            } else {
+                $where[] = "1 = 0";
+            }
         }
 
         if (Database::isMysql()) {
@@ -286,10 +299,10 @@ switch ($action) {
             $rawRows = $data['pendukung'] ?? [];
             $usersList = $data['users'] ?? [];
             foreach ($rawRows as $r) {
-                if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
-                    if (strcasecmp($r['desa'] ?? '', $user['desa']) !== 0) continue;
-                } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
-                    if (strcasecmp($r['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
+                if ($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') {
+                    if (empty($user['desa']) || strcasecmp($r['desa'] ?? '', $user['desa']) !== 0) continue;
+                } else if ($user['role'] === 'Koordinator Kecamatan') {
+                    if (empty($user['kecamatan']) || strcasecmp($r['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
                 }
                 $r['operator_user_id'] = null;
                 $r['operator_username'] = null;
@@ -395,11 +408,11 @@ switch ($action) {
             if ($userRole === 'Superadmin') {
                 $canEdit = true;
             } else if ($userRole === 'Koordinator Kecamatan') {
-                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                if ($userKec !== '' && strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
                     $canEdit = true;
                 }
             } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
-                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                if ($userDesa !== '' && strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
                     $canEdit = true;
                 }
             } else {
@@ -498,11 +511,11 @@ switch ($action) {
             if ($userRole === 'Superadmin') {
                 $canEdit = true;
             } else if ($userRole === 'Koordinator Kecamatan') {
-                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                if ($userKec !== '' && strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
                     $canEdit = true;
                 }
             } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
-                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                if ($userDesa !== '' && strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
                     $canEdit = true;
                 }
             } else {
@@ -611,11 +624,11 @@ switch ($action) {
             if ($userRole === 'Superadmin') {
                 $canDelete = true;
             } else if ($userRole === 'Koordinator Kecamatan') {
-                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                if ($userKec !== '' && strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
                     $canDelete = true;
                 }
             } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
-                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                if ($userDesa !== '' && strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
                     $canDelete = true;
                 }
             } else {
@@ -656,11 +669,11 @@ switch ($action) {
             if ($userRole === 'Superadmin') {
                 $canDelete = true;
             } else if ($userRole === 'Koordinator Kecamatan') {
-                if (!$userKec || strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
+                if ($userKec !== '' && strcasecmp($userKec, trim($pRow['kecamatan'] ?? '')) === 0) {
                     $canDelete = true;
                 }
             } else if ($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') {
-                if (!$userDesa || strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
+                if ($userDesa !== '' && strcasecmp($userDesa, trim($pRow['desa'] ?? '')) === 0) {
                     $canDelete = true;
                 }
             } else {

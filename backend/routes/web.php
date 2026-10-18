@@ -5,9 +5,13 @@ use Illuminate\Http\Request;
 
 if (!function_exists('isGusdimMaintenance')) {
     function isGusdimMaintenance(Request $request): bool {
-        // Bypass khusus jika memiliki token atau query parameter
-        if ($request->query('bypass') === 'gusdim2025' || $request->cookie('gusdim_bypass') === 'gusdim2025' || $request->header('X-Maintenance-Bypass') === 'gusdim2025') {
-            return false;
+        // Bypass khusus jika memiliki token atau query parameter yang cocok dengan environment
+        $bypassKey = env('MAINTENANCE_BYPASS_KEY', '');
+        if (!empty($bypassKey)) {
+            $input = (string)($request->query('bypass') ?? $request->cookie('gusdim_bypass') ?? $request->header('X-Maintenance-Bypass', ''));
+            if (hash_equals($bypassKey, $input)) {
+                return false;
+            }
         }
 
         // Cek file lock maintenance repository
@@ -31,8 +35,9 @@ if (!function_exists('isGusdimMaintenance')) {
 
 // Endpoint bypass untuk admin/developer
 Route::get('/maintenance-bypass', function (Request $request) {
-    if ($request->query('key') === 'gusdim2025') {
-        return redirect('/')->withCookie(cookie('gusdim_bypass', 'gusdim2025', 60 * 24 * 7));
+    $bypassKey = env('MAINTENANCE_BYPASS_KEY', '');
+    if (!empty($bypassKey) && hash_equals($bypassKey, (string)$request->query('key', ''))) {
+        return redirect('/')->withCookie(cookie('gusdim_bypass', $bypassKey, 60 * 24 * 7));
     }
     return response('Kunci otorisasi tidak valid.', 403);
 });

@@ -6,7 +6,7 @@
 Options -Indexes
 
 # 2. Lindungi file sensitif dan database
-<FilesMatch "^(config\.php|\.env|schema\.sql|seeds\.sql|local_db\.json)$">
+<FilesMatch "^(config\.php|\.env|schema\.sql|seeds\.sql|local_db\.json|install\.lock)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

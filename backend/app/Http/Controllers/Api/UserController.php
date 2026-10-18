@@ -54,9 +54,11 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => "Username '{$username}' sudah digunakan."]);
         }
 
+        $hash = Hash::make($password);
         $newUser = User::create([
             'username' => $username,
-            'password' => Hash::make($password),
+            'password' => $hash,
+            'password_hash' => $hash,
             'nama' => $nama,
             'name' => $nama,
             'role' => $role,
@@ -136,7 +138,9 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => 'Pengguna tidak ditemukan.']);
         }
 
-        $targetUser->password = Hash::make($newPassword);
+        $hash = Hash::make($newPassword);
+        $targetUser->password = $hash;
+        $targetUser->password_hash = $hash;
         $targetUser->save();
 
         AuditLog::create([

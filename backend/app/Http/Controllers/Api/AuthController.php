@@ -203,7 +203,9 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Kata sandi baru minimal 6 karakter.']);
         }
 
-        $user->password = Hash::make($password);
+        $hash = Hash::make($password);
+        $user->password = $hash;
+        $user->password_hash = $hash;
         $user->save();
 
         AuditLog::create([

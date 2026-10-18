@@ -1,7 +1,10 @@
 <?php
 require_once dirname(__DIR__) . '/config/helpers.php';
 
-$user = get_auth_user();
+$user = require_auth();
+if (($user['role'] ?? '') !== 'Superadmin') {
+    json_response(['success' => false, 'message' => 'Akses ditolak: Hanya Superadmin yang berwenang melihat log aktivitas sistem.'], 403);
+}
 
 $logs = [];
 if (Database::isMysql()) {

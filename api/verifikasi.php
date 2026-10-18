@@ -39,12 +39,20 @@ switch ($action) {
             }
 
             // Batasi data per role jika Koordinator Desa / Admin Ranting / Kecamatan
-            if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
-                $where[] = "desa = :uDesa";
-                $params['uDesa'] = $user['desa'];
-            } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
-                $where[] = "kecamatan = :uKec";
-                $params['uKec'] = $user['kecamatan'];
+            if ($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') {
+                if (!empty($user['desa'])) {
+                    $where[] = "desa = :uDesa";
+                    $params['uDesa'] = $user['desa'];
+                } else {
+                    $where[] = "1 = 0";
+                }
+            } else if ($user['role'] === 'Koordinator Kecamatan') {
+                if (!empty($user['kecamatan'])) {
+                    $where[] = "kecamatan = :uKec";
+                    $params['uKec'] = $user['kecamatan'];
+                } else {
+                    $where[] = "1 = 0";
+                }
             }
 
             $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", array_map(fn($w) => "p." . $w, $where)) : "";
@@ -73,10 +81,10 @@ switch ($action) {
                     if (strpos($haystack, strtolower($keyword)) === false) continue;
                 }
                 // Batasi wilayah jika bukan Superadmin
-                if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
-                    if (strcasecmp($item['desa'] ?? '', $user['desa']) !== 0) continue;
-                } else if ($user['role'] === 'Koordinator Kecamatan' && !empty($user['kecamatan'])) {
-                    if (strcasecmp($item['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
+                if ($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') {
+                    if (empty($user['desa']) || strcasecmp($item['desa'] ?? '', $user['desa']) !== 0) continue;
+                } else if ($user['role'] === 'Koordinator Kecamatan') {
+                    if (empty($user['kecamatan']) || strcasecmp($item['kecamatan'] ?? '', $user['kecamatan']) !== 0) continue;
                 }
 
                 $rows[] = [
@@ -179,19 +187,23 @@ switch ($action) {
         if ($role === 'Koordinator Desa' || $role === 'Admin Ranting') {
             $userDesa = trim($user['desa'] ?? '');
             $targetDesa = trim($item['desa'] ?? '');
-            if ($userDesa !== '' && strcasecmp($userDesa, $targetDesa) !== 0) {
+            if ($userDesa === '' || strcasecmp($userDesa, $targetDesa) !== 0) {
                 json_response([
                     'success' => false, 
-                    'message' => "Akses Ditolak: Anda bertugas di Desa '{$userDesa}', tidak berwenang memverifikasi data Desa '{$targetDesa}'."
+                    'message' => $userDesa === ''
+                        ? "Akses Ditolak: Profil akun Anda belum terikat dengan Desa tugas."
+                        : "Akses Ditolak: Anda bertugas di Desa '{$userDesa}', tidak berwenang memverifikasi data Desa '{$targetDesa}'."
                 ], 403);
             }
         } else if ($role === 'Koordinator Kecamatan') {
             $userKec = trim($user['kecamatan'] ?? '');
             $targetKec = trim($item['kecamatan'] ?? '');
-            if ($userKec !== '' && strcasecmp($userKec, $targetKec) !== 0) {
+            if ($userKec === '' || strcasecmp($userKec, $targetKec) !== 0) {
                 json_response([
                     'success' => false, 
-                    'message' => "Akses Ditolak: Anda bertugas di Kecamatan '{$userKec}', tidak berwenang memvalidasi data Kecamatan '{$targetKec}'."
+                    'message' => $userKec === ''
+                        ? "Akses Ditolak: Profil akun Anda belum terikat dengan Kecamatan tugas."
+                        : "Akses Ditolak: Anda bertugas di Kecamatan '{$userKec}', tidak berwenang memvalidasi data Kecamatan '{$targetKec}'."
                 ], 403);
             }
         }

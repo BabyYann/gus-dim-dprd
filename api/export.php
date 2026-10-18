@@ -2,8 +2,22 @@
 require_once dirname(__DIR__) . '/config/helpers.php';
 
 $user = require_auth();
+$userRole = $user['role'] ?? '';
+$userKec = trim($user['kecamatan'] ?? '');
+$userDesa = trim($user['desa'] ?? '');
+
+// Batasi hak ekspor: hanya Superadmin, Koordinator Kecamatan, atau Koordinator Desa
+if (!in_array($userRole, ['Superadmin', 'Koordinator Kecamatan', 'Koordinator Desa', 'Admin Ranting'])) {
+    json_response(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki wewenang mengunduh data rekap.'], 403);
+}
+
 $jalur = $_GET['jalur'] ?? 'ALL';
 $kecamatan = $_GET['kecamatan'] ?? '';
+
+// Territorial scope enforcement
+if ($userRole === 'Koordinator Kecamatan' && !empty($userKec)) {
+    $kecamatan = $userKec;
+}
 
 $records = [];
 if (Database::isMysql()) {
@@ -17,6 +31,10 @@ if (Database::isMysql()) {
     if ($kecamatan) {
         $where[] = "kecamatan = :kec";
         $params['kec'] = $kecamatan;
+    }
+    if (($userRole === 'Koordinator Desa' || $userRole === 'Admin Ranting') && !empty($userDesa)) {
+        $where[] = "desa = :uDesa";
+        $params['uDesa'] = $userDesa;
     }
     $whereSql = count($where) > 0 ? "WHERE " . implode(" AND ", $where) : "";
     $stmt = $pdo->prepare("SELECT id, jalur, nik, nama, hp, umur, jabatan, koordinator, alamat, 

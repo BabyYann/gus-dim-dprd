@@ -2,6 +2,13 @@
 /**
  * Web Installer Sistem Manajemen Gus Dim untuk cPanel & Server
  */
+
+// Kunci keamanan installer: Jika berkas install.lock ada, tolak seluruh akses
+if (file_exists(__DIR__ . '/install.lock')) {
+    http_response_code(403);
+    die('<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Akses Ditolak</title><style>body{font-family:sans-serif;padding:40px;background:#f8fafc;color:#1e293b;text-align:center;}h1{color:#b91c1c;}</style></head><body><h1>403 - Installer Dikunci</h1><p>Instalasi sistem telah selesai dan dikunci secara permanen demi keamanan server.</p><p>Untuk mengaktifkan kembali, hapus berkas <code>install.lock</code> melalui cPanel File Manager.</p></body></html>');
+}
+
 $configFile = __DIR__ . '/config/config.php';
 $schemaFile = __DIR__ . '/database/schema.sql';
 $seedsFile = __DIR__ . '/database/seeds.sql';

@@ -1,15 +1,13 @@
 <?php
 require_once dirname(__DIR__) . '/config/helpers.php';
 
-$user = get_auth_user();
+$user = require_auth();
 $action = $_GET['action'] ?? 'list';
 $body = get_request_body();
 
-// Untuk tindakan modifikasi (tambah, ubah status, reset password), wajib login sebagai Superadmin
-if ($action !== 'list') {
-    if (!$user || $user['role'] !== 'Superadmin') {
-        json_response(['success' => false, 'message' => 'Hanya Superadmin yang memiliki akses modifikasi Pengaturan Pengguna.'], 403);
-    }
+// Seluruh aksi manajemen pengguna (daftar, tambah, ubah status, reset password, hapus) wajib Superadmin
+if (($user['role'] ?? '') !== 'Superadmin') {
+    json_response(['success' => false, 'message' => 'Akses ditolak: Hanya Superadmin yang memiliki akses ke Pengaturan Pengguna.'], 403);
 }
 
 switch ($action) {
@@ -17,22 +15,16 @@ switch ($action) {
         $users = [];
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            if ($user) {
-                $stmt = $pdo->query("SELECT id as rowNumber, id, username, nama, role, kecamatan, desa, ranting, status 
-                                     FROM users ORDER BY id ASC");
-            } else {
-                $stmt = $pdo->query("SELECT id as rowNumber, id, '' as username, nama, role, kecamatan, desa, ranting, status 
-                                     FROM users WHERE status = 'Aktif' ORDER BY id ASC");
-            }
+            $stmt = $pdo->query("SELECT id as rowNumber, id, username, nama, role, kecamatan, desa, ranting, status 
+                                 FROM users ORDER BY id ASC");
             $users = $stmt->fetchAll();
         } else {
             $data = Database::getJsonData();
             foreach ($data['users'] ?? [] as $u) {
-                if (!$user && ($u['status'] ?? 'Aktif') !== 'Aktif') continue;
                 $users[] = [
                     'rowNumber' => $u['id'],
                     'id' => $u['id'],
-                    'username' => $user ? ($u['username'] ?? '') : '',
+                    'username' => $u['username'] ?? '',
                     'nama' => $u['nama'],
                     'role' => $u['role'],
                     'kecamatan' => $u['kecamatan'] ?? '',
@@ -69,17 +61,31 @@ switch ($action) {
                 json_response(['success' => false, 'message' => "Username '{$username}' sudah digunakan."]);
             }
 
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, nama, role, kecamatan, desa, ranting, status) 
-                                   VALUES (:u, :p, :n, :r, :k, :d, :rt, 'Aktif')");
-            $stmt->execute([
+            $cols = get_users_table_password_columns($pdo);
+            $fields = ['username', 'nama', 'role', 'kecamatan', 'desa', 'ranting', 'status'];
+            $placeholders = [':u', ':n', ':r', ':k', ':d', ':rt', "'Aktif'"];
+            $params = [
                 'u' => $username,
-                'p' => $hash,
                 'n' => $nama,
                 'r' => $role,
                 'k' => $kecamatan,
                 'd' => $desa,
                 'rt' => $ranting
-            ]);
+            ];
+            if ($cols['has_password_hash']) {
+                $fields[] = 'password_hash';
+                $placeholders[] = ':ph';
+                $params['ph'] = $hash;
+            }
+            if ($cols['has_password']) {
+                $fields[] = 'password';
+                $placeholders[] = ':pw';
+                $params['pw'] = $hash;
+            }
+
+            $sql = "INSERT INTO users (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             $newId = $pdo->lastInsertId();
         } else {
             $data = Database::getJsonData();
@@ -150,8 +156,7 @@ switch ($action) {
 
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p WHERE id = :id");
-            $stmt->execute(['p' => $hash, 'id' => $targetId]);
+            update_user_password_sql($pdo, $targetId, $hash);
         } else {
             $data = Database::getJsonData();
             foreach ($data['users'] as &$u) {
@@ -266,18 +271,32 @@ switch ($action) {
 
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("INSERT INTO users (pendukung_id, username, password_hash, nama, role, kecamatan, desa, ranting, status) 
-                                   VALUES (:pid, :u, :p, :n, :r, :k, :d, :rt, 'Aktif')");
-            $stmt->execute([
+            $cols = get_users_table_password_columns($pdo);
+            $fields = ['pendukung_id', 'username', 'nama', 'role', 'kecamatan', 'desa', 'ranting', 'status'];
+            $placeholders = [':pid', ':u', ':n', ':r', ':k', ':d', ':rt', "'Aktif'"];
+            $params = [
                 'pid' => $pendukungId,
                 'u' => $username,
-                'p' => $hash,
                 'n' => $nama,
                 'r' => $role,
                 'k' => $kecamatan,
                 'd' => $desa,
                 'rt' => $ranting
-            ]);
+            ];
+            if ($cols['has_password_hash']) {
+                $fields[] = 'password_hash';
+                $placeholders[] = ':ph';
+                $params['ph'] = $hash;
+            }
+            if ($cols['has_password']) {
+                $fields[] = 'password';
+                $placeholders[] = ':pw';
+                $params['pw'] = $hash;
+            }
+
+            $sql = "INSERT INTO users (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             $newId = $pdo->lastInsertId();
         } else {
             $data = Database::getJsonData();
@@ -372,8 +391,7 @@ switch ($action) {
 
         if (Database::isMysql()) {
             $pdo = Database::getPdo();
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = :p WHERE id = :id");
-            $stmt->execute(['p' => $hash, 'id' => $targetUser['id']]);
+            update_user_password_sql($pdo, (int)$targetUser['id'], $hash);
         } else {
             foreach ($data['users'] as &$u) {
                 if ((int)$u['id'] === (int)$targetUser['id']) {

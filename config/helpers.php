@@ -15,7 +15,10 @@ if (php_sapi_name() !== 'cli') {
 
     // Pemeriksaan Status Pemeliharaan Sistem (Maintenance Mode)
     $bypass = $_GET['bypass'] ?? $_COOKIE['gusdim_bypass'] ?? ($_SERVER['HTTP_X_MAINTENANCE_BYPASS'] ?? '');
-    if ($bypass !== 'gusdim2025') {
+    $bypassSecret = defined('MAINTENANCE_BYPASS_KEY') ? MAINTENANCE_BYPASS_KEY : '';
+    $isBypassValid = (!empty($bypassSecret) && hash_equals($bypassSecret, $bypass));
+
+    if (!$isBypassValid) {
         $baseDir = dirname(__DIR__);
         $lock1 = $baseDir . '/maintenance.lock';
         $lock2 = dirname($baseDir) . '/maintenance.lock';
@@ -69,7 +72,7 @@ function get_auth_user(): ?array {
         $stmt->execute(['token' => $token]);
         $user = $stmt->fetch();
         if ($user) {
-            unset($user['password_hash']);
+            unset($user['password_hash'], $user['password']);
             return $user;
         }
     } else {
@@ -80,7 +83,7 @@ function get_auth_user(): ?array {
             if ($t['token'] === $token && $t['expires_at'] > $now) {
                 foreach ($data['users'] as $u) {
                     if ($u['id'] == $t['user_id'] && $u['status'] === 'Aktif') {
-                        unset($u['password_hash']);
+                        unset($u['password_hash'], $u['password']);
                         return $u;
                     }
                 }
@@ -169,4 +172,33 @@ function save_base64_image(?string $base64Data, string $targetDir, string $prefi
     // Dapatkan URL relatif publik
     $sub = basename($targetDir);
     return 'uploads/' . $sub . '/' . $filename;
+}
+
+function get_users_table_password_columns(PDO $pdo): array {
+    static $cols = null;
+    if ($cols === null) {
+        try {
+            $stmt = $pdo->query("SHOW COLUMNS FROM users");
+            $allCols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            $cols = [
+                'has_password_hash' => in_array('password_hash', $allCols),
+                'has_password' => in_array('password', $allCols)
+            ];
+        } catch (Throwable $e) {
+            $cols = ['has_password_hash' => true, 'has_password' => false];
+        }
+    }
+    return $cols;
+}
+
+function update_user_password_sql(PDO $pdo, int $userId, string $hash): void {
+    $cols = get_users_table_password_columns($pdo);
+    $sets = [];
+    $params = ['id' => $userId, 'p' => $hash];
+    if ($cols['has_password_hash']) $sets[] = "password_hash = :p";
+    if ($cols['has_password']) $sets[] = "password = :p";
+    if (!empty($sets)) {
+        $sql = "UPDATE users SET " . implode(', ', $sets) . " WHERE id = :id";
+        $pdo->prepare($sql)->execute($params);
+    }
 }
