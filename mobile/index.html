@@ -3959,33 +3959,6 @@ html, body {
           <div style="display:flex;flex-direction:column;gap:4px;" id="operatorList"></div>
         </div>
 
-        <!-- Mode Penyimpanan & Offline PWA -->
-        <div class="card">
-          <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:6px;">Sinkronisasi &amp; Penyimpanan PWA</div>
-          <p style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.45;">
-            Data formulir lapangan dan cache antarmuka disimpan di penyimpanan lokal perangkat smartphone untuk keandalan maksimal di lapangan.
-          </p>
-          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px;font-size:12px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="color:#64748b;">Koneksi Realtime:</span>
-              <span style="font-weight:700;color:#16a34a;display:inline-flex;align-items:center;gap:4px;">
-                <span style="width:7px;height:7px;border-radius:50%;background:#16a34a;"></span> Laravel Reverb Aktif
-              </span>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="color:#64748b;">Status Jaringan:</span>
-              <span id="pwaNetworkStatus" style="font-weight:700;color:#2563eb;">Online (Tersambung)</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <button type="button" class="btn-primary-touch" style="width:100%;height:40px;font-size:12.5px;" onclick="syncDatabaseNow()">
-              Sinkronkan Data Server Sekarang
-            </button>
-            <button type="button" class="btn-outline-touch" style="width:100%;height:40px;font-size:12.5px;" onclick="clearPwaCache()">
-              Perbarui Cache Aplikasi &amp; Muat Ulang
-            </button>
-          </div>
-        </div>
 
         <!-- Informasi Aplikasi -->
         <div class="card" style="text-align:center;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;">
