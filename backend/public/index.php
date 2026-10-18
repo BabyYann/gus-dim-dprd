@@ -17,6 +17,17 @@ if (file_exists(__DIR__.'/gusdim_project/backend/bootstrap/app.php')) {
 }
 
 // Determine if the application is in maintenance mode...
+$bypass = $_GET['bypass'] ?? $_COOKIE['gusdim_bypass'] ?? ($_SERVER['HTTP_X_MAINTENANCE_BYPASS'] ?? '');
+if ($bypass !== 'gusdim2025') {
+    if (file_exists($coreDir.'/maintenance.lock') || file_exists(__DIR__.'/maintenance.lock')) {
+        http_response_code(503);
+        if (file_exists(__DIR__.'/503.html')) {
+            require __DIR__.'/503.html';
+            exit;
+        }
+    }
+}
+
 if (file_exists($maintenance = $coreDir.'/storage/framework/maintenance.php')) {
     require $maintenance;
 }

@@ -16,6 +16,38 @@ use App\Http\Controllers\Api\ExportController;
 |--------------------------------------------------------------------------
 */
 
+if (!function_exists('isGusdimMaintenanceApi')) {
+    function isGusdimMaintenanceApi(Request $request): bool {
+        if ($request->query('bypass') === 'gusdim2025' || $request->cookie('gusdim_bypass') === 'gusdim2025' || $request->header('X-Maintenance-Bypass') === 'gusdim2025') {
+            return false;
+        }
+
+        if (file_exists(base_path('maintenance.lock')) || file_exists(base_path('../maintenance.lock'))) {
+            return true;
+        }
+
+        if (file_exists(storage_path('framework/down'))) {
+            return true;
+        }
+
+        if (env('APP_MAINTENANCE', false) === true || env('APP_MAINTENANCE', false) === 'true') {
+            return true;
+        }
+
+        return false;
+    }
+}
+
+// Endpoint status pemeliharaan sistem
+Route::get('/maintenance-status', function (Request $request) {
+    $active = isGusdimMaintenanceApi($request);
+    return response()->json([
+        'status' => true,
+        'maintenance' => $active,
+        'message' => $active ? 'Sistem sedang dalam mode pemeliharaan.' : 'Sistem beroperasi normal.'
+    ]);
+});
+
 // Public Auth Endpoints
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/auth/check', [AuthController::class, 'check'])->middleware('auth:sanctum');

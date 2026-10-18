@@ -676,8 +676,73 @@ function kirimUcapanWa(hp, nama, jalur) {
     }
   };
 
+  // Pemeriksaan Mode Pemeliharaan Sistem Desktop
+  function showDesktopMaintenanceOverlay(customMsg) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('bypass') === 'gusdim2025' || document.cookie.includes('gusdim_bypass=gusdim2025')) {
+      return;
+    }
+    let overlay = document.getElementById('desktopMaintenanceOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'desktopMaintenanceOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#0b193d;display:flex;align-items:center;justify-content:center;padding:20px 16px;overflow-y:auto;';
+      overlay.innerHTML = `
+        <div style="width:100%;max-width:480px;background:#ffffff;border-radius:28px;padding:34px 26px 28px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);">
+          <div style="position:relative;width:88px;height:88px;margin:0 auto 16px;">
+            <img src="assets/img/gus-dim.png" onerror="this.src='/assets/img/gus-dim.png'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid #f59e0b;background:#012e54;">
+            <div style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;background:#f59e0b;border-radius:50%;border:3px solid #ffffff;display:flex;align-items:center;justify-content:center;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 13px;background:#fef3c7;border:1px solid #fde68a;border-radius:9999px;font-size:11px;font-weight:800;color:#b45309;text-transform:uppercase;margin-bottom:14px;">
+            <span style="width:8px;height:8px;background:#d97706;border-radius:50%;"></span>
+            <span>Mode Pemeliharaan Aktif</span>
+          </div>
+          <h2 style="font-size:21px;font-weight:900;color:#0b193d;margin-bottom:6px;letter-spacing:-0.4px;">Aplikasi Sedang Dalam Perawatan</h2>
+          <p style="font-size:12.5px;font-weight:600;color:#475569;margin-bottom:16px;">Sistem Informasi Gus Dim &bull; Dapil Kraksaan Raya</p>
+          <div style="font-size:13px;color:#64748b;line-height:1.55;background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:14px 14px;margin-bottom:20px;text-align:left;">
+            ${customMsg || 'Aplikasi Gus Dim Mobile dan Dashboard Relawan saat ini sedang dinonaktifkan sementara untuk proses pemeliharaan sistem, sinkronisasi basis data, dan peningkatan performa layanan Dapil Kraksaan Raya.'}
+          </div>
+          <button onclick="window.location.reload()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#16225e;color:#ffffff;border:none;border-radius:16px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(22,34,94,0.25);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span>Periksa / Muat Ulang</span>
+          </button>
+          <div style="margin-top:18px;font-size:11px;color:#94a3b8;line-height:1.4;">
+            Dapil Kraksaan Raya: Kraksaan, Besuk, Gading<br>
+            Fraksi Partai NasDem DPRD Kab. Probolinggo
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+  }
+
+  async function checkDesktopMaintenanceStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('bypass') === 'gusdim2025' || document.cookie.includes('gusdim_bypass=gusdim2025')) {
+      return false;
+    }
+    try {
+      const res = await fetch('api/dashboard.php', { cache: 'no-store' }).catch(() => null);
+      if (res && res.status === 503) {
+        showDesktopMaintenanceOverlay();
+        return true;
+      }
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null);
+        if (json && json.maintenance) {
+          showDesktopMaintenanceOverlay(json.message);
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  }
+
   // ============ INIT ============
   window.onload = function () {
+    checkDesktopMaintenanceStatus();
     if (SESSION_TOKEN) {
       google.script.run.withSuccessHandler(onSessionChecked).checkSession(SESSION_TOKEN);
     }

@@ -85,6 +85,17 @@ cp -ru "$BACKEND_DIR/public/." "$PUBLIC_HTML_DIR/"
 cp -f "$BACKEND_DIR/public/index.php" "$PUBLIC_HTML_DIR/index.php"
 cp -f "$BACKEND_DIR/public/.htaccess" "$PUBLIC_HTML_DIR/.htaccess"
 
+# Sinkronkan status maintenance.lock
+if [ -f "$REPO_DIR/maintenance.lock" ] || [ -f "$BACKEND_DIR/maintenance.lock" ]; then
+    cp -f "$BACKEND_DIR/maintenance.lock" "$PUBLIC_HTML_DIR/maintenance.lock" 2>/dev/null || true
+    echo "Perhatian: Aplikasi aktif dalam Mode Pemeliharaan (Maintenance Mode)."
+else
+    rm -f "$PUBLIC_HTML_DIR/maintenance.lock" 2>/dev/null || true
+fi
+if [ -f "$BACKEND_DIR/public/503.html" ]; then
+    cp -f "$BACKEND_DIR/public/503.html" "$PUBLIC_HTML_DIR/503.html" 2>/dev/null || true
+fi
+
 # 7. Pastikan skrip backup memiliki izin eksekusi
 if [ -f "$REPO_DIR/scripts/cpanel_backup.sh" ]; then
     chmod +x "$REPO_DIR/scripts/cpanel_backup.sh" || true

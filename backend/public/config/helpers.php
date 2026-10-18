@@ -12,6 +12,26 @@ if (php_sapi_name() !== 'cli') {
         http_response_code(200);
         exit;
     }
+
+    // Pemeriksaan Status Pemeliharaan Sistem (Maintenance Mode)
+    $bypass = $_GET['bypass'] ?? $_COOKIE['gusdim_bypass'] ?? ($_SERVER['HTTP_X_MAINTENANCE_BYPASS'] ?? '');
+    if ($bypass !== 'gusdim2025') {
+        $baseDir = dirname(__DIR__);
+        $lock1 = $baseDir . '/maintenance.lock';
+        $lock2 = dirname($baseDir) . '/maintenance.lock';
+        $down1 = $baseDir . '/storage/framework/down';
+        $down2 = dirname($baseDir) . '/storage/framework/down';
+
+        if (file_exists($lock1) || file_exists($lock2) || file_exists($down1) || file_exists($down2)) {
+            http_response_code(503);
+            echo json_encode([
+                'status' => false,
+                'maintenance' => true,
+                'message' => 'Sistem sedang dalam mode pemeliharaan (maintenance mode). Seluruh akses data ditutup sementara untuk perawatan sistem.'
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
 }
 
 function json_response(array $data, int $statusCode = 200): void {
