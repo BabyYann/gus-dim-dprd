@@ -4141,7 +4141,9 @@ const Icons = {
   edit: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
   award: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>',
   info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-  calendar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>'
+  calendar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
+  eye: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;min-width:15px;min-height:15px;max-width:15px;max-height:15px;flex-shrink:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;min-width:15px;min-height:15px;max-width:15px;max-height:15px;flex-shrink:0;"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>'
 };
 
 // Inisialisasi Saat Dokumen Siap
@@ -4160,7 +4162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=21')
+      navigator.serviceWorker.register('./sw.js?v=22')
         .then(reg => {
           console.log('ServiceWorker PWA Aktif:', reg.scope);
           reg.update();
@@ -7686,6 +7688,8 @@ function openSupporterDetail(index) {
 
   const userRole = (AppState.currentUser && AppState.currentUser.role) || 'Superadmin';
   const isSuperadmin = (userRole === 'Superadmin');
+  const highRoles = ['superadmin', 'administrator', 'admin', 'koordinator kecamatan', 'korcam', 'koordinator desa', 'kordes'];
+  const canViewFullNik = highRoles.includes(userRole.toLowerCase());
 
   let canEditSupporter = false;
   if (userRole === 'Superadmin') {
@@ -7816,7 +7820,14 @@ function openSupporterDetail(index) {
         ${(item.nama || 'P').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
       </div>
       <h3 style="font-size:17px;font-weight:800;color:#0f172a;">${escapeHtml(item.nama)}</h3>
-      <p style="font-size:13px;color:#64748b;font-family:monospace;">${maskedNik}</p>
+      <div style="display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:3px;">
+        <span id="detailSupporterNik" style="font-size:13px;color:#64748b;font-family:monospace;letter-spacing:0.5px;" data-revealed="false">${maskedNik}</span>
+        ${canViewFullNik ? `
+        <button type="button" id="btnToggleNikDetail" onclick="toggleDetailNikVisibility(${index})" style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:3px 6px;cursor:pointer;color:#475569;display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:all 0.15s ease;" title="Buka/Tutup Sensor NIK">
+          <span id="nikEyeIcon" style="display:inline-flex;align-items:center;">${Icons.eye}</span>
+        </button>
+        ` : ''}
+      </div>
     </div>
 
     ${operatorBadgeHtml}
@@ -7876,6 +7887,41 @@ function openSupporterDetail(index) {
   `;
 
   openBottomSheet('Detail Pendukung Konstituen', content);
+}
+
+// Toggle Sensor NIK pada Detail Pendukung (Khusus Role Akses Tinggi)
+function toggleDetailNikVisibility(index) {
+  const item = AppState.supporters[index];
+  if (!item) return;
+
+  const userRole = (AppState.currentUser && AppState.currentUser.role) || (AppState.user && AppState.user.role) || 'Superadmin';
+  const highRoles = ['superadmin', 'administrator', 'admin', 'koordinator kecamatan', 'korcam', 'koordinator desa', 'kordes'];
+  if (!highRoles.includes(userRole.toLowerCase())) {
+    showToast('Akses ditolak: Hanya role dengan hak akses tinggi yang dapat melihat NIK lengkap.', 'error');
+    return;
+  }
+
+  const el = document.getElementById('detailSupporterNik');
+  const iconEl = document.getElementById('nikEyeIcon');
+  if (!el) return;
+
+  const rawNik = String(item.nik || '').trim();
+  const maskedNik = maskNik(rawNik);
+  const isRevealed = el.getAttribute('data-revealed') === 'true';
+
+  if (isRevealed) {
+    el.innerText = maskedNik;
+    el.setAttribute('data-revealed', 'false');
+    el.style.color = '#64748b';
+    el.style.fontWeight = 'normal';
+    if (iconEl) iconEl.innerHTML = Icons.eye;
+  } else {
+    el.innerText = rawNik || maskedNik;
+    el.setAttribute('data-revealed', 'true');
+    el.style.color = '#0f172a';
+    el.style.fontWeight = '700';
+    if (iconEl) iconEl.innerHTML = Icons.eyeOff;
+  }
 }
 
 async function updateSupporterStatus(index, newStatus) {
