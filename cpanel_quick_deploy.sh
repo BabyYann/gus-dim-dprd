@@ -62,13 +62,18 @@ for candidate in \
     fi
 done
 
-# 4. Optimasi Laravel Storage dan Cache
+# 4. Pastikan direktori storage dan cache berizin tulis
+mkdir -p "$BACKEND_DIR/storage/framework/cache/data"
+mkdir -p "$BACKEND_DIR/storage/framework/sessions"
+mkdir -p "$BACKEND_DIR/storage/framework/views"
+mkdir -p "$BACKEND_DIR/storage/logs"
+mkdir -p "$BACKEND_DIR/bootstrap/cache"
+chmod -R 775 "$BACKEND_DIR/storage" "$BACKEND_DIR/bootstrap/cache" 2>/dev/null || chmod -R 777 "$BACKEND_DIR/storage" "$BACKEND_DIR/bootstrap/cache" 2>/dev/null || true
+
+# 5. Optimasi Laravel Storage dan Cache
 cd "$BACKEND_DIR"
 $PHP_BIN artisan storage:link || true
 $PHP_BIN artisan optimize:clear || true
-$PHP_BIN artisan config:cache || true
-$PHP_BIN artisan route:cache || true
-$PHP_BIN artisan view:cache || true
 
 # 5. Bersihkan folder bersarang jika pernah terbentuk sebelumnya
 if [ -d "$PUBLIC_HTML_DIR/public_html" ]; then
