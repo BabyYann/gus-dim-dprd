@@ -43,8 +43,8 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="assets/icons/gus-dim.png">
-  <link rel="icon" type="image/png" href="assets/icons/gus-dim.png">
+  <link rel="apple-touch-icon" href="assets/icons/app-logo.png">
+  <link rel="icon" type="image/png" href="assets/icons/app-logo.png">
   <title>Gus Dim Mobile - Aplikasi PWA Lapangan Dapil Kraksaan Raya</title>
   <script src="assets/js/pusher.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -2951,7 +2951,7 @@ html, body {
       <div class="mobile-login-card">
         <!-- Avatar Gus Dim -->
         <div class="mobile-login-avatar-wrapper">
-          <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="mobile-login-avatar-img">
+          <img src="assets/img/gus-dim.png" onerror="this.onerror=null; this.src='assets/icons/gus-dim.png';" alt="Gus Dim" class="mobile-login-avatar-img">
           <div class="mobile-login-verified-badge" title="Sistem Resmi Terverifikasi">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#ffffff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
@@ -3020,7 +3020,7 @@ html, body {
       <div class="header-inner">
         <div class="header-left">
           <div class="header-avatar-wrap" onclick="navigatePage('profil')" style="cursor:pointer;" title="Lihat Profil Saya">
-            <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="header-avatar" width="44" height="44">
+            <img src="assets/img/gus-dim.png" onerror="this.onerror=null; this.src='assets/icons/gus-dim.png';" alt="Gus Dim" class="header-avatar" width="44" height="44">
             <span class="header-avatar-badge"></span>
           </div>
           <div class="header-title-box">
@@ -3065,7 +3065,7 @@ html, body {
     <aside id="mobileDrawer" class="mobile-drawer">
       <div class="drawer-header">
         <div class="drawer-user-info" onclick="navigatePage('profil')" style="cursor:pointer;" title="Lihat Profil Saya">
-          <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" class="drawer-avatar" width="44" height="44">
+          <img src="assets/img/gus-dim.png" onerror="this.onerror=null; this.src='assets/icons/gus-dim.png';" alt="Gus Dim" class="drawer-avatar" width="44" height="44">
           <div>
             <div class="drawer-user-name">Tim Relawan Gus Dim</div>
             <div class="drawer-user-role">Dapil Kraksaan Raya</div>
@@ -7167,7 +7167,7 @@ function renderProfile() {
       <!-- Hero Header Portal -->
       <div class="card" style="background:linear-gradient(135deg, #16225e 0%, #1e3a8a 100%);color:#ffffff;text-align:center;padding:24px 16px;border:none;box-shadow:0 8px 24px rgba(22,34,94,0.2);">
         <div style="position:relative;width:76px;height:76px;margin:0 auto 12px;">
-          <img src="assets/icons/gus-dim.png" onerror="this.onerror=null; this.src='/assets/img/gus-dim.png';" alt="Gus Dim" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid #fbbf24;box-shadow:0 4px 14px rgba(0,0,0,0.3);">
+          <img src="assets/img/gus-dim.png" onerror="this.onerror=null; this.src='assets/icons/gus-dim.png';" alt="Gus Dim" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid #fbbf24;box-shadow:0 4px 14px rgba(0,0,0,0.3);">
           <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#0d9488;border-radius:50%;border:2px solid #ffffff;display:flex;align-items:center;justify-content:center;">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
           </div>

@@ -75,8 +75,8 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 3. Kosongkan Data Transaksional Uji Coba
-        Pendukung::truncate();
+        // 3. Seeder Data Konstituen & Pengurus DPC/DPRT Dapil Kraksaan Raya
+        $this->call(DpcDprtSeeder::class);
         AuditLog::truncate();
 
         // 4. Catatan Log Inisialisasi Produksi

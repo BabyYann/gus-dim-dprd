@@ -1,11 +1,13 @@
-const CACHE_NAME = 'gusdim-mobile-cache-v27';
+const CACHE_NAME = 'gusdim-mobile-cache-v28';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './assets/css/mobile.css',
   './assets/js/mobile.js',
+  './assets/icons/app-logo.png',
   './assets/icons/gus-dim.png',
+  './assets/img/gus-dim.png',
   './assets/img/header-bg.png',
   './assets/img/thumb-kraksaan.png',
   './assets/img/thumb-besuk.png',
