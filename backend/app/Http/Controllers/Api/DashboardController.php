@@ -75,12 +75,53 @@ class DashboardController extends Controller
             ];
         }
 
+        // Hitung Real Leaderboard
+        $lbTally = [];
+        $lbMeta = [];
+        foreach ($records as $r) {
+            $by = trim($r->input_by_user_name ?: '');
+            if (!$by) $by = 'Koordinator Lapangan';
+            $lbTally[$by] = ($lbTally[$by] ?? 0) + 1;
+            if (!isset($lbMeta[$by])) {
+                $lbMeta[$by] = [
+                    'desa' => $r->desa ?: '',
+                    'kecamatan' => $r->kecamatan ?: '',
+                    'role' => $r->jabatan ?: 'Relawan'
+                ];
+            }
+        }
+        arsort($lbTally);
+        $leaderboard = [];
+        $idx = 1;
+        foreach ($lbTally as $by => $tot) {
+            $m = $lbMeta[$by] ?? [];
+            $wilayah = '';
+            if (!empty($m['desa']) && !empty($m['kecamatan'])) {
+                $wilayah = 'Desa ' . $m['desa'] . ', Kec. ' . $m['kecamatan'];
+            } elseif (!empty($m['desa'])) {
+                $wilayah = 'Desa ' . $m['desa'];
+            } else {
+                $wilayah = $m['role'] ?? 'Relawan Lapangan';
+            }
+            $leaderboard[] = [
+                'rank' => $idx++,
+                'nama' => $by,
+                'role' => $m['role'] ?? 'Relawan',
+                'wilayah' => $wilayah,
+                'desa' => $m['desa'] ?? '',
+                'kecamatan' => $m['kecamatan'] ?? '',
+                'total' => $tot,
+                'persen' => min(100, round(($tot / 50) * 100))
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'total' => count($formattedRecords),
             'byJalur' => $byJalur,
             'byKecamatan' => $byKecamatan,
             'mapPoints' => $mapPoints,
+            'leaderboard' => $leaderboard,
             'recent' => array_slice($formattedRecords, 0, 10),
             'allRecords' => $formattedRecords
         ]);

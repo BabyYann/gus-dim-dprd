@@ -1175,6 +1175,55 @@ html, body {
   object-fit: cover;
 }
 
+.map-badge-overlay {
+  position: absolute;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 4px 7px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  pointer-events: none;
+  z-index: 2;
+  text-align: left;
+  min-width: 56px;
+}
+.map-badge-kraksaan {
+  top: 12px;
+  right: 8px;
+}
+.map-badge-gading {
+  top: 48px;
+  left: 6px;
+}
+.map-badge-besuk {
+  bottom: 12px;
+  right: 14px;
+}
+.map-badge-name {
+  font-size: 9px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+.map-badge-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+.map-badge-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+.map-badge-pct {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1;
+}
+
 /* 4. Menu Cepat (Quick Action Grid) */
 .menu-cepat-card {
   margin: 0 16px 16px;
@@ -3302,11 +3351,6 @@ html, body {
               <div class="welcome-greeting">Selamat datang,</div>
               <div class="welcome-name">Gus Dim</div>
             </div>
-            <div class="welcome-filter-pill" onclick="showToast('Periode aktif: Tahun Anggaran 2025')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-              <span>Tahun 2025</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
           </div>
           <div class="welcome-subtitle">Bersama masyarakat, untuk Kraksaan Raya yang lebih baik</div>
         </div>
@@ -3481,6 +3525,31 @@ html, body {
             <!-- Right: Interactive Vector Map Card -->
             <div class="map-container-box" onclick="navigatePage('peta')" style="cursor:pointer;" title="Buka Peta Interaktif">
               <img src="assets/img/map-sebaran.png" alt="Peta Sebaran Kraksaan Raya" class="map-graphic-img">
+              
+              <!-- Real Data Badges Overlaying Static Graphic -->
+              <div class="map-badge-overlay map-badge-kraksaan">
+                <div class="map-badge-name">Kraksaan</div>
+                <div class="map-badge-stat">
+                  <span id="mapBadgeKrakVal" class="map-badge-val">0</span>
+                  <span id="mapBadgeKrakPct" class="map-badge-pct">0%</span>
+                </div>
+              </div>
+
+              <div class="map-badge-overlay map-badge-gading">
+                <div class="map-badge-name">Gading</div>
+                <div class="map-badge-stat">
+                  <span id="mapBadgeGadVal" class="map-badge-val">0</span>
+                  <span id="mapBadgeGadPct" class="map-badge-pct">0%</span>
+                </div>
+              </div>
+
+              <div class="map-badge-overlay map-badge-besuk">
+                <div class="map-badge-name">Besuk</div>
+                <div class="map-badge-stat">
+                  <span id="mapBadgeBesukVal" class="map-badge-val">0</span>
+                  <span id="mapBadgeBesukPct" class="map-badge-pct">0%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -3878,38 +3947,8 @@ html, body {
           </div>
         </div>
 
-        <!-- Podium Top 3 -->
-        <div class="podium-container">
-          <div class="podium-item second">
-            <div class="podium-avatar-box">
-              <div class="podium-avatar">AM</div>
-              <div class="podium-badge">2</div>
-            </div>
-            <div class="podium-name">Ahmad M.</div>
-            <div class="podium-score">842 Data</div>
-            <div class="podium-pillar">2</div>
-          </div>
-
-          <div class="podium-item first">
-            <div class="podium-avatar-box">
-              <div class="podium-avatar" style="color:#b45309;background:#fef3c7;">HK</div>
-              <div class="podium-badge">1</div>
-            </div>
-            <div class="podium-name">H. Kholiq</div>
-            <div class="podium-score">1.250 Data</div>
-            <div class="podium-pillar">1</div>
-          </div>
-
-          <div class="podium-item third">
-            <div class="podium-avatar-box">
-              <div class="podium-avatar">FR</div>
-              <div class="podium-badge">3</div>
-            </div>
-            <div class="podium-name">Fathur R.</div>
-            <div class="podium-score">615 Data</div>
-            <div class="podium-pillar">3</div>
-          </div>
-        </div>
+        <!-- Podium Top 3 Dinamis Real Data -->
+        <div id="leaderboardPodium"></div>
 
         <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px;">PERINGKAT KORCAM &amp; KORDES</div>
         <div id="leaderboardList"></div>
@@ -4168,7 +4207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=23')
+      navigator.serviceWorker.register('./sw.js?v=24')
         .then(reg => {
           console.log('ServiceWorker PWA Aktif:', reg.scope);
           reg.update();
@@ -4667,6 +4706,9 @@ async function loadAllData() {
       if (dashRes.data.mapPoints) {
         AppState.mapPoints = dashRes.data.mapPoints;
       }
+      if (Array.isArray(dashRes.data.leaderboard) && dashRes.data.leaderboard.length > 0) {
+        AppState.leaderboardData = dashRes.data.leaderboard;
+      }
     } else {
       const resP = await mobileApiCall('pendukung.php?action=list');
       if (resP.ok && resP.data && (Array.isArray(resP.data.data) || Array.isArray(resP.data.rows))) {
@@ -4733,7 +4775,9 @@ async function loadAllData() {
       AppState.operators = generateDefaultOperators();
     }
 
-    AppState.leaderboardData = generateDynamicLeaderboard();
+    if (!AppState.leaderboardData || AppState.leaderboardData.length === 0) {
+      AppState.leaderboardData = generateDynamicLeaderboard();
+    }
 
     calculateStats();
     renderDashboardStats();
@@ -5169,6 +5213,22 @@ function renderDashboardStats() {
   if (elValKecGading) elValKecGading.textContent = gadCount.toLocaleString('id-ID');
   if (elBarKecGading) elBarKecGading.style.width = pGad + '%';
   if (elPctKecGading) elPctKecGading.textContent = pGad + '%';
+
+  // Update Real Badges pada Grafik Peta
+  const elBadgeKrakVal = document.getElementById('mapBadgeKrakVal');
+  const elBadgeKrakPct = document.getElementById('mapBadgeKrakPct');
+  if (elBadgeKrakVal) elBadgeKrakVal.textContent = krakCount.toLocaleString('id-ID');
+  if (elBadgeKrakPct) elBadgeKrakPct.textContent = pKrak + '%';
+
+  const elBadgeBesukVal = document.getElementById('mapBadgeBesukVal');
+  const elBadgeBesukPct = document.getElementById('mapBadgeBesukPct');
+  if (elBadgeBesukVal) elBadgeBesukVal.textContent = besukCount.toLocaleString('id-ID');
+  if (elBadgeBesukPct) elBadgeBesukPct.textContent = pBesuk + '%';
+
+  const elBadgeGadVal = document.getElementById('mapBadgeGadVal');
+  const elBadgeGadPct = document.getElementById('mapBadgeGadPct');
+  if (elBadgeGadVal) elBadgeGadVal.textContent = gadCount.toLocaleString('id-ID');
+  if (elBadgeGadPct) elBadgeGadPct.textContent = pGad + '%';
 }
 
 // Render Daftar Pendukung (Touch Cards)
@@ -6862,31 +6922,111 @@ function locateUserPosition() {
   }, { enableHighAccuracy: true, timeout: 8000 });
 }
 
-// Render Leaderboard Relawan
+// Render Leaderboard Relawan (Podium Top 3 & Peringkat Seluruhnya Dinamis Real Data)
 function renderLeaderboard() {
+  const podiumEl = document.getElementById('leaderboardPodium');
   const container = document.getElementById('leaderboardList');
-  if (!container) return;
+  if (!podiumEl && !container) return;
 
-  const data = AppState.leaderboardData;
-  container.innerHTML = data.map((item, idx) => `
-    <div class="touch-card" style="padding:10px 14px;margin-bottom:8px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:28px;height:28px;border-radius:999px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#475569;">
-            ${idx + 4}
+  const data = Array.isArray(AppState.leaderboardData) && AppState.leaderboardData.length > 0
+    ? AppState.leaderboardData
+    : generateDynamicLeaderboard();
+  AppState.leaderboardData = data;
+
+  function getInitials(name) {
+    if (!name || name === '-' || name === 'Belum Ada') return '-';
+    const clean = name.replace(/^(h\.|dr\.|drs\.|hj\.|kh\.)\s*/i, '').trim();
+    const parts = clean.split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return clean.substring(0, 2).toUpperCase() || 'R';
+  }
+
+  // Render Podium Top 3 Real Data
+  if (podiumEl) {
+    if (data.length === 0) {
+      podiumEl.innerHTML = `
+        <div style="text-align:center;padding:24px 16px;background:#ffffff;border-radius:18px;border:1px solid #e2e8f0;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;">Belum Ada Data Relawan</div>
+          <div style="font-size:12px;color:#64748b;">Entri data pendukung untuk melihat peringkat relawan teraktif.</div>
+        </div>
+      `;
+    } else {
+      const r1 = data[0] || { nama: '-', total: 0 };
+      const r2 = data[1] || null;
+      const r3 = data[2] || null;
+
+      podiumEl.innerHTML = `
+        <div class="podium-container">
+          <!-- Rank 2 -->
+          <div class="podium-item second">
+            <div class="podium-avatar-box">
+              <div class="podium-avatar">${r2 ? getInitials(r2.nama) : '-'}</div>
+              <div class="podium-badge">2</div>
+            </div>
+            <div class="podium-name" title="${r2 ? escapeHtml(r2.nama) : ''}">${r2 ? escapeHtml(r2.nama) : 'Belum Ada'}</div>
+            <div class="podium-score">${r2 ? Number(r2.total).toLocaleString('id-ID') + ' Data' : '0 Data'}</div>
+            <div class="podium-pillar">2</div>
           </div>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#0f172a;">${item.nama}</div>
-            <div style="font-size:11px;color:#64748b;">${item.wilayah}</div>
+
+          <!-- Rank 1 -->
+          <div class="podium-item first">
+            <div class="podium-avatar-box">
+              <div class="podium-avatar" style="color:#b45309;background:#fef3c7;">${getInitials(r1.nama)}</div>
+              <div class="podium-badge">1</div>
+            </div>
+            <div class="podium-name" title="${escapeHtml(r1.nama)}">${escapeHtml(r1.nama)}</div>
+            <div class="podium-score">${Number(r1.total).toLocaleString('id-ID')} Data</div>
+            <div class="podium-pillar">1</div>
+          </div>
+
+          <!-- Rank 3 -->
+          <div class="podium-item third">
+            <div class="podium-avatar-box">
+              <div class="podium-avatar">${r3 ? getInitials(r3.nama) : '-'}</div>
+              <div class="podium-badge">3</div>
+            </div>
+            <div class="podium-name" title="${r3 ? escapeHtml(r3.nama) : ''}">${r3 ? escapeHtml(r3.nama) : 'Belum Ada'}</div>
+            <div class="podium-score">${r3 ? Number(r3.total).toLocaleString('id-ID') + ' Data' : '0 Data'}</div>
+            <div class="podium-pillar">3</div>
           </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:13px;font-weight:800;color:#16225e;">${item.total} Data</div>
-          <div style="font-size:10px;color:#16a34a;font-weight:600;">${item.persen}% Target</div>
+      `;
+    }
+  }
+
+  // Render Peringkat 4 ke atas (Real Data)
+  if (container) {
+    const restData = data.slice(3);
+    if (restData.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:16px;background:#ffffff;border-radius:14px;border:1px dashed #cbd5e1;font-size:12px;color:#64748b;">
+          ${data.length > 0 ? 'Seluruh relawan aktif saat ini berada di peringkat 1 - ' + data.length + '.' : 'Belum ada data relawan tercatat.'}
         </div>
-      </div>
-    </div>
-  `).join('');
+      `;
+    } else {
+      container.innerHTML = restData.map((item, idx) => `
+        <div class="touch-card" style="padding:10px 14px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:28px;height:28px;border-radius:999px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#475569;">
+                ${idx + 4}
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#0f172a;">${escapeHtml(item.nama)}</div>
+                <div style="font-size:11px;color:#64748b;">${escapeHtml(item.wilayah || 'Relawan')}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:13px;font-weight:800;color:#16225e;">${Number(item.total).toLocaleString('id-ID')} Data</div>
+              <div style="font-size:10px;color:#16a34a;font-weight:600;">${item.persen}% Target</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
 }
 
 // ==========================================
@@ -7586,26 +7726,31 @@ async function handleMobileChangePassword(e) {
   }
 }
 
-// Helper Dynamic Leaderboard
+// Helper Dynamic Leaderboard (Murni Real Data)
 function generateDynamicLeaderboard() {
   const tally = {};
-  (AppState.supporters || []).forEach(s => {
-    const k = s.userInput || s.input_by_user_name || 'Koordinator Lapangan';
+  const meta = {};
+  const supporters = AppState.supporters || [];
+  const totalAll = supporters.length;
+
+  supporters.forEach(s => {
+    const k = s.userInput || s.input_by_user_name || s.koordinator || 'Petugas Lapangan';
     tally[k] = (tally[k] || 0) + 1;
+    if (!meta[k]) {
+      const wil = s.desa ? (s.desa + (s.kecamatan ? ', ' + s.kecamatan : '')) : (s.kecamatan || 'Dapil Kraksaan');
+      meta[k] = wil;
+    }
   });
 
   const list = Object.keys(tally).map(nama => {
     return {
       nama: nama,
-      wilayah: 'Relawan Dapil Kraksaan',
+      wilayah: meta[nama] || 'Dapil Kraksaan',
       total: tally[nama],
-      persen: Math.min(100, Math.round((tally[nama] / 50) * 100))
+      persen: Math.min(100, Math.round((tally[nama] / Math.max(1, totalAll)) * 100))
     };
   });
 
-  if (list.length < 3) {
-    return generateDefaultLeaderboard();
-  }
   return list.sort((a, b) => b.total - a.total);
 }
 
@@ -9533,13 +9678,7 @@ function generateDefaultOperators() {
 }
 
 function generateDefaultLeaderboard() {
-  return [
-    { nama: 'Nurul Hidayati', wilayah: 'Kordes Kraksaan Wetan', total: 520, persen: 88 },
-    { nama: 'Bambang Sugiono', wilayah: 'Kordes Wangkal, Gading', total: 490, persen: 82 },
-    { nama: 'Dewi Lestari', wilayah: 'Relawan Semampir', total: 435, persen: 79 },
-    { nama: 'Hasan Basri', wilayah: 'Kordes Patokan', total: 395, persen: 75 },
-    { nama: 'Abdul Mukti', wilayah: 'Relawan Alas Sumur Lor', total: 360, persen: 71 }
-  ];
+  return [];
 }
   
 // ============ PEMBUATAN AKUN OPERATOR DARI MOBILE ============

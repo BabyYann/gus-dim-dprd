@@ -117,12 +117,97 @@ foreach ($records as &$r) {
     }
 }
 
+// Hitung Real Leaderboard Tim dari data pendukung asli
+$leaderboard = [];
+if (Database::isMysql()) {
+    try {
+        $pdo = Database::getPdo();
+        $sqlLb = "SELECT 
+                    COALESCE(NULLIF(p.input_by_user_name, ''), 'Koordinator Lapangan') as nama,
+                    MAX(COALESCE(u.role, p.jabatan, 'Relawan Lapangan')) as role,
+                    MAX(COALESCE(NULLIF(u.desa, ''), p.desa, '')) as desa,
+                    MAX(COALESCE(NULLIF(u.kecamatan, ''), p.kecamatan, 'Kraksaan')) as kecamatan,
+                    COUNT(p.id) as total
+                  FROM pendukung p
+                  LEFT JOIN users u ON (u.username = p.input_by_user_name OR u.nama = p.input_by_user_name)
+                  GROUP BY COALESCE(NULLIF(p.input_by_user_name, ''), 'Koordinator Lapangan')
+                  ORDER BY total DESC";
+        $stmtLb = $pdo->query($sqlLb);
+        $rawLb = $stmtLb->fetchAll();
+        foreach ($rawLb as $idx => $row) {
+            $total = (int)$row['total'];
+            $persen = min(100, round(($total / 50) * 100));
+            $wilayah = '';
+            if (!empty($row['desa']) && !empty($row['kecamatan'])) {
+                $wilayah = 'Desa ' . $row['desa'] . ', Kec. ' . $row['kecamatan'];
+            } elseif (!empty($row['desa'])) {
+                $wilayah = 'Desa ' . $row['desa'];
+            } elseif (!empty($row['kecamatan'])) {
+                $wilayah = 'Kec. ' . $row['kecamatan'];
+            } else {
+                $wilayah = $row['role'] ?: 'Relawan Dapil';
+            }
+            $leaderboard[] = [
+                'rank' => $idx + 1,
+                'nama' => $row['nama'],
+                'role' => $row['role'],
+                'wilayah' => $wilayah,
+                'desa' => $row['desa'],
+                'kecamatan' => $row['kecamatan'],
+                'total' => $total,
+                'persen' => $persen
+            ];
+        }
+    } catch (Exception $e) {
+        $leaderboard = [];
+    }
+} else {
+    $lbTally = [];
+    $lbMeta = [];
+    foreach ($records as $r) {
+        $by = trim($r['userInput'] ?? $r['input_by_user_name'] ?? '');
+        if (!$by) $by = 'Koordinator Lapangan';
+        $lbTally[$by] = ($lbTally[$by] ?? 0) + 1;
+        if (!isset($lbMeta[$by])) {
+            $lbMeta[$by] = [
+                'desa' => $r['desa'] ?? '',
+                'kecamatan' => $r['kecamatan'] ?? '',
+                'role' => $r['jabatan'] ?? 'Relawan'
+            ];
+        }
+    }
+    arsort($lbTally);
+    $idx = 1;
+    foreach ($lbTally as $by => $tot) {
+        $m = $lbMeta[$by] ?? [];
+        $wilayah = '';
+        if (!empty($m['desa']) && !empty($m['kecamatan'])) {
+            $wilayah = 'Desa ' . $m['desa'] . ', Kec. ' . $m['kecamatan'];
+        } elseif (!empty($m['desa'])) {
+            $wilayah = 'Desa ' . $m['desa'];
+        } else {
+            $wilayah = $m['role'] ?? 'Relawan Lapangan';
+        }
+        $leaderboard[] = [
+            'rank' => $idx++,
+            'nama' => $by,
+            'role' => $m['role'] ?? 'Relawan',
+            'wilayah' => $wilayah,
+            'desa' => $m['desa'] ?? '',
+            'kecamatan' => $m['kecamatan'] ?? '',
+            'total' => $tot,
+            'persen' => min(100, round(($tot / 50) * 100))
+        ];
+    }
+}
+
 json_response([
     'success' => true,
     'total' => count($records),
     'byJalur' => $byJalur,
     'byKecamatan' => $byKecamatan,
     'mapPoints' => $mapPoints,
+    'leaderboard' => $leaderboard,
     'recent' => array_slice($records, 0, 10),
     'allRecords' => $records
 ]);
