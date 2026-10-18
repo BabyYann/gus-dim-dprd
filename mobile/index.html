@@ -3001,11 +3001,6 @@ html, body {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </form>
-
-        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#0f766e;font-weight:600;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <span>Koneksi Aman Terenkripsi SSL 256-Bit</span>
-        </div>
       </div>
     </div>
 
@@ -7223,11 +7218,6 @@ function renderProfile() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </form>
-
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#0f766e;font-weight:600;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <span>Koneksi Aman Terenkripsi SSL 256-Bit</span>
-        </div>
       </div>
 
       <!-- Kartu Bantuan Akses Akun -->
