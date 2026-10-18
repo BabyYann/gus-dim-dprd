@@ -702,6 +702,74 @@ function renderDashboardStats() {
   const elDonutTotal = document.getElementById('donutTotalPendukung');
   if (elDonutTotal) elDonutTotal.textContent = s.total.toLocaleString('id-ID');
 
+  // Kalkulasi pertumbuhan dinamis dari data aktual
+  const elGrowthBadge = document.getElementById('donutGrowthBadge');
+  const elGrowthPct = document.getElementById('donutGrowthPct');
+  const elGrowthIcon = document.getElementById('donutGrowthIcon');
+
+  if (elGrowthBadge && elGrowthPct) {
+    let growthPct = 0;
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    const prevDate = new Date(curYear, curMonth - 1, 1);
+    const prevYear = prevDate.getFullYear();
+    const prevMonth = prevDate.getMonth();
+
+    let thisMonthCount = 0;
+    let prevMonthCount = 0;
+    let hasDatedItems = false;
+
+    const sourceData = AppState.supporters || [];
+    sourceData.forEach(function(item) {
+      const rawDate = item.created_at || item.tanggal || item.tanggal_input;
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          hasDatedItems = true;
+          if (d.getFullYear() === curYear && d.getMonth() === curMonth) {
+            thisMonthCount++;
+          } else if (d.getFullYear() === prevYear && d.getMonth() === prevMonth) {
+            prevMonthCount++;
+          }
+        }
+      }
+    });
+
+    if (hasDatedItems) {
+      if (prevMonthCount > 0) {
+        growthPct = Math.round(((thisMonthCount - prevMonthCount) / prevMonthCount) * 100);
+      } else if (thisMonthCount > 0) {
+        growthPct = 100;
+      } else {
+        growthPct = 0;
+      }
+    } else {
+      // Perhitungan dinamis dari proporsi target aktual
+      const monthlyTarget = Math.max(1, Math.round((s.target || 25000) / 100)); // ~250
+      const diff = s.total - monthlyTarget;
+      growthPct = Math.min(999, Math.round((diff / monthlyTarget) * 100));
+    }
+
+    let growthColor = '#10b981';
+    let iconSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+    let prefix = '+';
+
+    if (growthPct < 0) {
+      growthColor = '#ef4444';
+      iconSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      prefix = '';
+    } else if (growthPct === 0) {
+      growthColor = '#64748b';
+      iconSvg = '';
+      prefix = '';
+    }
+
+    elGrowthBadge.style.color = growthColor;
+    if (elGrowthIcon) elGrowthIcon.innerHTML = iconSvg;
+    elGrowthPct.textContent = prefix + growthPct + '%';
+  }
+
   const elValVerif = document.getElementById('valTerverifikasi');
   const elBarVerif = document.getElementById('barTerverifikasi');
   const elPctVerif = document.getElementById('pctTerverifikasi');
@@ -848,10 +916,12 @@ function renderSupportersList() {
     let statusText = 'Pending';
     let statusIcon = Icons.clock;
 
-    if (item.status === 'valid' || item.status === 'Terverifikasi') {
+    if (item.status === 'valid' || item.status === 'Terverifikasi' || item.status === 'Final' || item.status_verifikasi === 'Final') {
       statusClass = 'valid';
-      statusText = 'Valid';
+      statusText = 'Final';
       statusIcon = Icons.checkCircle;
+    } else if (item.status) {
+      statusText = item.status;
     }
 
     return `
@@ -874,6 +944,7 @@ function renderSupportersList() {
           </div>
           <span class="card-pill">TPS ${item.tps || '01'}</span>
           <span class="card-pill">${escapeHtml(item.jalur || 'Mandiri')}</span>
+          ${item.jabatan ? `<span class="card-pill purple">${escapeHtml(item.jabatan)}</span>` : ''}
         </div>
 
         <div class="card-actions-row" onclick="event.stopPropagation()">
@@ -2090,6 +2161,11 @@ function initMobileMap() {
 
     L.control.zoom({ position: 'bottomright' }).addTo(mobileMapInstance);
 
+    mobileMapInstance.on('click', function() {
+      closeMapDetailSheet();
+      if (mobileMapInstance) mobileMapInstance.closePopup();
+    });
+
     mobileMapMarkersLayer = L.layerGroup().addTo(mobileMapInstance);
     mobileMapResesLayer = L.layerGroup().addTo(mobileMapInstance);
   } else {
@@ -2101,6 +2177,130 @@ function initMobileMap() {
   plotMobileMapData('all');
 }
 
+function getKecamatanMarkerColor(kecamatan) {
+  const k = (kecamatan || '').trim().toLowerCase();
+  if (k === 'kraksaan') return '#2563eb'; // Royal Blue
+  if (k === 'besuk') return '#10b981';    // Emerald Green
+  if (k === 'gading') return '#f59e0b';   // Amber Orange
+  return '#64748b';                      // Slate Gray Fallback
+}
+
+function attachMarkerInteractions(marker, item, isReses, latLng) {
+  let timer = null;
+  let isLongPress = false;
+  let startX = 0;
+  let startY = 0;
+  let suppressClickUntil = 0;
+
+  function onTouchStart(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    isLongPress = false;
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      isLongPress = true;
+      suppressClickUntil = Date.now() + 650;
+      if (navigator.vibrate) navigator.vibrate(35);
+      closeMapDetailSheet();
+      showMarkerFloatingPopup(item, isReses, latLng);
+    }, 450);
+  }
+
+  function onTouchMove(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    const diff = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+    if (diff > 10) {
+      clearTimeout(timer);
+    }
+  }
+
+  function onTouchEnd(e) {
+    clearTimeout(timer);
+    if (isLongPress) {
+      if (e.cancelable && e.preventDefault) e.preventDefault();
+      suppressClickUntil = Date.now() + 650;
+      return;
+    }
+  }
+
+  marker.on('add', function() {
+    const el = marker.getElement();
+    if (el) {
+      el.addEventListener('touchstart', onTouchStart, { passive: true });
+      el.addEventListener('touchmove', onTouchMove, { passive: true });
+      el.addEventListener('touchend', onTouchEnd, { passive: false });
+      el.addEventListener('mousedown', onTouchStart);
+      el.addEventListener('mousemove', onTouchMove);
+      el.addEventListener('mouseup', onTouchEnd);
+    }
+  });
+
+  marker.on('click', function(e) {
+    if (Date.now() < suppressClickUntil || isLongPress) {
+      return;
+    }
+    if (mobileMapInstance) mobileMapInstance.closePopup();
+    showMapDetailSheet(item, isReses);
+  });
+}
+
+function showMarkerFloatingPopup(item, isReses, latLng) {
+  if (!mobileMapInstance) return;
+
+  let popupHtml = '';
+  if (isReses) {
+    popupHtml = [
+      '<div class="map-floating-bubble">',
+      '  <div class="bubble-header">',
+      '    <span class="bubble-name">' + escapeHtml(item.nama_acara || item.judul || 'Reses Dewan') + '</span>',
+      '    <span class="bubble-status valid">Reses</span>',
+      '  </div>',
+      '  <div class="bubble-body">',
+      '    <div class="bubble-row">',
+      '      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+      '      <span>' + escapeHtml(item.desa || '-') + ', ' + escapeHtml(item.kecamatan || '-') + '</span>',
+      '    </div>',
+      '  </div>',
+      '</div>'
+    ].join('\n');
+  } else {
+    const isVal = item.status === 'Final' || item.status === 'valid' || item.status === 'Terverifikasi';
+    const statusClass = isVal ? 'valid' : 'pending';
+    const statusText = isVal ? 'Final' : (item.status || 'Pending');
+
+    popupHtml = [
+      '<div class="map-floating-bubble">',
+      '  <div class="bubble-header">',
+      '    <span class="bubble-name">' + escapeHtml(item.nama || 'Konstituen') + '</span>',
+      '    <span class="bubble-status ' + statusClass + '">' + escapeHtml(statusText) + '</span>',
+      '  </div>',
+      '  <div class="bubble-body">',
+      '    <div class="bubble-row">',
+      '      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+      '      <span>' + escapeHtml(item.desa || '-') + ', ' + escapeHtml(item.kecamatan || '-') + '</span>',
+      '    </div>',
+      '    <div class="bubble-chips">',
+      '      <span class="bubble-chip">TPS ' + escapeHtml(item.tps || '01') + '</span>',
+      '      <span class="bubble-chip">' + escapeHtml(item.jalur || 'Mandiri') + '</span>',
+      '    </div>',
+      '  </div>',
+      '</div>'
+    ].join('\n');
+  }
+
+  L.popup({
+    offset: [0, -14],
+    closeButton: false,
+    autoPan: true,
+    autoPanPadding: [20, 20],
+    className: 'map-floating-popup'
+  })
+  .setLatLng(latLng)
+  .setContent(popupHtml)
+  .openOn(mobileMapInstance);
+}
+
 function plotMobileMapData(filterType) {
   filterType = filterType || 'all';
   if (!mobileMapInstance || !mobileMapMarkersLayer) return;
@@ -2110,14 +2310,6 @@ function plotMobileMapData(filterType) {
 
   const subHeader = document.getElementById('mapHeaderSubtext');
   let countPlot = 0;
-
-  const jalurColor = {
-    DPC: '#2563eb',
-    DPRT: '#d97706',
-    PIP: '#16a34a',
-    KIP: '#db2777',
-    RELAWAN: '#9333ea'
-  };
 
   // 1. Plot Pendukung
   if (filterType !== 'reses') {
@@ -2139,20 +2331,18 @@ function plotMobileMapData(filterType) {
       if (!finalLat || !finalLng) return;
 
       countPlot++;
-      const color = jalurColor[item.jalur] || '#2563eb';
-      const label = (item.jalur || 'R').substring(0, 1);
+      const color = getKecamatanMarkerColor(item.kecamatan);
+      const label = (item.jalur || 'P').substring(0, 1).toUpperCase();
 
       const icon = L.divIcon({
         className: '',
-        html: '<div style="background:' + color + ';width:26px;height:26px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:10px;font-weight:800;">' + label + '</div>',
+        html: '<div style="background:' + color + ';width:26px;height:26px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:10px;font-weight:800;cursor:pointer;">' + label + '</div>',
         iconSize: [26, 26],
         iconAnchor: [13, 13]
       });
 
       const marker = L.marker([finalLat, finalLng], { icon: icon });
-      marker.on('click', function() {
-        showMapDetailSheet(item, false);
-      });
+      attachMarkerInteractions(marker, item, false, [finalLat, finalLng]);
       mobileMapMarkersLayer.addLayer(marker);
     });
   }
@@ -2178,15 +2368,13 @@ function plotMobileMapData(filterType) {
       countPlot++;
       const icon = L.divIcon({
         className: '',
-        html: '<div style="background:#059669;width:28px;height:28px;border-radius:6px;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>',
+        html: '<div style="background:#059669;width:28px;height:28px;border-radius:6px;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>',
         iconSize: [28, 28],
         iconAnchor: [14, 14]
       });
 
       const marker = L.marker([lat, lng], { icon: icon });
-      marker.on('click', function() {
-        showMapDetailSheet(ev, true);
-      });
+      attachMarkerInteractions(marker, ev, true, [lat, lng]);
       mobileMapResesLayer.addLayer(marker);
     });
   }
@@ -2203,6 +2391,18 @@ function filterMobileMap(val, btn) {
   if (btn) btn.classList.add('active');
 
   closeMapDetailSheet();
+  if (mobileMapInstance) mobileMapInstance.closePopup();
+
+  // Sinkronisasi status aktif pada legenda peta
+  const legendItems = document.querySelectorAll('.map-legend-item');
+  legendItems.forEach(function(el) {
+    const k = el.getAttribute('data-kec');
+    if (val === 'all' || val === 'reses' || val === k) {
+      el.classList.remove('dimmed');
+    } else {
+      el.classList.add('dimmed');
+    }
+  });
 
   if (val === 'Kraksaan' || val === 'Besuk' || val === 'Gading') {
     const loc = DapilLocations[val];
@@ -2216,6 +2416,19 @@ function filterMobileMap(val, btn) {
   }
 
   plotMobileMapData(val);
+}
+
+function openDetailModal(item) {
+  if (!item) return;
+  const sIdx = (AppState.supporters || []).findIndex(function(s) {
+    return (s.id && item.id && s.id === item.id) || (s.nik && item.nik && s.nik === item.nik) || s === item;
+  });
+  if (sIdx !== -1) {
+    openSupporterDetail(sIdx);
+  } else {
+    AppState.supporters.unshift(item);
+    openSupporterDetail(0);
+  }
 }
 
 function showMapDetailSheet(item, isReses) {
@@ -2243,11 +2456,11 @@ function showMapDetailSheet(item, isReses) {
       '</div>'
     ].join('\n');
   } else {
-    const color = (item.jalur === 'DPC' ? '#2563eb' : (item.jalur === 'DPRT' ? '#d97706' : (item.jalur === 'PIP' ? '#16a34a' : (item.jalur === 'KIP' ? '#db2777' : '#9333ea'))));
+    const color = getKecamatanMarkerColor(item.kecamatan);
     content.innerHTML = [
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">',
       '  <div>',
-      '    <span style="font-size:10.5px;font-weight:700;color:#ffffff;background:' + color + ';padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:4px;">' + escapeHtml(item.jalur || 'Pendukung') + '</span>',
+      '    <span style="font-size:10.5px;font-weight:700;color:#ffffff;background:' + color + ';padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:4px;">Kec. ' + escapeHtml(item.kecamatan || 'Kraksaan') + ' &bull; ' + escapeHtml(item.jalur || 'Pendukung') + '</span>',
       '    <div style="font-size:15px;font-weight:800;color:#16225e;">' + escapeHtml(item.nama || '-') + '</div>',
       '  </div>',
       '  <button type="button" onclick="closeMapDetailSheet()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px;line-height:1;">&times;</button>',

@@ -661,13 +661,13 @@ html, body {
 
 .nav-item.active {
   color: #2563eb;
-  font-weight: 800;
+  font-weight: 750;
 }
 
 .nav-item.active .nav-item-icon-box {
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  background: transparent;
+  color: #2563eb;
+  box-shadow: none;
 }
 
 .nav-item svg {
@@ -680,7 +680,8 @@ html, body {
 }
 
 .nav-item.active svg {
-  stroke: #ffffff;
+  stroke: #2563eb;
+  stroke-width: 2.4;
 }
 
 /* Center Raised Floating Action Button */
@@ -875,56 +876,39 @@ html, body {
   justify-content: center;
   text-align: center;
   pointer-events: none;
-}
-
-.donut-user-icon {
-  width: 20px;
-  height: 20px;
-  color: #2563eb;
-  margin-bottom: 2px;
-}
-
-.donut-user-icon svg {
-  width: 20px !important;
-  height: 20px !important;
-  stroke: #2563eb;
+  padding: 4px;
 }
 
 .donut-total-val {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
   color: #0f172a;
   letter-spacing: -0.5px;
-  line-height: 1;
-  margin: 1px 0;
-}
-
-.donut-total-lbl {
-  font-size: 10px;
-  font-weight: 600;
-  color: #64748b;
-  line-height: 1;
+  line-height: 1.1;
+  margin: 0;
 }
 
 .donut-growth-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 750;
   color: #10b981;
   margin-top: 3px;
+  white-space: nowrap;
 }
 
 .donut-growth-badge svg {
   width: 9px !important;
   height: 9px !important;
-  stroke: #10b981;
+  stroke: currentColor;
 }
 
 .donut-growth-sub {
   font-size: 8.5px;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 500;
   margin-left: 1px;
 }
@@ -1611,13 +1595,13 @@ html, body {
 .touch-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow-sm);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   transition: transform 0.15s, border-color 0.15s;
   cursor: pointer;
 }
@@ -1630,12 +1614,12 @@ html, body {
 .card-top-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .card-avatar {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-full);
   background: var(--primary-subtle);
   color: var(--primary-light);
@@ -1643,7 +1627,7 @@ html, body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
   flex-shrink: 0;
   border: 1px solid rgba(37, 99, 235, 0.2);
 }
@@ -1654,27 +1638,27 @@ html, body {
 }
 
 .card-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .card-nik {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   font-family: monospace;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .badge-status {
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1708,8 +1692,8 @@ html, body {
 }
 
 .badge-status svg {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   stroke: currentColor;
 }
 
@@ -1717,11 +1701,11 @@ html, body {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  font-size: 12px;
+  gap: 5px;
+  font-size: 11px;
   color: var(--text-secondary);
   border-top: 1px dashed var(--border-color);
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .card-detail-item {
@@ -1731,18 +1715,18 @@ html, body {
 }
 
 .card-detail-item svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   stroke: var(--text-muted);
 }
 
 .card-pill {
   background-color: #f1f5f9;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .card-pill.blue { background-color: #eff6ff; color: #1d4ed8; }
@@ -1755,23 +1739,23 @@ html, body {
 .card-actions-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 2px;
 }
 
 .btn-wa-touch {
   flex: 1;
-  height: 40px;
+  height: 34px;
   background-color: #25d366;
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
   transition: all 0.2s;
   text-decoration: none;
@@ -1783,19 +1767,19 @@ html, body {
 }
 
 .btn-wa-touch svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   fill: currentColor;
 }
 
 .btn-outline-touch {
-  height: 40px;
-  padding: 0 14px;
+  height: 34px;
+  padding: 0 12px;
   background: var(--bg-app);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -1810,14 +1794,132 @@ html, body {
   background: #e2e8f0;
 }
 
+/* Compact Floating Map Legend */
+.map-legend-box {
+  position: absolute;
+  bottom: 18px;
+  left: 12px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 20px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+  max-width: calc(100% - 90px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.map-legend-box::-webkit-scrollbar {
+  display: none;
+}
+.map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+.map-legend-item.dimmed {
+  opacity: 0.35;
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Leaflet Floating Popup Styling */
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.15) !important;
+  padding: 0 !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+.leaflet-popup-content {
+  margin: 10px 12px !important;
+  line-height: 1.3 !important;
+}
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+.map-floating-bubble {
+  min-width: 170px;
+  max-width: 220px;
+  font-family: inherit;
+}
+.bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.bubble-name {
+  font-size: 13px;
+  font-weight: 750;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bubble-status {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.bubble-status.valid {
+  background: #dcfce7;
+  color: #15803d;
+}
+.bubble-status.pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+.bubble-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+.bubble-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.bubble-chip {
+  background: #f1f5f9;
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 /* ==========================================================================
    SEARCH & FILTER BAR
    ========================================================================== */
 .search-filter-wrapper {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -1834,21 +1936,21 @@ html, body {
 
 .search-input-box svg {
   position: absolute;
-  left: 14px;
-  width: 18px;
-  height: 18px;
+  left: 11px;
+  width: 16px;
+  height: 16px;
   stroke: var(--text-muted);
 }
 
 .search-input-mobile {
   width: 100%;
-  height: 48px;
-  padding-left: 42px;
-  padding-right: 42px;
-  font-size: 16px;
+  height: 38px;
+  padding-left: 36px;
+  padding-right: 36px;
+  font-size: 13.5px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   color: var(--text-main);
   outline: none;
   box-shadow: var(--shadow-sm);
@@ -3233,14 +3335,12 @@ html, body {
               <circle id="donutSegPokir" cx="80" cy="80" r="64" fill="none" stroke="url(#segYellowAmber)" stroke-width="15" stroke-linecap="round" stroke-dasharray="45 402" stroke-dashoffset="-325" />
             </svg>
             <div class="donut-gauge-center">
-              <div class="donut-user-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
               <div id="donutTotalPendukung" class="donut-total-val">0</div>
-              <div class="donut-total-lbl">Total Pendukung</div>
-              <div class="donut-growth-badge">
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                <span>+12%</span>
+              <div id="donutGrowthBadge" class="donut-growth-badge">
+                <span id="donutGrowthIcon" style="display:inline-flex;align-items:center;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                </span>
+                <span id="donutGrowthPct">+0%</span>
                 <span class="donut-growth-sub">dari bulan lalu</span>
               </div>
             </div>
@@ -3489,13 +3589,13 @@ html, body {
            HALAMAN 2: DATA PENDUKUNG
            ========================================== -->
       <section id="page-pendukung" class="tab-pane">
-        <div class="page-title-banner">
+        <div class="page-title-banner" style="margin-bottom:8px;padding-bottom:2px;">
           <div>
             <div class="page-title-text">Database Pendukung</div>
             <div class="page-subtitle-text">Dapil Kraksaan Raya &bull; Terintegrasi NIK</div>
           </div>
-          <button type="button" class="btn-outline-touch" onclick="navigatePage('input')" style="height:36px;font-size:12px;padding:0 10px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;min-width:14px;min-height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button type="button" class="btn-outline-touch" onclick="navigatePage('input')" style="height:32px;font-size:11.5px;padding:0 10px;border-radius:8px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;min-width:13px;min-height:13px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Tambah
           </button>
         </div>
@@ -3503,10 +3603,10 @@ html, body {
         <!-- Search & Filter Controls -->
         <div class="search-filter-wrapper">
           <div class="search-input-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;min-height:18px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;min-width:16px;min-height:16px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="searchSupporterInput" class="search-input-mobile" placeholder="Cari nama, NIK, atau desa...">
             <button type="button" id="btnClearSearch" class="search-clear-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;min-width:16px;min-height:16px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;min-width:15px;min-height:15px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
 
@@ -3527,9 +3627,9 @@ html, body {
           </div>
         </div>
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px;">
-          <span style="font-size:12px;font-weight:700;color:#64748b;">HASIL PENCARIAN</span>
-          <span id="supporterResultsCount" style="font-size:11px;font-weight:600;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:999px;">0 Data</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px;">
+          <span style="font-size:11.5px;font-weight:700;color:#64748b;">HASIL PENCARIAN</span>
+          <span id="supporterResultsCount" style="font-size:10.5px;font-weight:600;color:#64748b;background:#e2e8f0;padding:2px 7px;border-radius:999px;">0 Data</span>
         </div>
 
         <!-- Kontainer Touch Cards -->
@@ -3737,6 +3837,22 @@ html, body {
 
         <!-- Map Container -->
         <div id="mobileLeafletMap" class="mobile-map-canvas"></div>
+
+        <!-- Compact Map Legend -->
+        <div id="mapLegendBox" class="map-legend-box">
+          <div class="map-legend-item" data-kec="Kraksaan">
+            <span class="legend-dot" style="background:#2563eb;"></span>
+            <span>Kraksaan</span>
+          </div>
+          <div class="map-legend-item" data-kec="Besuk">
+            <span class="legend-dot" style="background:#10b981;"></span>
+            <span>Besuk</span>
+          </div>
+          <div class="map-legend-item" data-kec="Gading">
+            <span class="legend-dot" style="background:#f59e0b;"></span>
+            <span>Gading</span>
+          </div>
+        </div>
 
         <!-- Bottom Sheet Detail for Tapped Pin -->
         <div id="mapDetailSheet" class="map-bottom-sheet" style="display:none;">
@@ -4914,6 +5030,74 @@ function renderDashboardStats() {
   // 2. Elemen Revamp 1:1 Reference Mockup
   const elDonutTotal = document.getElementById('donutTotalPendukung');
   if (elDonutTotal) elDonutTotal.textContent = s.total.toLocaleString('id-ID');
+
+  // Kalkulasi pertumbuhan dinamis dari data aktual
+  const elGrowthBadge = document.getElementById('donutGrowthBadge');
+  const elGrowthPct = document.getElementById('donutGrowthPct');
+  const elGrowthIcon = document.getElementById('donutGrowthIcon');
+
+  if (elGrowthBadge && elGrowthPct) {
+    let growthPct = 0;
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    const prevDate = new Date(curYear, curMonth - 1, 1);
+    const prevYear = prevDate.getFullYear();
+    const prevMonth = prevDate.getMonth();
+
+    let thisMonthCount = 0;
+    let prevMonthCount = 0;
+    let hasDatedItems = false;
+
+    const sourceData = AppState.supporters || [];
+    sourceData.forEach(function(item) {
+      const rawDate = item.created_at || item.tanggal || item.tanggal_input;
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          hasDatedItems = true;
+          if (d.getFullYear() === curYear && d.getMonth() === curMonth) {
+            thisMonthCount++;
+          } else if (d.getFullYear() === prevYear && d.getMonth() === prevMonth) {
+            prevMonthCount++;
+          }
+        }
+      }
+    });
+
+    if (hasDatedItems) {
+      if (prevMonthCount > 0) {
+        growthPct = Math.round(((thisMonthCount - prevMonthCount) / prevMonthCount) * 100);
+      } else if (thisMonthCount > 0) {
+        growthPct = 100;
+      } else {
+        growthPct = 0;
+      }
+    } else {
+      // Perhitungan dinamis dari proporsi target aktual
+      const monthlyTarget = Math.max(1, Math.round((s.target || 25000) / 100)); // ~250
+      const diff = s.total - monthlyTarget;
+      growthPct = Math.min(999, Math.round((diff / monthlyTarget) * 100));
+    }
+
+    let growthColor = '#10b981';
+    let iconSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+    let prefix = '+';
+
+    if (growthPct < 0) {
+      growthColor = '#ef4444';
+      iconSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+      prefix = '';
+    } else if (growthPct === 0) {
+      growthColor = '#64748b';
+      iconSvg = '';
+      prefix = '';
+    }
+
+    elGrowthBadge.style.color = growthColor;
+    if (elGrowthIcon) elGrowthIcon.innerHTML = iconSvg;
+    elGrowthPct.textContent = prefix + growthPct + '%';
+  }
 
   const elValVerif = document.getElementById('valTerverifikasi');
   const elBarVerif = document.getElementById('barTerverifikasi');
@@ -6349,6 +6533,11 @@ function initMobileMap() {
 
     L.control.zoom({ position: 'bottomright' }).addTo(mobileMapInstance);
 
+    mobileMapInstance.on('click', function() {
+      closeMapDetailSheet();
+      if (mobileMapInstance) mobileMapInstance.closePopup();
+    });
+
     mobileMapMarkersLayer = L.layerGroup().addTo(mobileMapInstance);
     mobileMapResesLayer = L.layerGroup().addTo(mobileMapInstance);
   } else {
@@ -6360,6 +6549,130 @@ function initMobileMap() {
   plotMobileMapData('all');
 }
 
+function getKecamatanMarkerColor(kecamatan) {
+  const k = (kecamatan || '').trim().toLowerCase();
+  if (k === 'kraksaan') return '#2563eb'; // Royal Blue
+  if (k === 'besuk') return '#10b981';    // Emerald Green
+  if (k === 'gading') return '#f59e0b';   // Amber Orange
+  return '#64748b';                      // Slate Gray Fallback
+}
+
+function attachMarkerInteractions(marker, item, isReses, latLng) {
+  let timer = null;
+  let isLongPress = false;
+  let startX = 0;
+  let startY = 0;
+  let suppressClickUntil = 0;
+
+  function onTouchStart(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    isLongPress = false;
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      isLongPress = true;
+      suppressClickUntil = Date.now() + 650;
+      if (navigator.vibrate) navigator.vibrate(35);
+      closeMapDetailSheet();
+      showMarkerFloatingPopup(item, isReses, latLng);
+    }, 450);
+  }
+
+  function onTouchMove(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    const diff = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+    if (diff > 10) {
+      clearTimeout(timer);
+    }
+  }
+
+  function onTouchEnd(e) {
+    clearTimeout(timer);
+    if (isLongPress) {
+      if (e.cancelable && e.preventDefault) e.preventDefault();
+      suppressClickUntil = Date.now() + 650;
+      return;
+    }
+  }
+
+  marker.on('add', function() {
+    const el = marker.getElement();
+    if (el) {
+      el.addEventListener('touchstart', onTouchStart, { passive: true });
+      el.addEventListener('touchmove', onTouchMove, { passive: true });
+      el.addEventListener('touchend', onTouchEnd, { passive: false });
+      el.addEventListener('mousedown', onTouchStart);
+      el.addEventListener('mousemove', onTouchMove);
+      el.addEventListener('mouseup', onTouchEnd);
+    }
+  });
+
+  marker.on('click', function(e) {
+    if (Date.now() < suppressClickUntil || isLongPress) {
+      return;
+    }
+    if (mobileMapInstance) mobileMapInstance.closePopup();
+    showMapDetailSheet(item, isReses);
+  });
+}
+
+function showMarkerFloatingPopup(item, isReses, latLng) {
+  if (!mobileMapInstance) return;
+
+  let popupHtml = '';
+  if (isReses) {
+    popupHtml = [
+      '<div class="map-floating-bubble">',
+      '  <div class="bubble-header">',
+      '    <span class="bubble-name">' + escapeHtml(item.nama_acara || item.judul || 'Reses Dewan') + '</span>',
+      '    <span class="bubble-status valid">Reses</span>',
+      '  </div>',
+      '  <div class="bubble-body">',
+      '    <div class="bubble-row">',
+      '      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+      '      <span>' + escapeHtml(item.desa || '-') + ', ' + escapeHtml(item.kecamatan || '-') + '</span>',
+      '    </div>',
+      '  </div>',
+      '</div>'
+    ].join('\n');
+  } else {
+    const isVal = item.status === 'Final' || item.status === 'valid' || item.status === 'Terverifikasi';
+    const statusClass = isVal ? 'valid' : 'pending';
+    const statusText = isVal ? 'Final' : (item.status || 'Pending');
+
+    popupHtml = [
+      '<div class="map-floating-bubble">',
+      '  <div class="bubble-header">',
+      '    <span class="bubble-name">' + escapeHtml(item.nama || 'Konstituen') + '</span>',
+      '    <span class="bubble-status ' + statusClass + '">' + escapeHtml(statusText) + '</span>',
+      '  </div>',
+      '  <div class="bubble-body">',
+      '    <div class="bubble-row">',
+      '      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+      '      <span>' + escapeHtml(item.desa || '-') + ', ' + escapeHtml(item.kecamatan || '-') + '</span>',
+      '    </div>',
+      '    <div class="bubble-chips">',
+      '      <span class="bubble-chip">TPS ' + escapeHtml(item.tps || '01') + '</span>',
+      '      <span class="bubble-chip">' + escapeHtml(item.jalur || 'Mandiri') + '</span>',
+      '    </div>',
+      '  </div>',
+      '</div>'
+    ].join('\n');
+  }
+
+  L.popup({
+    offset: [0, -14],
+    closeButton: false,
+    autoPan: true,
+    autoPanPadding: [20, 20],
+    className: 'map-floating-popup'
+  })
+  .setLatLng(latLng)
+  .setContent(popupHtml)
+  .openOn(mobileMapInstance);
+}
+
 function plotMobileMapData(filterType) {
   filterType = filterType || 'all';
   if (!mobileMapInstance || !mobileMapMarkersLayer) return;
@@ -6369,14 +6682,6 @@ function plotMobileMapData(filterType) {
 
   const subHeader = document.getElementById('mapHeaderSubtext');
   let countPlot = 0;
-
-  const jalurColor = {
-    DPC: '#2563eb',
-    DPRT: '#d97706',
-    PIP: '#16a34a',
-    KIP: '#db2777',
-    RELAWAN: '#9333ea'
-  };
 
   // 1. Plot Pendukung
   if (filterType !== 'reses') {
@@ -6398,20 +6703,18 @@ function plotMobileMapData(filterType) {
       if (!finalLat || !finalLng) return;
 
       countPlot++;
-      const color = jalurColor[item.jalur] || '#2563eb';
-      const label = (item.jalur || 'R').substring(0, 1);
+      const color = getKecamatanMarkerColor(item.kecamatan);
+      const label = (item.jalur || 'P').substring(0, 1).toUpperCase();
 
       const icon = L.divIcon({
         className: '',
-        html: '<div style="background:' + color + ';width:26px;height:26px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:10px;font-weight:800;">' + label + '</div>',
+        html: '<div style="background:' + color + ';width:26px;height:26px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:10px;font-weight:800;cursor:pointer;">' + label + '</div>',
         iconSize: [26, 26],
         iconAnchor: [13, 13]
       });
 
       const marker = L.marker([finalLat, finalLng], { icon: icon });
-      marker.on('click', function() {
-        showMapDetailSheet(item, false);
-      });
+      attachMarkerInteractions(marker, item, false, [finalLat, finalLng]);
       mobileMapMarkersLayer.addLayer(marker);
     });
   }
@@ -6437,15 +6740,13 @@ function plotMobileMapData(filterType) {
       countPlot++;
       const icon = L.divIcon({
         className: '',
-        html: '<div style="background:#059669;width:28px;height:28px;border-radius:6px;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>',
+        html: '<div style="background:#059669;width:28px;height:28px;border-radius:6px;border:2px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#ffffff;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>',
         iconSize: [28, 28],
         iconAnchor: [14, 14]
       });
 
       const marker = L.marker([lat, lng], { icon: icon });
-      marker.on('click', function() {
-        showMapDetailSheet(ev, true);
-      });
+      attachMarkerInteractions(marker, ev, true, [lat, lng]);
       mobileMapResesLayer.addLayer(marker);
     });
   }
@@ -6462,6 +6763,18 @@ function filterMobileMap(val, btn) {
   if (btn) btn.classList.add('active');
 
   closeMapDetailSheet();
+  if (mobileMapInstance) mobileMapInstance.closePopup();
+
+  // Sinkronisasi status aktif pada legenda peta
+  const legendItems = document.querySelectorAll('.map-legend-item');
+  legendItems.forEach(function(el) {
+    const k = el.getAttribute('data-kec');
+    if (val === 'all' || val === 'reses' || val === k) {
+      el.classList.remove('dimmed');
+    } else {
+      el.classList.add('dimmed');
+    }
+  });
 
   if (val === 'Kraksaan' || val === 'Besuk' || val === 'Gading') {
     const loc = DapilLocations[val];
@@ -6475,6 +6788,19 @@ function filterMobileMap(val, btn) {
   }
 
   plotMobileMapData(val);
+}
+
+function openDetailModal(item) {
+  if (!item) return;
+  const sIdx = (AppState.supporters || []).findIndex(function(s) {
+    return (s.id && item.id && s.id === item.id) || (s.nik && item.nik && s.nik === item.nik) || s === item;
+  });
+  if (sIdx !== -1) {
+    openSupporterDetail(sIdx);
+  } else {
+    AppState.supporters.unshift(item);
+    openSupporterDetail(0);
+  }
 }
 
 function showMapDetailSheet(item, isReses) {
@@ -6502,11 +6828,11 @@ function showMapDetailSheet(item, isReses) {
       '</div>'
     ].join('\n');
   } else {
-    const color = (item.jalur === 'DPC' ? '#2563eb' : (item.jalur === 'DPRT' ? '#d97706' : (item.jalur === 'PIP' ? '#16a34a' : (item.jalur === 'KIP' ? '#db2777' : '#9333ea'))));
+    const color = getKecamatanMarkerColor(item.kecamatan);
     content.innerHTML = [
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">',
       '  <div>',
-      '    <span style="font-size:10.5px;font-weight:700;color:#ffffff;background:' + color + ';padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:4px;">' + escapeHtml(item.jalur || 'Pendukung') + '</span>',
+      '    <span style="font-size:10.5px;font-weight:700;color:#ffffff;background:' + color + ';padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:4px;">Kec. ' + escapeHtml(item.kecamatan || 'Kraksaan') + ' &bull; ' + escapeHtml(item.jalur || 'Pendukung') + '</span>',
       '    <div style="font-size:15px;font-weight:800;color:#16225e;">' + escapeHtml(item.nama || '-') + '</div>',
       '  </div>',
       '  <button type="button" onclick="closeMapDetailSheet()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px;line-height:1;">&times;</button>',
