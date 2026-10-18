@@ -126,6 +126,15 @@ switch ($action) {
             json_response(['success' => false, 'message' => 'Nama dan NIK wajib diisi. Silakan periksa kembali kelengkapan formulir.']);
         }
 
+        // Validasi Wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)
+        $dapilKecamatan = ['Kraksaan', 'Besuk', 'Gading'];
+        if (!in_array($kecamatan, $dapilKecamatan)) {
+            json_response([
+                'success' => false,
+                'message' => "Pendaftaran ditolak: Kecamatan '{$kecamatan}' berada di luar wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)."
+            ], 422);
+        }
+
         // Kunci wilayah input jika user adalah Koordinator Desa / Admin Ranting / Koordinator Kecamatan
         if (($user['role'] === 'Koordinator Desa' || $user['role'] === 'Admin Ranting') && !empty($user['desa'])) {
             $desa = $user['desa'];

@@ -188,6 +188,15 @@ class PendukungController extends Controller
             return response()->json(['success' => false, 'message' => 'Nama dan NIK wajib diisi. Silakan periksa kembali kelengkapan formulir.']);
         }
 
+        // Validasi Wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)
+        $dapilKecamatan = ['Kraksaan', 'Besuk', 'Gading'];
+        if (!in_array($kecamatan, $dapilKecamatan)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Pendaftaran ditolak: Kecamatan '{$kecamatan}' berada di luar wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)."
+            ], 422);
+        }
+
         // Anti-Duplikasi NIK
         $ada = Pendukung::where('nik', $nik)->first();
         if ($ada) {

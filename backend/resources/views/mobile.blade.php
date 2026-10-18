@@ -51,6 +51,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
+@keyframes shakeAlert {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
 /* Strict Global SVG Containment */
 svg {
   max-width: 100%;
@@ -4162,7 +4168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=22')
+      navigator.serviceWorker.register('./sw.js?v=23')
         .then(reg => {
           console.log('ServiceWorker PWA Aktif:', reg.scope);
           reg.update();
@@ -8187,6 +8193,9 @@ async function handleEditSupporterSubmit(e, index) {
 // Buka Formulir Entri 5 Jalur
 function openEntryForm(jalurKey, jalurTitle) {
   AppState.activeJalur = jalurKey;
+  if (typeof resetDapilRejection === 'function') {
+    resetDapilRejection();
+  }
 
   let specificFieldsHtml = '';
   if (jalurKey === 'DPC') {
@@ -8305,6 +8314,9 @@ function openEntryForm(jalurKey, jalurTitle) {
         <input type="file" id="ocrFileInput" accept="image/*" capture="camera" style="display:none;" onchange="handleOcrFile(event)">
       </div>
 
+      <!-- Wadah Alert Penolakan Luar Dapil (Tanda Merah) -->
+      <div id="dapilAlertContainer"></div>
+
       <!-- GPS Presisi Box -->
       <div class="gps-capture-card">
         <div class="gps-info-box">
@@ -8337,7 +8349,7 @@ function openEntryForm(jalurKey, jalurTitle) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-group">
           <label class="form-label">Kecamatan <span class="required-mark">*</span></label>
-          <select id="formKecamatan" class="form-select-touch" onchange="updateDesaDropdown(this.value)" required>
+          <select id="formKecamatan" class="form-select-touch" onchange="handleKecamatanChange(this.value)" required>
             <option value="Kraksaan" selected>Kraksaan</option>
             <option value="Besuk">Besuk</option>
             <option value="Gading">Gading</option>
@@ -8374,7 +8386,7 @@ function openEntryForm(jalurKey, jalurTitle) {
       <input type="hidden" id="formJalur" value="${escapeHtml(jalurKey)}">
 
       <div class="sticky-form-cta">
-        <button type="submit" class="btn-primary-touch">
+        <button type="submit" id="btnSubmitPendukung" class="btn-primary-touch">
           ${Icons.checkCircle} Simpan Data Pendukung
         </button>
       </div>
@@ -8515,74 +8527,10 @@ function parseHasilOcrKtpMobile(teks) {
   return hasil;
 }
 
-// Fungsi Pemanggilan Langsung Google Gemini Vision AI dari Browser Klien (Bypass Hosting Timeout)
+// Pemanggilan AI OCR e-KTP dialihkan secara aman melalui backend proxy (api/ocr.php)
 async function callGeminiDirectCloud(dataUrl, model) {
-  const models = [model || 'gemini-3.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.6-flash', 'gemini-pro-latest'];
-  const rawBase64 = dataUrl.split(',')[1];
-  const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
-  const apiKey = atob('QVEuQWI4Uk42TGpaLS16SjdYNnBJQWxHOGw2YU9Sa3QxTVpJRWczb2lRVnh5NGItZUVYSGc=');
-
-  const promptText = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Indonesia. "
-    + "Tugasmu adalah membaca dan mengekstrak data dari foto KTP yang diberikan secara sangat akurat dan presisi. "
-    + "Format keluaran WAJIB HANYA JSON murni (valid JSON tanpa tanda kutip markdown) dengan struktur objek: "
-    + "{"
-    + "\"is_ktp\": true, "
-    + "\"nik\": \"16 digit angka NIK murni\", "
-    + "\"nama\": \"Nama lengkap warga\", "
-    + "\"tempat_tgl_lahir\": \"Tempat dan tanggal lahir\", "
-    + "\"jenis_kelamin\": \"LAKI-LAKI atau PEREMPUAN\", "
-    + "\"alamat\": \"Alamat jalan atau dusun\", "
-    + "\"rt_rw\": \"Nomor RT dan RW misal 003/002\", "
-    + "\"kel_desa\": \"Nama desa atau kelurahan\", "
-    + "\"kecamatan\": \"Nama kecamatan\", "
-    + "\"agama\": \"Agama\", "
-    + "\"status_perkawinan\": \"Status perkawinan\", "
-    + "\"pekerjaan\": \"Pekerjaan\""
-    + "} "
-    + "Pedoman penting: "
-    + "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
-    + "2. Baca field 'Kecamatan' dan 'Kel/Desa' secara akurat dan bersih tanpa kata awalan (contoh: jika tertulis 'Kecamatan : BESUK', isi 'kecamatan': 'Besuk'; jika tertulis 'Kel/Desa : SUMURDALAM', isi 'kel_desa': 'Sumurdalam'). "
-    + "3. Wilayah KTP ini umumnya di Kabupaten Probolinggo (Dapil Kraksaan, Besuk, atau Gading). "
-    + "4. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca, kembalikan is_ktp: false dan seluruh field string kosong.";
-
-  const payload = {
-    contents: [{
-      parts: [
-        { text: promptText },
-        { inline_data: { mime_type: mimeType, data: rawBase64 } }
-      ]
-    }],
-    generationConfig: {
-      response_mime_type: 'application/json',
-      temperature: 0.1
-    }
-  };
-
-  let lastError = null;
-  const uniqueModels = [...new Set(models)];
-  for (const m of uniqueModels) {
-    try {
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent?key=' + encodeURIComponent(apiKey);
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        lastError = new Error('Model ' + m + ' HTTP ' + res.status);
-        continue;
-      }
-      const json = await res.json();
-      if (json && json.candidates && json.candidates[0] && json.candidates[0].content) {
-        const rawText = json.candidates[0].content.parts[0].text;
-        const cleanText = rawText.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-        return JSON.parse(cleanText);
-      }
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError || new Error('Format output Gemini tidak valid');
+  // Pemanggilan langsung sisi klien dinonaktifkan untuk melindungi API key server
+  throw new Error('Pemrosesan OCR e-KTP dialihkan melalui backend server.');
 }
 
 // ==========================================
@@ -8670,6 +8618,176 @@ window.updateKtpScannerProgress = updateKtpScannerProgress;
 window.finishKtpScannerModal = finishKtpScannerModal;
 window.highlightOcrInput = highlightOcrInput;
 
+// Daftar Referensi Kode Kemendagri Kecamatan Kabupaten Probolinggo
+const KEC_KODE_PROB = {
+  '351324': 'Kraksaan',
+  '351319': 'Besuk',
+  '351309': 'Gading',
+  '351310': 'Gading',
+  '351321': 'Gading',
+  '351312': 'Paiton',
+  '351313': 'Kotaanyar',
+  '351311': 'Pakuniran',
+  '351314': 'Krejengan',
+  '351315': 'Pajarakan',
+  '351316': 'Maron',
+  '351306': 'Banyuanyar',
+  '351308': 'Krucil',
+  '351307': 'Tiris',
+  '351317': 'Dringu',
+  '351318': 'Tegalsiwalan',
+  '351305': 'Leces',
+  '351304': 'Bantaran',
+  '351303': 'Kuripan',
+  '351302': 'Sumber',
+  '351301': 'Sukapura',
+  '351320': 'Sumberasih',
+  '351322': 'Tongas'
+};
+
+// Penanganan Penolakan Otomatis Sistem untuk KTP di Luar Wilayah Dapil Kraksaan Raya
+window.triggerDapilRejection = function(info) {
+  info = info || {};
+  const alertContainer = document.getElementById('dapilAlertContainer');
+  const outsideKec = (info.kecamatan || 'Luar Wilayah').trim();
+  const outsideDesa = (info.desa || '').trim();
+
+  if (alertContainer) {
+    alertContainer.innerHTML = `
+      <div id="dapilRejectionAlert" style="background:#fef2f2;border:2px solid #ef4444;border-radius:14px;padding:14px 16px;margin:12px 0 16px 0;box-shadow:0 4px 14px rgba(239,68,68,0.15);animation:shakeAlert 0.4s ease;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="background:#fee2e2;color:#dc2626;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:#991b1b;margin-bottom:4px;letter-spacing:-0.2px;">
+              KTP Ditolak Sistem (Di Luar Wilayah Dapil)
+            </div>
+            <div style="font-size:12.5px;color:#b91c1c;line-height:1.5;">
+              Terdeteksi KTP beralamat di: <strong>Kecamatan ${escapeHtml(outsideKec)}${outsideDesa ? ', Desa ' + escapeHtml(outsideDesa) : ''}</strong>.
+            </div>
+            <div style="font-size:11.5px;color:#7f1d1d;margin-top:8px;background:rgba(239,68,68,0.08);padding:8px 10px;border-radius:8px;border-left:3px solid #dc2626;line-height:1.45;">
+              <strong>Pemberitahuan:</strong> Aplikasi ini khusus basis pemenangan <strong>Dapil Kraksaan Raya (Kecamatan Kraksaan, Besuk, dan Gading)</strong>. KTP di luar wilayah Dapil tidak dapat disimpan ke sistem.
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Tampilkan opsi wilayah luar di dropdown agar terbaca jelas oleh pengguna
+  const inKec = document.getElementById('formKecamatan');
+  const inDesa = document.getElementById('formDesa');
+  if (inKec && outsideKec) {
+    let optK = document.getElementById('opt-outside-kec');
+    if (!optK) {
+      optK = document.createElement('option');
+      optK.id = 'opt-outside-kec';
+      inKec.insertBefore(optK, inKec.firstChild);
+    }
+    optK.value = outsideKec;
+    optK.textContent = outsideKec + ' (Di Luar Dapil)';
+    optK.selected = true;
+    optK.disabled = true;
+    inKec.style.borderColor = '#ef4444';
+    inKec.style.backgroundColor = '#fef2f2';
+    inKec.style.color = '#b91c1c';
+  }
+
+  if (inDesa && outsideDesa) {
+    let optD = document.getElementById('opt-outside-desa');
+    if (!optD) {
+      optD = document.createElement('option');
+      optD.id = 'opt-outside-desa';
+      inDesa.insertBefore(optD, inDesa.firstChild);
+    }
+    optD.value = outsideDesa;
+    optD.textContent = outsideDesa + ' (Di Luar Dapil)';
+    optD.selected = true;
+    optD.disabled = true;
+    inDesa.style.borderColor = '#ef4444';
+    inDesa.style.backgroundColor = '#fef2f2';
+    inDesa.style.color = '#b91c1c';
+  }
+
+  // Kunci tombol simpan
+  const submitBtn = document.getElementById('btnSubmitPendukung') || document.querySelector('#entryBottomSheet form button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.dataset.dapilBlocked = 'true';
+    submitBtn.style.background = '#ef4444';
+    submitBtn.style.color = '#ffffff';
+    submitBtn.style.cursor = 'not-allowed';
+    submitBtn.style.opacity = '0.85';
+    submitBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+      Ditolak: Di Luar Wilayah Dapil
+    `;
+  }
+};
+
+window.resetDapilRejection = function() {
+  const alertContainer = document.getElementById('dapilAlertContainer');
+  if (alertContainer) alertContainer.innerHTML = '';
+
+  const optK = document.getElementById('opt-outside-kec');
+  if (optK) optK.remove();
+  const optD = document.getElementById('opt-outside-desa');
+  if (optD) optD.remove();
+
+  const inKec = document.getElementById('formKecamatan');
+  if (inKec) {
+    inKec.style.borderColor = '';
+    inKec.style.backgroundColor = '';
+    inKec.style.color = '';
+    if (!['Kraksaan', 'Besuk', 'Gading'].includes(inKec.value)) {
+      inKec.value = 'Kraksaan';
+    }
+  }
+
+  const inDesa = document.getElementById('formDesa');
+  if (inDesa) {
+    inDesa.style.borderColor = '';
+    inDesa.style.backgroundColor = '';
+    inDesa.style.color = '';
+  }
+
+  const submitBtn = document.getElementById('btnSubmitPendukung') || document.querySelector('#entryBottomSheet form button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    delete submitBtn.dataset.dapilBlocked;
+    submitBtn.style.background = '';
+    submitBtn.style.color = '';
+    submitBtn.style.cursor = '';
+    submitBtn.style.opacity = '';
+    submitBtn.innerHTML = `${Icons.checkCircle || ''} Simpan Data Pendukung`;
+  }
+};
+
+window.handleKecamatanChange = function(val) {
+  const optK = document.getElementById('opt-outside-kec');
+  if (optK && val !== optK.value) optK.remove();
+  const optD = document.getElementById('opt-outside-desa');
+  if (optD) optD.remove();
+
+  if (typeof updateDesaDropdown === 'function') {
+    updateDesaDropdown(val);
+  }
+
+  const inNik = document.getElementById('formNik');
+  const cleanedNik = (inNik?.value || '').replace(/\D/g, '');
+  if (cleanedNik.length >= 6) {
+    const pfx = cleanedNik.substring(0, 6);
+    if (!['351324', '351319', '351309', '351310', '351321'].includes(pfx)) {
+      return;
+    }
+  }
+
+  if (['Kraksaan', 'Besuk', 'Gading'].includes(val)) {
+    resetDapilRejection();
+  }
+};
+
 // Fungsi Penentuan Kecamatan & Desa Cerdas Berdasarkan Hasil Ekstraksi KTP
 function autoSelectKecamatanDanDesa(ocrData) {
   if (!ocrData || typeof ocrData !== 'object') return false;
@@ -8678,10 +8796,10 @@ function autoSelectKecamatanDanDesa(ocrData) {
   const inDesa = document.getElementById('formDesa');
   if (!inKec || !inDesa) return false;
 
-  const rawKec = String(ocrData.kecamatan || '');
-  const rawDesa = String(ocrData.kel_desa || '');
-  const rawAlamat = String(ocrData.alamat || '');
-  const rawNik = String(ocrData.nik || '');
+  const rawKec = String(ocrData.kecamatan || '').trim();
+  const rawDesa = String(ocrData.kel_desa || '').trim();
+  const rawAlamat = String(ocrData.alamat || '').trim();
+  const rawNik = String(ocrData.nik || '').replace(/\D/g, '');
 
   function cleanGeo(str) {
     return (str || '')
@@ -8693,6 +8811,25 @@ function autoSelectKecamatanDanDesa(ocrData) {
   const cleanKec = cleanGeo(rawKec);
   const cleanDesa = cleanGeo(rawDesa);
   const cleanAlamat = cleanGeo(rawAlamat);
+  const nikPrefix = rawNik.substring(0, 6);
+
+  // Periksa apakah wilayah KTP berada di LUAR Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)
+  const isKecOutside = cleanKec && !cleanKec.includes('kraksaan') && !cleanKec.includes('besuk') && !cleanKec.includes('gading');
+  const isNikOutside = nikPrefix.length === 6 && !['351324', '351319', '351309', '351310', '351321'].includes(nikPrefix);
+
+  if (isKecOutside || (isNikOutside && !cleanKec)) {
+    const outsideKecName = rawKec || (KEC_KODE_PROB[nikPrefix] ? 'Kec. ' + KEC_KODE_PROB[nikPrefix] : (nikPrefix ? 'Kode NIK ' + nikPrefix : 'Luar Dapil'));
+    triggerDapilRejection({
+      kecamatan: outsideKecName,
+      desa: rawDesa,
+      nik: rawNik,
+      reason: 'Kecamatan ' + outsideKecName + ' berada di luar wilayah pemilihan Dapil Kraksaan Raya'
+    });
+    return 'REJECTED';
+  }
+
+  // Jika masuk Dapil, pastikan alert penolakan sebelumnya direset
+  resetDapilRejection();
 
   let detectedKec = '';
   let detectedDesa = '';
@@ -8746,8 +8883,6 @@ function autoSelectKecamatanDanDesa(ocrData) {
     else if (cleanAlamat.includes('gading')) detectedKec = 'Gading';
     else if (cleanAlamat.includes('kraksaan')) detectedKec = 'Kraksaan';
     else {
-      const nikClean = rawNik.replace(/\D/g, '');
-      const nikPrefix = nikClean.substring(0, 6);
       if (nikPrefix === '351319') detectedKec = 'Besuk';
       else if (nikPrefix === '351321' || nikPrefix === '351309' || nikPrefix === '351310') detectedKec = 'Gading';
       else if (nikPrefix === '351324') detectedKec = 'Kraksaan';
@@ -8889,12 +9024,21 @@ async function handleOcrFile(event) {
           }
 
           // Otomatisasi cerdas penentuan Kecamatan & Desa dari data KTP
+          let isDapilRejected = false;
           if (typeof autoSelectKecamatanDanDesa === 'function') {
-            const geoOk = autoSelectKecamatanDanDesa(d);
-            if (geoOk) count++;
+            const geoRes = autoSelectKecamatanDanDesa(d);
+            if (geoRes === 'REJECTED' || document.getElementById('dapilRejectionAlert')) {
+              isDapilRejected = true;
+            } else if (geoRes) {
+              count++;
+            }
           }
 
-          if (count > 0) {
+          if (isDapilRejected) {
+            finishKtpScannerModal(false, 'KTP DITOLAK SISTEM: Alamat KTP di luar wilayah Dapil Kraksaan Raya!', () => {
+              showToast('KTP Ditolak Sistem! Alamat ' + (d.kecamatan || 'KTP') + ' berada di luar wilayah Dapil Kraksaan Raya.', 'danger');
+            });
+          } else if (count > 0) {
             finishKtpScannerModal(true, 'Data e-KTP berhasil diekstrak dan diisi otomatis', () => {
               showToast('KTP Berhasil Dipindai dengan AI Gemini Vision! NIK dan Nama terisi otomatis.', 'success');
             });
@@ -8937,6 +9081,12 @@ window.handleMobileNikInput = function(nik) {
       fb.innerHTML = 'Ketik 16 digit NIK (' + cleaned.length + '/16)';
     } else {
       fb.style.display = 'none';
+      if (typeof resetDapilRejection === 'function') {
+        const inKec = document.getElementById('formKecamatan');
+        if (inKec && ['Kraksaan', 'Besuk', 'Gading'].includes(inKec.value)) {
+          resetDapilRejection();
+        }
+      }
     }
     return;
   }
@@ -8953,9 +9103,38 @@ window.handleMobileNikInput = function(nik) {
   const yearFull = (parseInt(yearShort, 10) > 30 ? '19' : '20') + yearShort;
   const tglLahirStr = (day < 10 ? '0' : '') + day + '-' + month + '-' + yearFull;
 
-  // Deteksi otomatis Kecamatan Dapil dari kode NIK jika sesuai
+  // Deteksi kode kecamatan dari NIK (6 digit pertama)
   const kecCode = cleaned.substring(0, 6);
   const inKec = document.getElementById('formKecamatan');
+
+  // Cek apakah NIK berasal dari LUAR DAPIL Kraksaan Raya
+  const isDapilNik = ['351324', '351319', '351309', '351310', '351321'].includes(kecCode);
+
+  if (!isDapilNik) {
+    const namaKec = KEC_KODE_PROB[kecCode] || (kecCode.substring(0, 4) === '3513' ? 'Kab. Probolinggo' : 'Luar Probolinggo');
+    fb.style.display = 'block';
+    fb.style.background = '#fef2f2';
+    fb.style.color = '#b91c1c';
+    fb.style.border = '1px solid #ef4444';
+    fb.innerHTML = '<strong>Peringatan Merah - KTP Ditolak:</strong> NIK (' + kecCode + ') terdeteksi di luar Dapil Kraksaan Raya (' + (KEC_KODE_PROB[kecCode] ? 'Kec. ' + KEC_KODE_PROB[kecCode] : namaKec) + '). Hanya warga Kraksaan, Besuk, dan Gading yang dapat didaftarkan.';
+
+    if (typeof triggerDapilRejection === 'function') {
+      triggerDapilRejection({
+        kecamatan: (KEC_KODE_PROB[kecCode] || namaKec),
+        desa: '',
+        nik: cleaned,
+        reason: 'NIK ' + cleaned + ' terdaftar di luar wilayah Dapil (' + (KEC_KODE_PROB[kecCode] || namaKec) + ')'
+      });
+    }
+    return;
+  }
+
+  // Jika NIK valid dalam Dapil, reset penolakan dapil
+  if (typeof resetDapilRejection === 'function') {
+    resetDapilRejection();
+  }
+
+  // Deteksi otomatis Kecamatan Dapil dari kode NIK jika sesuai
   if (inKec) {
     if (kecCode === '351324' && inKec.value !== 'Kraksaan') {
       inKec.value = 'Kraksaan';
@@ -9104,6 +9283,20 @@ async function handleFormSubmit(event) {
   const lat = document.getElementById('formLat')?.value || '';
   const lng = document.getElementById('formLng')?.value || '';
   const jalur = (AppState.activeJalur || document.getElementById('formJalur')?.value || 'RELAWAN').toUpperCase();
+
+  // Validasi Ketat Wilayah Dapil Kraksaan Raya (Kraksaan, Besuk, Gading)
+  const allowedKecamatan = ['Kraksaan', 'Besuk', 'Gading'];
+  const hasDapilAlert = Boolean(document.getElementById('dapilRejectionAlert'));
+  if (hasDapilAlert || !allowedKecamatan.includes(kecamatan)) {
+    showToast('Pendaftaran ditolak! Wilayah di luar Dapil Kraksaan Raya (Kraksaan, Besuk, Gading).', 'danger');
+    return;
+  }
+
+  const kecCode = nik.replace(/\D/g, '').substring(0, 6);
+  if (!['351324', '351319', '351309', '351310', '351321'].includes(kecCode)) {
+    showToast('Pendaftaran ditolak! NIK KTP terdaftar di luar Dapil Kraksaan Raya.', 'danger');
+    return;
+  }
 
   if (nik.length < 16) {
     showToast('NIK harus terdiri dari 16 digit angka.', 'danger');

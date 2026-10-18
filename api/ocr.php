@@ -88,7 +88,7 @@ $prompt = "Kamu adalah asisten OCR ahli untuk kartu identitas e-KTP Republik Ind
         . "Pedoman penting: "
         . "1. NIK harus tepat 16 digit angka. Koreksi jika ada huruf O terbaca 0, I terbaca 1, B terbaca 8, S terbaca 5. "
         . "2. Baca field 'Kecamatan' dan 'Kel/Desa' secara akurat dan bersih tanpa kata awalan (contoh: jika tertulis 'Kecamatan : BESUK', isi 'kecamatan': 'Besuk'; jika tertulis 'Kel/Desa : SUMURDALAM', isi 'kel_desa': 'Sumurdalam'). "
-        . "3. Wilayah KTP ini umumnya di Kabupaten Probolinggo (Dapil Kraksaan, Besuk, atau Gading). "
+        . "3. Wilayah KTP ini umumnya di Kabupaten Probolinggo atau Jawa Timur. Ekstrak nama 'Kecamatan' dan 'Kel/Desa' PERSIS apa adanya sesuai teks fisik kartu (contoh: jika tertera PAITON, isi 'Paiton'; jika KRAKSAAN, isi 'Kraksaan'; jika BESUK, isi 'Besuk'; jika GADING, isi 'Gading'). Jangan pernah mengganti atau mengasumsikan kecamatan yang berbeda dari yang tercetak di kartu. "
         . "4. Jika gambar BUKAN e-KTP Indonesia atau teks tidak terbaca sama sekali, kembalikan is_ktp: false dan seluruh field string kosong. "
         . "5. Jangan sertakan teks pengantar atau markdown apapun selain objek JSON di atas.";
 
